@@ -239,7 +239,11 @@ window.OvenCanvasController = class OvenCanvasController {
     ctx.font = 'bold 13px sans-serif';
     ctx.textAlign = 'center';
     const statusShort = this.ovenRunning
-      ? `${this.selectedTemp}°C • ${this.bakeElapsed.toFixed(1)}s`
+      ? (this.bakeState === 'perfect'
+        ? `CHÍN! BẤM LẤY NGAY (${this.bakeElapsed.toFixed(1)}s)`
+        : this.bakeState === 'burnt'
+          ? `CHÁY KHÉT! (${this.bakeElapsed.toFixed(1)}s)`
+          : `${this.selectedTemp}°C • ${this.bakeElapsed.toFixed(1)}s`)
       : `${this.selectedTemp}°C • ${this.batterPoured ? 'Sẵn sàng' : 'Chờ bột'}`;
     ctx.fillText(statusShort, ox + ow / 2, oy + 37);
 

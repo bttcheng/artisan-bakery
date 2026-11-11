@@ -9,13 +9,60 @@ window.BakingManager = class BakingManager {
     this.recipes = recipeManager;
     this.upgrades = upgradeManager;
     this.audio = audioManager;
-    this.session = null;
+    this.sessions = {};
+    this.activeOrderId = null;
+  }
+
+  get session() {
+    return this.activeOrderId ? (this.sessions[this.activeOrderId] || null) : null;
+  }
+
+  set session(val) {
+    if (!val) {
+      if (this.activeOrderId) delete this.sessions[this.activeOrderId];
+      this.activeOrderId = null;
+      return;
+    }
+    if (val.orderId) {
+      this.sessions[val.orderId] = val;
+      this.activeOrderId = val.orderId;
+    }
+  }
+
+  getSession(orderId) {
+    return this.sessions[orderId] || null;
+  }
+
+  getAllSessions() {
+    return Object.values(this.sessions);
+  }
+
+  getActiveSessionCount() {
+    return Object.keys(this.sessions).length;
+  }
+
+  removeSession(orderId) {
+    delete this.sessions[orderId];
+    if (this.activeOrderId === orderId) {
+      const remaining = Object.keys(this.sessions);
+      this.activeOrderId = remaining.length > 0 ? remaining[0] : null;
+    }
+  }
+
+  resetAll() {
+    this.sessions = {};
+    this.activeOrderId = null;
   }
 
   startSession(order) {
-    this.session = {
+    if (this.sessions[order.orderId]) {
+      this.activeOrderId = order.orderId;
+      return this.sessions[order.orderId];
+    }
+    const created = {
       orderId: order.orderId,
       targetOrder: order,
+      step: 'prep',
       // Player selections (must actively choose!)
       selectedCakeType: null,
       selectedBatter: null,
@@ -30,13 +77,28 @@ window.BakingManager = class BakingManager {
       selectedTemp: 180,
       ovenRunning: false,
       bakeElapsed: 0,
-      bakeTargetTime: 7,
+      bakeTargetTime: 5.5,
       bakeState: 'raw', // raw | baking | perfect | burnt
       bakeQuality: 0,
+      perfectHitAccuracy: 0,
       dingPlayed: false,
+      nearBurnAlerted: false,
+      burntAlerted: false,
+      // Per-order persisted decoration & packaging stages when juggling 2-3 orders
+      decoState: null,
+      decoHistory: [],
+      pkgState: null,
       startedAt: Date.now()
     };
-    return this.session;
+    this.sessions[order.orderId] = created;
+    this.activeOrderId = order.orderId;
+    return created;
+  }
+
+  switchActiveSession(orderId) {
+    if (!this.sessions[orderId]) return null;
+    this.activeOrderId = orderId;
+    return this.sessions[orderId];
   }
 
   getMissingIngredientsForOrder(order) {
@@ -50,9 +112,19 @@ window.BakingManager = class BakingManager {
     this.session.selectedCakeType = cakeTypeId;
     const cake = this.recipes.getCakeType(cakeTypeId);
     const ovenLvl = this.upgrades.getUpgradeLevelData('oven');
-    this.session.bakeTargetTime = +(cake.bakeTime / ovenLvl.speedMult).toFixed(2);
+    // Snappy 3.8..7.2s oven cycle so baking keeps a crisp 20-40s overall rhythm
+    this.session.bakeTargetTime = Math.max(3.8, +((cake.bakeTime * 0.68) / ovenLvl.speedMult).toFixed(2));
     this.audio.playClick();
     return { ok: true };
+  }
+
+  getEffectivePerfectWindow(session = this.session) {
+    const ovenLvl = this.upgrades.getUpgradeLevelData('oven');
+    const baseWin = ovenLvl ? (ovenLvl.perfectWindow || 2.8) : 2.8;
+    // Tighter, more thrilling perfect window (~1.8s at Lv.1, wider with upgrades)
+    const cake = session && session.selectedCakeType ? this.recipes.getCakeType(session.selectedCakeType) : null;
+    const tempStress = cake && (cake.idealTemp >= 190 || cake.idealTemp <= 165) ? 0.88 : 1.0;
+    return Math.max(1.3, +(baseWin * 0.64 * tempStress).toFixed(2));
   }
 
   selectBatter(batterId) {
@@ -190,51 +262,90 @@ window.BakingManager = class BakingManager {
     this.session.ovenRunning = true;
     this.session.bakeElapsed = 0;
     this.session.bakeState = 'raw';
+    this.session.perfectHitAccuracy = 0;
     this.session.dingPlayed = false;
+    this.session.nearBurnAlerted = false;
+    this.session.burntAlerted = false;
     return { ok: true };
   }
 
-  updateOven(dt) {
-    if (!this.session || !this.session.ovenRunning) return false;
-    const cake = this.recipes.getCakeType(this.session.selectedCakeType);
-    const tempDiff = Math.abs(this.session.selectedTemp - cake.idealTemp);
-    // Wrong temp affects speed/quality slightly
-    const tempFactor = this.session.selectedTemp > cake.idealTemp ? 1.18 : (this.session.selectedTemp < cake.idealTemp ? 0.85 : 1.0);
-    this.session.bakeElapsed += dt * tempFactor;
+  _updateSingleOven(s, dt, events) {
+    if (!s || !s.ovenRunning) return false;
+    const cake = this.recipes.getCakeType(s.selectedCakeType);
+    const tempDiff = Math.abs(s.selectedTemp - cake.idealTemp);
+    // Higher temp bakes faster & burns quicker; off-temp lowers peak quality
+    const tempFactor = s.selectedTemp > cake.idealTemp ? 1.24 : (s.selectedTemp < cake.idealTemp ? 0.85 : 1.0);
+    s.bakeElapsed += dt * tempFactor;
 
-    const ovenLvl = this.upgrades.getUpgradeLevelData('oven');
-    const target = this.session.bakeTargetTime;
-    const perfectWindow = ovenLvl.perfectWindow || 2.8;
-    const ratio = this.session.bakeElapsed / target;
+    const target = s.bakeTargetTime;
+    const perfectWindow = this.getEffectivePerfectWindow(s);
+    const ratio = s.bakeElapsed / target;
 
     if (ratio < 0.35) {
-      this.session.bakeState = 'raw';
-      this.session.bakeQuality = 25;
-    } else if (ratio < 0.9) {
-      this.session.bakeState = 'baking';
-      this.session.bakeQuality = 65;
-    } else if (this.session.bakeElapsed <= target + perfectWindow) {
-      this.session.bakeState = 'perfect';
-      this.session.bakeQuality = Math.max(75, 100 - Math.round(tempDiff * 0.6));
-      if (!this.session.dingPlayed) {
-        this.session.dingPlayed = true;
+      s.bakeState = 'raw';
+      s.bakeQuality = 25;
+    } else if (ratio < 0.92) {
+      s.bakeState = 'baking';
+      s.bakeQuality = 65;
+    } else if (s.bakeElapsed <= target + perfectWindow) {
+      s.bakeState = 'perfect';
+      const perfectStart = target * 0.92;
+      const span = target + perfectWindow - perfectStart;
+      const posRatio = Math.max(0, Math.min(1, (s.bakeElapsed - perfectStart) / Math.max(0.4, span)));
+      const centerAccuracy = Math.max(0, Math.round((1 - Math.abs(posRatio - 0.45) * 1.6) * 100));
+      s.perfectHitAccuracy = centerAccuracy;
+      s.bakeQuality = Math.max(76, Math.min(100, 100 - Math.round(tempDiff * 0.65)));
+      if (!s.dingPlayed) {
+        s.dingPlayed = true;
         this.audio.playOvenDing();
+        events.dings.push(s.orderId);
+      }
+      if (!s.nearBurnAlerted && posRatio >= 0.68) {
+        s.nearBurnAlerted = true;
+        if (this.audio.playOvenWarning) this.audio.playOvenWarning();
+        events.nearBurns.push(s.orderId);
       }
     } else {
-      this.session.bakeState = 'burnt';
-      this.session.bakeQuality = 20;
+      s.bakeState = 'burnt';
+      s.bakeQuality = 0;
+      s.perfectHitAccuracy = 0;
+      if (!s.burntAlerted) {
+        s.burntAlerted = true;
+        if (this.audio.playBurnSizzle) this.audio.playBurnSizzle();
+        else this.audio.playError();
+        events.burns.push(s.orderId);
+      }
     }
     return true;
+  }
+
+  updateOven(dt) {
+    const events = { updated: false, activeUpdated: false, dings: [], nearBurns: [], burns: [] };
+    Object.values(this.sessions).forEach(s => {
+      if (this._updateSingleOven(s, dt, events)) {
+        events.updated = true;
+        if (s.orderId === this.activeOrderId) events.activeUpdated = true;
+      }
+    });
+    return events.updated ? events : null;
   }
 
   takeOutOfOven() {
     if (!this.session || !this.session.inOven) return { ok: false, reason: 'Bánh chưa vào lò!' };
     this.session.ovenRunning = false;
-    this.audio.playClick();
+    const isSweetCenter = this.session.bakeState === 'perfect' && this.session.perfectHitAccuracy >= 70;
+    if (this.session.bakeState === 'perfect') {
+      if (this.audio.playPerfectSnap) this.audio.playPerfectSnap();
+      else this.audio.playSuccess();
+    } else {
+      this.audio.playClick();
+    }
     return {
       ok: true,
       bakeState: this.session.bakeState,
-      bakeQuality: this.session.bakeQuality
+      bakeQuality: this.session.bakeQuality,
+      perfectHitAccuracy: this.session.perfectHitAccuracy || 0,
+      isSweetCenter
     };
   }
 
@@ -245,7 +356,10 @@ window.BakingManager = class BakingManager {
     this.session.bakeElapsed = 0;
     this.session.bakeState = 'raw';
     this.session.bakeQuality = 0;
+    this.session.perfectHitAccuracy = 0;
     this.session.dingPlayed = false;
+    this.session.nearBurnAlerted = false;
+    this.session.burntAlerted = false;
   }
 };
 

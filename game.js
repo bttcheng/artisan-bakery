@@ -41,7 +41,7 @@ window.GameManager = class GameManager {
 
     this.activeOrderId = null;
     this.workshopStep = 'prep'; // prep | bake | decorate | package
-    this.readyPackage = null; // { orderId, cakeState, packaging } if returned to shop
+    this.readyPackages = {}; // orderId -> { orderId, cakeState, packaging }
     this.tutorialReturnScreen = 'start';
     this.inspectedOrderId = null;
     this.mixingCanvas = null;
@@ -50,6 +50,33 @@ window.GameManager = class GameManager {
     this._uiTick = 0;
     this._whiskInterval = null;
     this._dragState = null;
+    this._happyBounceSlotId = null;
+    this._initAfterConstructor();
+  }
+
+  get readyPackage() {
+    if (this.activeOrderId && this.readyPackages[this.activeOrderId]) {
+      return this.readyPackages[this.activeOrderId];
+    }
+    const keys = Object.keys(this.readyPackages);
+    return keys.length > 0 ? this.readyPackages[keys[0]] : null;
+  }
+
+  set readyPackage(val) {
+    if (!val) {
+      if (this.activeOrderId) delete this.readyPackages[this.activeOrderId];
+      return;
+    }
+    if (val.orderId) {
+      this.readyPackages[val.orderId] = val;
+    }
+  }
+
+  getDailyCoinGoal() {
+    return 100 + Math.max(0, (this.state.day || 1) - 1) * 60;
+  }
+
+  _initAfterConstructor() {
 
     this.customers.onShopChange = (info) => {
       if (info && info.doorOpen) {
@@ -95,6 +122,7 @@ window.GameManager = class GameManager {
         }
       }
       this.renderPackageStage();
+      this.renderWorkshopOrderSwitcher();
     };
     this.renderIntroHero();
     this.refreshStartScreen();
@@ -243,6 +271,8 @@ window.GameManager = class GameManager {
     this.customers = new window.CustomerManager(this.state, this.orders, this.upgrades, this.economy, this.audio);
     this.baking = new window.BakingManager(this.economy, this.recipes, this.upgrades, this.audio);
     this.scoring = new window.ScoringManager(this.recipes, this.upgrades);
+    this.readyPackages = {};
+    this.activeOrderId = null;
     this.customers.onShopChange = () => {
       this.renderBakeryCustomers();
       this.renderOrdersTab();
@@ -389,8 +419,13 @@ window.GameManager = class GameManager {
     document.getElementById('btn-delivery-continue').addEventListener('click', () => {
       this.audio.playClick();
       this.closeAllModals();
-      this.closeWorkshop();
-      this.switchTab('bakery');
+      const remaining = this.baking.getAllSessions();
+      if (remaining.length > 0) {
+        this.openWorkshopForOrder(remaining[0].orderId);
+      } else {
+        this.closeWorkshop();
+        this.switchTab('bakery');
+      }
     });
 
     document.getElementById('btn-end-day').addEventListener('click', () => {
@@ -447,6 +482,21 @@ window.GameManager = class GameManager {
     document.getElementById('hud-served').textContent = this.state.stats.customersServed;
     document.getElementById('hud-rep').textContent = this.state.reputation;
     document.getElementById('max-cust-label').textContent = this.customers.getMaxConcurrent();
+
+    const dayGoal = this.getDailyCoinGoal();
+    const dayCoins = this.state.stats.dayCoins || 0;
+    const goalEl = document.getElementById('hud-day-goal');
+    const goalPill = document.getElementById('hud-goal-pill');
+    if (goalEl) goalEl.textContent = `${Math.min(dayCoins, dayGoal)}/${dayGoal}`;
+    if (goalPill) goalPill.classList.toggle('goal-done', dayCoins >= dayGoal);
+
+    const streak = this.state.stats.streak || 0;
+    const streakEl = document.getElementById('hud-streak');
+    const streakPill = document.getElementById('hud-streak-pill');
+    if (streakEl) streakEl.textContent = `x${streak}`;
+    if (streakPill) streakPill.classList.toggle('streak-hot', streak >= 3);
+
+    this.renderShopOvenDock();
     const soundBtn = document.getElementById('btn-sound-quick');
     if (soundBtn) {
       soundBtn.innerHTML = window.SDIcons
@@ -494,6 +544,33 @@ window.GameManager = class GameManager {
       badge.textContent = this.orders.activeOrders.length;
       badge.style.display = this.orders.activeOrders.length > 0 ? 'inline-block' : 'none';
     }
+  }
+
+  renderShopOvenDock() {
+    const dock = document.getElementById('shop-oven-dock');
+    if (!dock) return;
+    const activeOvens = this.baking.getAllSessions().filter(s => s.inOven && (s.ovenRunning || s.bakeState === 'perfect' || s.bakeState === 'burnt'));
+    if (activeOvens.length === 0) {
+      dock.classList.add('hidden');
+      dock.innerHTML = '';
+      return;
+    }
+    dock.classList.remove('hidden');
+    const chipsHTML = activeOvens.map(s => {
+      const cls = s.bakeState === 'perfect' ? 'perfect' : s.bakeState === 'burnt' ? 'burnt' : 'baking';
+      const label = s.bakeState === 'perfect'
+        ? 'CHÍN! Lấy ngay'
+        : s.bakeState === 'burnt'
+          ? 'CHÁY!'
+          : `${s.bakeElapsed.toFixed(1)}s`;
+      return `<button class="oven-live-chip ${cls}" data-dock-order="${s.orderId}">${s.targetOrder.orderNumber}: ${label}</button>`;
+    }).join('');
+    dock.innerHTML = `<span class="dock-title">🔥 Lò đang chạy:</span><div class="dock-chips">${chipsHTML}</div>`;
+    dock.querySelectorAll('[data-dock-order]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.openWorkshopForOrder(btn.dataset.dockOrder, 'bake');
+      });
+    });
   }
 
   // --------------------------------------------------------------------------
@@ -786,15 +863,15 @@ window.GameManager = class GameManager {
       let timerRowHTML = '';
       if (accepted) {
         const execElapsed = Math.max(0, Math.floor(order.execElapsed || 0));
-        const targetDur = Math.max(30, order.targetDuration || 65);
+        const targetDur = Math.max(20, order.targetDuration || 28);
         const overtime = Math.max(0, execElapsed - targetDur);
         const execPct = Math.min(100, Math.round((execElapsed / targetDur) * 100));
-        let speedBadge = 'Đúng giờ';
+        let speedBadge = 'Đúng nhịp';
         let barColor = 'patience-green';
-        if (overtime > 120) {
-          speedBadge = 'Vẫn giao được';
+        if (overtime > 35) {
+          speedBadge = 'Mất tip';
           barColor = 'patience-red';
-        } else if (overtime >= 60) {
+        } else if (overtime >= 15) {
           speedBadge = `+${overtime}s`;
           barColor = 'patience-yellow';
         } else if (overtime > 0) {
@@ -802,7 +879,7 @@ window.GameManager = class GameManager {
           barColor = 'patience-yellow';
         }
         timerRowHTML = `
-          <div class="patience-wrap exec-timer-wrap" title="Thời gian làm bánh mục tiêu ${targetDur}s để nhận đủ tip">
+          <div class="patience-wrap exec-timer-wrap" title="Nhịp mục tiêu ${targetDur}s để nhận trọn thưởng">
             <span>${ico('clock', 13)} ${execElapsed}/${targetDur}s</span>
             <div class="patience-bar"><div class="patience-fill ${barColor}" style="width:${execPct}%"></div></div>
             <small class="speed-hint-text">${isReadyPickup ? 'Xong!' : speedBadge}</small>
@@ -827,12 +904,23 @@ window.GameManager = class GameManager {
         waitAction: isSeated ? waitAction : ''
       });
 
-      const hasReadyForThis = this.readyPackage && this.readyPackage.orderId === order.orderId;
+      const hasReadyForThis = Boolean(this.readyPackages[order.orderId]);
       const showCoachHere = needAcceptCoach && sIdx === 0 && !accepted;
+      const personality = customer.personality || 'chill';
+      const pLabel = customer.personalityLabel || 'Thân thiện';
+      const session = this.baking.getSession(order.orderId);
+      const ovenChipHTML = session && session.inOven && session.ovenRunning
+        ? `<span class="cust-oven-mini ${session.bakeState === 'perfect' ? 'perfect' : session.bakeState === 'burnt' ? 'burnt' : ''}">${session.bakeState === 'perfect' ? '⚡ CHÍN!' : session.bakeState === 'burnt' ? '💥 CHÁY!' : `🔥 ${session.bakeElapsed.toFixed(1)}s`}</span>`
+        : '';
+      const happyJump = this._happyBounceSlotId === order.orderId ? 'cust-happy-jump' : '';
 
       return `
-        <div class="customer-card ${status} ${accepted ? 'accepted-order' : ''} ${order.isSpecial ? 'special-order' : ''}" data-order-id="${order.orderId}">
-          ${statusChip}
+        <div class="customer-card ${status} ${accepted ? 'accepted-order' : ''} ${order.isSpecial ? 'special-order' : ''} ${happyJump}" data-order-id="${order.orderId}">
+          <div class="cust-top-meta">
+            ${statusChip}
+            <span class="cust-personality-tag p-${personality}" title="${customer.role}">${pLabel}</span>
+          </div>
+          ${ovenChipHTML}
           <div class="speech-bubble" title="${speech}">${speech}</div>
           <div class="customer-main-row">
             <div class="customer-avatar-col">
@@ -859,9 +947,9 @@ window.GameManager = class GameManager {
           <div class="customer-actions">
             <button class="btn btn-soft btn-xs btn-inspect-order" data-order-id="${order.orderId}" title="Xem chi tiết yêu cầu">${ico('inspect', 14)} Xem</button>
             ${!accepted ? `<button class="btn btn-mint btn-xs btn-accept-card-order ${showCoachHere ? 'coach-glow' : ''}" data-order-id="${order.orderId}" title="Nhận đơn để khách ngồi chờ">${ico('check_accept', 14)} Nhận</button>` : ''}
-            ${this.readyPackage
-              ? `<button class="btn ${hasReadyForThis ? 'btn-mint' : 'btn-danger'} btn-xs btn-try-deliver" data-order-id="${order.orderId}" title="Giao bánh cho khách">${ico('gift_box', 14)} Giao</button>`
-              : `<button class="btn btn-primary btn-xs btn-bake-order ${showCoachHere ? 'coach-glow' : ''}" data-order-id="${order.orderId}" title="Vào bếp làm đơn này">${ico('chef_hat', 14)} ${accepted ? 'Tiếp Tục' : 'Làm'}${showCoachHere ? `<span class="coach-hand">${ico('hand_guide', 22)}</span>` : ''}</button>`
+            ${hasReadyForThis
+              ? `<button class="btn btn-mint btn-xs btn-try-deliver" data-order-id="${order.orderId}" title="Giao bánh cho khách">${ico('gift_box', 14)} Giao</button>`
+              : `<button class="btn btn-primary btn-xs btn-bake-order ${showCoachHere ? 'coach-glow' : ''}" data-order-id="${order.orderId}" title="Vào bếp làm đơn này">${ico('chef_hat', 14)} ${session ? 'Tiếp Tục' : accepted ? 'Làm' : 'Làm'}${showCoachHere ? `<span class="coach-hand">${ico('hand_guide', 22)}</span>` : ''}</button>`
             }
           </div>
         </div>
@@ -943,20 +1031,35 @@ window.GameManager = class GameManager {
   }
 
   // --------------------------------------------------------------------------
-  // WORKSHOP: PREP, MIX, BAKE, DECORATE, PACKAGE
+  // WORKSHOP: MULTI-ORDER PARALLEL KITCHEN (UP TO 3 ORDERS SIMULTANEOUSLY!)
   // --------------------------------------------------------------------------
-  openWorkshopForOrder(orderId) {
+  persistActiveSessionStage() {
+    const cur = this.baking.session;
+    if (!cur) return;
+    cur.step = this.workshopStep || cur.step || 'prep';
+    if (this.decoration.cakeState && (this.workshopStep === 'decorate' || this.workshopStep === 'package' || cur.decoState)) {
+      cur.decoState = JSON.parse(JSON.stringify(this.decoration.cakeState));
+      cur.decoHistory = [...(this.decoration.history || [])];
+    }
+    if (this.decoration.packaging && (this.workshopStep === 'decorate' || this.workshopStep === 'package' || cur.pkgState)) {
+      cur.pkgState = JSON.parse(JSON.stringify(this.decoration.packaging));
+    }
+  }
+
+  openWorkshopForOrder(orderId, forceStep = null) {
     const order = this.orders.getOrder(orderId);
     if (!order) {
       this.showToast('Đơn hàng không còn tồn tại!', 'error');
       return;
     }
 
-    // Stop customer wait countdown and seat them as soon as player confirms/starts making the order!
-    this.customers.acceptOrder(orderId);
-
-    // Resume if already working on this exact order
-    if (this.activeOrderId !== orderId || !this.baking.session) {
+    let targetSession = this.baking.getSession(orderId);
+    if (!targetSession) {
+      if (this.baking.getActiveSessionCount() >= 3) {
+        this.audio.playError();
+        this.showToast('Bếp đang làm tối đa 3 đơn cùng lúc! Hãy giao hoặc hoàn tất 1 đơn trước.', 'error');
+        return;
+      }
       const missingIds = this.baking.getMissingIngredientsForOrder(order);
       if (missingIds.length > 0) {
         const missingNames = missingIds
@@ -968,13 +1071,46 @@ window.GameManager = class GameManager {
         this.switchTab('inventory');
         return;
       }
-      this.activeOrderId = orderId;
-      this.readyPackage = null;
-      this.baking.startSession(order);
-      this.prepGroupFilter = (this.recipes.getCakeType(order.cakeType) || {}).group || 'all';
-      this.workshopStep = 'prep';
-      if (this.mixingCanvas) this.mixingCanvas.reset();
-      if (this.ovenCanvas) this.ovenCanvas.reset();
+    }
+
+    // Save current order progress before switching to another concurrent order!
+    if (this.activeOrderId && this.activeOrderId !== orderId) {
+      this.persistActiveSessionStage();
+    }
+
+    // Stop customer wait countdown and seat them upon starting
+    this.customers.acceptOrder(orderId);
+
+    if (!targetSession) {
+      targetSession = this.baking.startSession(order);
+      targetSession.step = 'prep';
+    } else {
+      this.baking.switchActiveSession(orderId);
+    }
+
+    this.activeOrderId = orderId;
+    this.workshopStep = forceStep || targetSession.step || 'prep';
+    targetSession.step = this.workshopStep;
+
+    this.prepGroupFilter = (this.recipes.getCakeType(order.cakeType) || {}).group || 'all';
+    if (this.mixingCanvas) this.mixingCanvas.reset();
+    if (this.ovenCanvas) {
+      this.ovenCanvas.reset();
+      const batterCfg = targetSession.selectedBatter ? this.recipes.getBatter(targetSession.selectedBatter) : null;
+      this.ovenCanvas.syncState(targetSession, batterCfg, this.baking.getEffectivePerfectWindow(targetSession));
+    }
+
+    if (targetSession.decoState) {
+      this.decoration.cakeState = JSON.parse(JSON.stringify(targetSession.decoState));
+      this.decoration.history = [...(targetSession.decoHistory || [])];
+    } else {
+      this.decoration.cakeState = null;
+      this.decoration.history = [];
+    }
+    if (targetSession.pkgState) {
+      this.decoration.packaging = JSON.parse(JSON.stringify(targetSession.pkgState));
+    } else {
+      this.decoration.packaging = null;
     }
 
     this.audio.playClick();
@@ -999,11 +1135,92 @@ window.GameManager = class GameManager {
 
     this.setWorkshopStep(this.workshopStep);
     this.updateWorkshopTimerUI();
+    this.renderWorkshopOrderSwitcher();
     if (this.workshopStep === 'prep') this.renderPrepStage();
     else if (this.workshopStep === 'bake') this.renderOvenStage();
     else if (this.workshopStep === 'decorate') this.renderDecorateStage();
     else if (this.workshopStep === 'package') this.renderPackageStage();
     this.renderOrdersTab();
+  }
+
+  renderWorkshopOrderSwitcher() {
+    const bar = document.getElementById('ws-order-switcher');
+    if (!bar) return;
+
+    this.persistActiveSessionStage();
+    const sessions = this.baking.getAllSessions();
+    const activeIds = new Set(sessions.map(s => s.orderId));
+
+    const sessionPills = sessions.map(s => {
+      const ord = this.orders.getOrder(s.orderId) || s.targetOrder;
+      const cake = this.recipes.getCakeType(ord.cakeType);
+      const isCur = s.orderId === this.activeOrderId;
+      const isReady = Boolean(this.readyPackages[s.orderId]);
+
+      let tagCls = '';
+      let tagText = s.step === 'prep' ? 'Trộn' : s.step === 'bake' ? 'Lò' : s.step === 'decorate' ? 'Kem' : 'Gói';
+      if (isReady) {
+        tagCls = 'ready';
+        tagText = 'Sẵn giao';
+      } else if (s.inOven && s.ovenRunning) {
+        if (s.bakeState === 'perfect') {
+          tagCls = 'perfect';
+          tagText = '⚡ CHÍN!';
+        } else if (s.bakeState === 'burnt') {
+          tagCls = 'burnt';
+          tagText = '💥 CHÁY!';
+        } else {
+          tagCls = 'baking';
+          tagText = `🔥 ${s.bakeElapsed.toFixed(1)}s`;
+        }
+      } else if (s.inOven && s.bakeState === 'burnt') {
+        tagCls = 'burnt';
+        tagText = 'Cháy!';
+      }
+
+      return `
+        <button class="ws-order-tab ${isCur ? 'active' : ''} ${tagCls}" data-ws-order="${s.orderId}" title="Chuyển sang làm đơn ${ord.orderNumber}">
+          <img src="${window.SDRenderer.getCakeAssetPath(ord.cakeType)}" class="ws-tab-cake-ico" alt="" />
+          <span class="ws-tab-num">${ord.orderNumber}</span>
+          <span class="ws-tab-name">${cake ? cake.name : ''}</span>
+          <span class="ws-tab-pill ${tagCls}">${tagText}</span>
+        </button>
+      `;
+    }).join('');
+
+    // Show waiting counter customers so player can accept or bring a 2nd/3rd order straight into kitchen
+    const queueCandidates = this.customers.slots.filter(slot => !activeIds.has(slot.order.orderId) && slot.status !== 'leaving');
+    const queuePills = queueCandidates.map(slot => {
+      const ord = slot.order;
+      const canAdd = sessions.length < 3;
+      const waitTag = slot.accepted ? 'Đợi làm' : `Chờ ${Math.ceil(slot.patience)}s`;
+      return `
+        <button class="ws-order-tab queue-candidate ${canAdd ? '' : 'disabled'}" data-ws-join="${ord.orderId}" ${canAdd ? '' : 'disabled'} title="${canAdd ? `Nhận thêm đơn ${ord.orderNumber} vào bếp` : 'Bếp đang tối đa 3 đơn'}">
+          <span class="ws-tab-num">+ ${ord.orderNumber}</span>
+          <span class="ws-tab-pill queue">${waitTag}</span>
+        </button>
+      `;
+    }).join('');
+
+    bar.innerHTML = `
+      <div class="ws-switcher-list">
+        ${sessionPills}
+        ${queuePills}
+      </div>
+    `;
+
+    bar.querySelectorAll('[data-ws-order]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.wsOrder !== this.activeOrderId) {
+          this.openWorkshopForOrder(btn.dataset.wsOrder);
+        }
+      });
+    });
+    bar.querySelectorAll('[data-ws-join]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.openWorkshopForOrder(btn.dataset.wsJoin);
+      });
+    });
   }
 
   updateWorkshopTimerUI() {
@@ -1012,27 +1229,29 @@ window.GameManager = class GameManager {
     const order = this.orders.getOrder(this.activeOrderId);
     if (!order) return;
     const elapsed = Math.max(0, Math.floor(order.execElapsed || 0));
-    const target = Math.max(30, order.targetDuration || 65);
+    const target = Math.max(20, order.targetDuration || 28);
     const overtime = Math.max(0, elapsed - target);
 
     badge.classList.remove('on-time', 'slightly-late', 'very-late');
     if (order.execCompleted) {
-      badge.classList.add(overtime <= 60 ? 'on-time' : 'slightly-late');
+      badge.classList.add(overtime <= 15 ? 'on-time' : 'slightly-late');
       badge.textContent = `✅ Hoàn tất: ${elapsed}s / ${target}s`;
     } else if (overtime === 0) {
       badge.classList.add('on-time');
-      badge.textContent = `⏱️ Đang làm: ${elapsed}s / Mục tiêu ${target}s`;
-    } else if (overtime < 60) {
+      badge.textContent = `⏱️ ${elapsed}s / ${target}s`;
+    } else if (overtime <= 15) {
       badge.classList.add('slightly-late');
-      badge.textContent = `⏰ Đang làm: ${elapsed}s (+${overtime}s / ${target}s)`;
+      badge.textContent = `⏰ ${elapsed}s (+${overtime}s)`;
     } else {
       badge.classList.add('very-late');
-      badge.textContent = `🐢 Trễ +${overtime}s (${elapsed}s) • Vẫn giao được`;
+      badge.textContent = `🐢 Trễ +${overtime}s (Mất tip)`;
     }
   }
 
   closeWorkshop() {
+    this.persistActiveSessionStage();
     document.getElementById('view-workshop').classList.add('hidden');
+    this.renderShopOvenDock();
     this.renderBakeryCustomers();
   }
 
@@ -1145,6 +1364,7 @@ window.GameManager = class GameManager {
       if (!res.ok) return this.showToast(res.reason, 'error');
       this.audio.playOvenDoor(false);
       this.renderOvenStage();
+      this.renderWorkshopOrderSwitcher();
     };
 
     const doTakeOutOven = () => {
@@ -1153,16 +1373,18 @@ window.GameManager = class GameManager {
       this.audio.playOvenDoor(true);
       if (res.bakeState === 'perfect') {
         if (this.ovenCanvas) this.ovenCanvas.triggerPerfectBurst();
-        this.audio.playSuccess();
         this.spawnConfettiFX();
-        this.showToast('✨ Bánh chín vàng hoàn hảo!', 'success');
+        this.spawnFloatingText(res.isSweetCenter ? '⚡ BẮT TRÚNG CHÍN! ĐỈNH CAO!' : '✨ CHÍN HOÀN HẢO!', 'perfect', '#oven-canvas-wrap');
+        this.showToast(res.isSweetCenter ? '⚡ Bấm trúng tâm Chín! Điểm nướng tuyệt đối!' : '✨ Bánh chín vàng hoàn hảo!', 'success');
       } else if (res.bakeState === 'burnt') {
-        this.audio.playError();
-        this.showToast('Bánh bị cháy mất rồi! Bạn có thể nướng lại hoặc tiếp tục.', 'error');
+        this.triggerShake('#oven-canvas-wrap');
+        this.spawnFloatingText('💥 CHÁY KHÉT!', 'danger', '#oven-canvas-wrap');
+        this.showToast('💥 Bánh bị cháy mất rồi! Nhấn Nướng Lại (mất thời gian) hoặc Bỏ Đơn Cháy.', 'error');
       } else {
         this.showToast('Bánh lấy ra hơi sớm nên còn chưa chín kỹ.', 'error');
       }
       this.renderOvenStage();
+      this.renderWorkshopOrderSwitcher();
     };
 
     document.getElementById('btn-start-oven').addEventListener('click', doStartOven);
@@ -1175,15 +1397,29 @@ window.GameManager = class GameManager {
 
     document.getElementById('btn-retry-bake').addEventListener('click', () => {
       this.baking.retryBake();
-      if (this.ovenCanvas) this.ovenCanvas.reset();
+      if (this.ovenCanvas) {
+        const s = this.baking.session;
+        const batterCfg = s && s.selectedBatter ? this.recipes.getBatter(s.selectedBatter) : null;
+        this.ovenCanvas.reset();
+        if (s) this.ovenCanvas.syncState(s, batterCfg, this.baking.getEffectivePerfectWindow(s));
+      }
       this.renderOvenStage();
+      this.renderWorkshopOrderSwitcher();
     });
+
+    const discardBurntBtn = document.getElementById('btn-discard-burnt');
+    if (discardBurntBtn) {
+      discardBurntBtn.addEventListener('click', () => {
+        if (this.activeOrderId) this.failBurntOrder(this.activeOrderId);
+      });
+    }
 
     document.getElementById('btn-to-decorate').addEventListener('click', () => {
       this.audio.playClick();
       this.decoration.initFromBaking(this.baking.session);
       this.setWorkshopStep('decorate');
       this.renderDecorateStage();
+      this.renderWorkshopOrderSwitcher();
     });
 
     // Decorate Actions
@@ -1224,6 +1460,7 @@ window.GameManager = class GameManager {
       this.audio.playClick();
       this.setWorkshopStep('package');
       this.renderPackageStage();
+      this.renderWorkshopOrderSwitcher();
     });
 
     // Packaging Actions
@@ -1234,7 +1471,11 @@ window.GameManager = class GameManager {
         cakeState: JSON.parse(JSON.stringify(this.decoration.cakeState)),
         packaging: JSON.parse(JSON.stringify(this.decoration.packaging))
       };
+      if (this.activeOrderId) {
+        this.customers.markOrderReadyForPickup(this.activeOrderId);
+      }
       this.renderPackageStage();
+      this.renderWorkshopOrderSwitcher();
     });
 
     document.getElementById('btn-deliver-cake').addEventListener('click', () => {
@@ -1452,13 +1693,17 @@ window.GameManager = class GameManager {
     const startBtn = document.getElementById('btn-start-oven');
     const takeBtn = document.getElementById('btn-take-out');
     const retryBtn = document.getElementById('btn-retry-bake');
+    const discardBtn = document.getElementById('btn-discard-burnt');
     const nextBtn = document.getElementById('btn-to-decorate');
 
     const tookOut = s.inOven && !s.ovenRunning;
+    const isBurnt = tookOut && s.bakeState === 'burnt';
     startBtn.classList.toggle('hidden', s.inOven);
     takeBtn.classList.toggle('hidden', !s.ovenRunning);
     retryBtn.classList.toggle('hidden', !tookOut);
-    nextBtn.classList.toggle('hidden', !tookOut);
+    if (discardBtn) discardBtn.classList.toggle('hidden', !isBurnt);
+    // Burnt cake cannot pass directly as finished product ("cháy thì mất đơn")
+    nextBtn.classList.toggle('hidden', !tookOut || isBurnt);
 
     this.updateOvenDynamicUI();
   }
@@ -1466,24 +1711,48 @@ window.GameManager = class GameManager {
   updateOvenDynamicUI() {
     const s = this.baking.session;
     if (!s) return;
-    const ovenLvl = this.upgrades.getUpgradeLevelData('oven');
-    const maxTrack = s.bakeTargetTime + ovenLvl.perfectWindow + 2.2;
+    const perfectWindow = this.baking.getEffectivePerfectWindow(s);
+    const target = Math.max(2, s.bakeTargetTime || 5.5);
+    const rawDur = target * 0.35;
+    const bakeDur = target * 0.57; // 0.35..0.92
+    const perfDur = target * 0.08 + perfectWindow; // 0.92*target -> target + perfectWindow
+    const burntTail = 1.8;
+    const maxTrack = rawDur + bakeDur + perfDur + burntTail;
+
+    const track = document.getElementById('oven-zones-track');
+    if (track) {
+      track.style.gridTemplateColumns = `${rawDur}fr ${bakeDur}fr ${perfDur}fr ${burntTail}fr`;
+    }
+
     const pct = Math.min(98, (s.bakeElapsed / maxTrack) * 100);
     document.getElementById('oven-pointer').style.left = `${pct}%`;
     document.getElementById('oven-timer-text').textContent = `${s.bakeElapsed.toFixed(1)}s`;
 
+    const takeBtn = document.getElementById('btn-take-out');
+    if (takeBtn) {
+      takeBtn.classList.toggle('oven-take-ready', s.ovenRunning && s.bakeState === 'perfect');
+      takeBtn.classList.toggle('oven-take-burnt', s.ovenRunning && s.bakeState === 'burnt');
+      takeBtn.textContent = s.bakeState === 'perfect'
+        ? '⚡ LẤY NGAY! CHÍN!'
+        : s.bakeState === 'burnt'
+          ? '💥 CHÁY! LẤY RA'
+          : 'Lấy Ra!';
+    }
+
     const labels = {
       raw: 'Bột sống',
       baking: 'Đang nở...',
-      perfect: 'Chín Hoàn Hảo!',
-      burnt: 'Cảnh báo: Bị Cháy!'
+      perfect: 'CHÍN HOÀN HẢO! BẤM NGAY!',
+      burnt: 'CHÁY KHÉT!'
     };
     const pill = document.getElementById('oven-state-pill');
     pill.textContent = s.inOven ? labels[s.bakeState] : (s.batterPoured ? 'Sẵn sàng đưa vào lò' : 'Chờ đổ bột vào khay');
+    pill.classList.toggle('is-perfect', s.inOven && s.bakeState === 'perfect');
+    pill.classList.toggle('is-burnt', s.inOven && s.bakeState === 'burnt');
 
     if (this.ovenCanvas) {
       const batterCfg = this.recipes.getBatter(s.selectedBatter || 'vanilla');
-      this.ovenCanvas.syncState(s, batterCfg, ovenLvl.perfectWindow);
+      this.ovenCanvas.syncState(s, batterCfg, perfectWindow);
       this.ovenCanvas.render();
     }
   }
@@ -1873,23 +2142,24 @@ window.GameManager = class GameManager {
   // DELIVERY, SCORING & EFFECTS
   // --------------------------------------------------------------------------
   deliverToCustomer(targetOrderId) {
-    if (!this.readyPackage && this.decoration.cakeState && this.decoration.packaging?.closed) {
-      this.readyPackage = {
+    let pkg = this.readyPackages[targetOrderId] || null;
+    if (!pkg && targetOrderId === this.activeOrderId && this.decoration.cakeState && this.decoration.packaging?.closed) {
+      pkg = {
         orderId: this.activeOrderId,
         cakeState: JSON.parse(JSON.stringify(this.decoration.cakeState)),
         packaging: JSON.parse(JSON.stringify(this.decoration.packaging))
       };
+      this.readyPackages[targetOrderId] = pkg;
     }
 
-    if (!this.readyPackage) {
-      this.showToast('Hãy đóng gói hoàn chỉnh trước khi giao bánh!', 'error');
-      return;
-    }
-
-    // Strict check: prevent delivering to the wrong customer!
-    if (targetOrderId !== this.readyPackage.orderId) {
-      this.audio.playError();
-      this.showToast('❌ Không được giao nhầm bánh cho khách khác! Hãy giao đúng chủ đơn hàng.', 'error');
+    if (!pkg) {
+      const anyReady = this.readyPackage;
+      if (anyReady && anyReady.orderId !== targetOrderId) {
+        this.audio.playError();
+        this.showToast('❌ Không được giao nhầm bánh cho khách khác! Hãy giao đúng chủ đơn hàng.', 'error');
+      } else {
+        this.showToast('Hãy đóng gói hoàn chỉnh trước khi giao bánh!', 'error');
+      }
       return;
     }
 
@@ -1897,13 +2167,20 @@ window.GameManager = class GameManager {
     const slot = this.customers.getSlotByOrderId(targetOrderId);
     if (!order || !slot) {
       this.showToast('Khách hàng đã rời đi mất rồi!', 'error');
-      this.readyPackage = null;
-      this.activeOrderId = null;
+      delete this.readyPackages[targetOrderId];
+      this.baking.removeSession(targetOrderId);
+      if (this.activeOrderId === targetOrderId) this.activeOrderId = this.baking.activeOrderId;
       this.closeWorkshop();
       return;
     }
 
-    const result = this.scoring.evaluate(order, this.readyPackage.cakeState, this.readyPackage.packaging, slot);
+    const result = this.scoring.evaluate(order, pkg.cakeState, pkg.packaging, slot);
+
+    if (result.burntFail || result.stars === 0) {
+      this.triggerShake('.main-viewport');
+      this.audio.playBurnSizzle ? this.audio.playBurnSizzle() : this.audio.playError();
+      this.spawnFloatingText(result.burntFail ? '💥 CHÁY - MẤT ĐƠN!' : '💔 CHƯA ĐẠT - MẤT ĐƠN!', 'danger', '#hud-coin-box');
+    }
 
     // Apply Rewards & Stats
     const prevLevel = this.state.level;
@@ -1919,11 +2196,44 @@ window.GameManager = class GameManager {
 
     this.state.stats.totalOrders += 1;
     this.state.stats.dayOrders += 1;
-    this.state.stats.customersServed += 1;
+    if (!result.burntFail && result.stars >= 1) {
+      this.state.stats.customersServed += 1;
+    } else {
+      this.state.stats.customersLost = (this.state.stats.customersLost || 0) + 1;
+    }
     if (result.stars === 3) this.state.stats.perfectCount += 1;
-    if (order.isSpecial) this.state.stats.specialCompleted += 1;
+    if (order.isSpecial && result.stars >= 1) this.state.stats.specialCompleted += 1;
 
-    this.recipes.recordToCollection(order, this.readyPackage.cakeState, result.score);
+    // Streak & Daily Goal Short-Term Milestone Bonuses
+    let comboBonusCoins = 0;
+    let goalBonusCoins = 0;
+    if (!result.burntFail && result.stars >= 2) {
+      this.state.stats.streak = (this.state.stats.streak || 0) + 1;
+      if (this.state.stats.streak > (this.state.stats.bestStreak || 0)) {
+        this.state.stats.bestStreak = this.state.stats.streak;
+      }
+      if (this.state.stats.streak > 0 && this.state.stats.streak % 5 === 0) {
+        comboBonusCoins = 45;
+        this.economy.addCoins(comboBonusCoins, true);
+        this.economy.addXp(20);
+        if (this.audio.playComboBonus) this.audio.playComboBonus();
+        this.spawnFloatingText(`🔥 CHUỖI x${this.state.stats.streak}! +${comboBonusCoins} xu!`, 'combo', '#hud-streak-pill');
+      }
+    } else {
+      this.state.stats.streak = 0;
+    }
+
+    const dayGoal = this.getDailyCoinGoal();
+    if ((this.state.stats.dayCoins || 0) >= dayGoal && this.state.stats.dayGoalClaimedDay !== this.state.day) {
+      this.state.stats.dayGoalClaimedDay = this.state.day;
+      goalBonusCoins = 25;
+      this.economy.addCoins(goalBonusCoins, true);
+      this.spawnFloatingText(`🎯 ĐẠT MỤC TIÊU NGÀY! +${goalBonusCoins} xu!`, 'perfect', '#hud-goal-pill');
+    }
+
+    if (result.stars >= 1) {
+      this.recipes.recordToCollection(order, pkg.cakeState, result.score);
+    }
     if (!this.state.orderHistory) this.state.orderHistory = [];
     this.state.orderHistory.unshift({
       orderId: order.orderId,
@@ -1941,20 +2251,28 @@ window.GameManager = class GameManager {
       score: result.score,
       stars: result.stars,
       grade: result.grade,
-      totalCoins: result.totalCoins,
-      cakeSnapshot: JSON.parse(JSON.stringify(this.readyPackage.cakeState)),
+      totalCoins: result.totalCoins + comboBonusCoins + goalBonusCoins,
+      cakeSnapshot: JSON.parse(JSON.stringify(pkg.cakeState)),
       day: this.state.day
     });
     if (this.state.orderHistory.length > 40) this.state.orderHistory.length = 40;
 
-    this.upgrades.recordQuestProgress({
-      cakeType: this.readyPackage.cakeState.cakeType,
-      coinsEarned: result.totalCoins,
-      isPerfect: result.stars === 3
-    });
+    if (result.stars >= 1) {
+      this.upgrades.recordQuestProgress({
+        cakeType: pkg.cakeState.cakeType,
+        coinsEarned: result.totalCoins,
+        isPerfect: result.stars === 3
+      });
+    }
     const newAchs = this.upgrades.checkAchievements();
 
-    this.customers.completeCustomerDelivery(order.orderId, result);
+    if (result.burntFail || result.stars === 0) {
+      this.customers.failCustomerOrder(order.orderId, result.personalityFeedback || 'Mình không thể nhận chiếc bánh này...');
+    } else {
+      this._happyBounceSlotId = order.orderId;
+      setTimeout(() => { if (this._happyBounceSlotId === order.orderId) this._happyBounceSlotId = null; }, 1600);
+      this.customers.completeCustomerDelivery(order.orderId, result);
+    }
     this.saveManager.save(this.state);
 
     // Audio + Visual FX
@@ -1962,10 +2280,15 @@ window.GameManager = class GameManager {
       this.audio.playSuccess();
       this.spawnHeartsFX();
       if (result.stars === 3) this.spawnConfettiFX();
-    } else {
+      this.spawnFloatingText(`+${result.totalCoins} xu!`, 'coin', '#hud-coin-box');
+      if (result.tip > 0) {
+        setTimeout(() => this.spawnFloatingText(`+${result.tip} TIP!`, 'perfect', '#hud-coin-box'), 220);
+      }
+      this.spawnFlyingCoinsFX();
+    } else if (result.stars === 1) {
       this.audio.playCoins();
+      this.spawnFloatingText(`+${result.totalCoins} xu (1★)`, 'coin', '#hud-coin-box');
     }
-    this.spawnFlyingCoinsFX();
 
     // Show Delivery Evaluation Modal
     const custMood = result.score >= 70 ? 'delighted' : result.score >= 50 ? 'normal' : 'disappointed';
@@ -1975,16 +2298,19 @@ window.GameManager = class GameManager {
     body.innerHTML = `
       <div class="grade-banner">${result.grade} ${starText} (${result.score}/100)</div>
       <div class="delivery-hero">
-        ${window.SDRenderer.renderCake(this.readyPackage.cakeState, 130)}
+        ${window.SDRenderer.renderCake(pkg.cakeState, 130)}
         ${window.SDRenderer.renderCharacter(slot.customer, custMood, { width: 100, height: 120, wave: result.score >= 70 })}
       </div>
       <div class="speech-bubble" style="text-align:center;">"${slot.speech}"</div>
+      ${result.personalityFeedback ? `<div class="toast ${result.stars >= 2 && result.tip > 0 ? 'success' : 'error'}" style="position:static;transform:none;text-align:center;">${result.personalityFeedback}</div>` : ''}
       <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:6px;background:#fff8eb;padding:10px;border-radius:12px;font-weight:800;">
         <span>🪙 Tiền bánh: +${result.basePay} xu</span>
         <span>💖 Tip: +${result.tip} xu</span>
         <span>✨ EXP: +${result.xpEarned}</span>
-        ${sp ? `<span>⏱️ ${sp.execElapsed}s / ${sp.targetDuration}s (${sp.overtime === 0 ? 'Đúng hẹn' : `Trễ ${sp.overtime}s`})</span>` : ''}
+        ${sp ? `<span>⏱️ ${sp.execElapsed}s / ${sp.targetDuration}s (${sp.overtime === 0 ? 'Đúng nhịp' : `Trễ ${sp.overtime}s`})</span>` : ''}
       </div>
+      ${comboBonusCoins > 0 ? `<div class="toast success" style="position:static;transform:none;text-align:center;">🔥 THƯỞNG CHUỖI x${this.state.stats.streak} LIÊN TIẾP: +${comboBonusCoins} xu &amp; +20 EXP!</div>` : ''}
+      ${goalBonusCoins > 0 ? `<div class="toast success" style="position:static;transform:none;text-align:center;">🎯 HOÀN THÀNH MỤC TIÊU NGÀY: +${goalBonusCoins} xu!</div>` : ''}
       ${xpRes.leveledUp ? `<div class="toast success" style="position:static;transform:none;text-align:center;">🎉 CHÚC MỪNG LÊN CẤP ${xpRes.newLevel}: ${this.economy.getLevelInfo(xpRes.newLevel).title}!</div>` : ''}
       ${newlyUnlockedCakes.length > 0 ? `<div class="unlock-cakes-banner">✨ <b>Bánh mới vừa mở khóa:</b> ${newlyUnlockedCakes.map(c => `<span class="unlock-cake-chip"><img src="${window.SDRenderer.getCakeAssetPath(c.id)}" alt="" /> ${c.name}</span>`).join(' ')}</div>` : ''}
       ${newAchs.map(a => `<div class="toast success" style="position:static;transform:none;text-align:center;">🏆 Mở khóa thành tích: ${a.title} (+${a.rewardCoins} xu)</div>`).join('')}
@@ -1998,13 +2324,42 @@ window.GameManager = class GameManager {
       </div>
     `;
 
-    this.readyPackage = null;
-    this.activeOrderId = null;
-    this.baking.session = null;
+    delete this.readyPackages[targetOrderId];
+    this.baking.removeSession(targetOrderId);
+    if (this.activeOrderId === targetOrderId) {
+      this.activeOrderId = this.baking.activeOrderId || null;
+      this.decoration.cakeState = null;
+      this.decoration.packaging = null;
+    }
     this.updateHUD();
     this.renderDisplayCakes();
     this.applyShopVisualUpgrades();
     this.openModal('modal-delivery');
+  }
+
+  failBurntOrder(orderId) {
+    const order = this.orders.getOrder(orderId);
+    if (!order) return;
+    if (this.audio.playBurnSizzle) this.audio.playBurnSizzle();
+    else this.audio.playError();
+    this.triggerShake('#view-workshop');
+    this.spawnFloatingText('💥 CHÁY - MẤT ĐƠN!', 'danger', '#oven-canvas-wrap');
+
+    this.customers.failCustomerOrder(orderId, 'Bánh cháy khét mất rồi! Mình đành hủy đơn vậy...');
+    delete this.readyPackages[orderId];
+    this.baking.removeSession(orderId);
+    this.state.stats.totalOrders += 1;
+    this.saveManager.save(this.state);
+    this.showToast(`💥 Đã bỏ đơn cháy ${order.orderNumber} (Mất đơn, -3 uy tín)`, 'error');
+
+    const remaining = this.baking.getAllSessions();
+    if (remaining.length > 0) {
+      this.openWorkshopForOrder(remaining[0].orderId);
+    } else {
+      this.activeOrderId = null;
+      this.closeWorkshop();
+    }
+    this.updateHUD();
   }
 
   _playIngredientAnimAndSound(ingId) {
@@ -2021,11 +2376,15 @@ window.GameManager = class GameManager {
   // SECONDARY TABS RENDERING
   // --------------------------------------------------------------------------
   _getOrderStatus(order) {
-    if (this.readyPackage && this.readyPackage.orderId === order.orderId) {
-      return { key: 'ready', label: 'Hoàn thành (Khách chờ ở quầy)' };
+    if (this.readyPackages && this.readyPackages[order.orderId]) {
+      return { key: 'ready', label: 'Hoàn thành (Chờ giao)' };
     }
-    if (this.activeOrderId === order.orderId && this.baking.session) {
-      return { key: 'baking', label: 'Đang làm' };
+    if (this.baking.getSession(order.orderId)) {
+      const s = this.baking.getSession(order.orderId);
+      if (s.inOven && s.ovenRunning) {
+        return { key: 'baking', label: s.bakeState === 'perfect' ? 'CHÍN! Lấy khỏi lò ngay' : `Đang nướng (${s.bakeElapsed.toFixed(1)}s)` };
+      }
+      return { key: 'baking', label: s.orderId === this.activeOrderId ? 'Đang làm' : 'Đang làm song song' };
     }
     if (order.accepted) {
       return { key: 'baking', label: 'Đã tiếp nhận (Khách ngồi chờ)' };
@@ -2677,24 +3036,72 @@ window.GameManager = class GameManager {
     this.isPrepPhase = false;
     this.paused = true;
     const isVictoryMilestone = this.state.level >= 15;
-    const unlockedCakes = this.recipes.getUnlockedCakeTypes().map(c => c.name).join(', ');
+    const unlockedCakes = this.recipes.getUnlockedCakeTypes();
+    const dayGoal = this.getDailyCoinGoal();
+    const dayCoins = this.state.stats.dayCoins || 0;
+    const goalHit = dayCoins >= dayGoal;
+
+    // Guaranteed end-of-day unlock/purchase recommendation so player always has something to unlock or buy!
+    const buyableDecors = window.SDData.SHOP_DECORS
+      .filter(d => !this.upgrades.hasDecor(d.id) && d.price <= this.state.coins)
+      .sort((a, b) => a.price - b.price);
+    const buyableUpgrades = window.SDData.EQUIPMENT_UPGRADES
+      .map(u => ({ cfg: u, next: this.upgrades.getNextUpgradeLevelData(u.id) }))
+      .filter(x => x.next && x.next.price <= this.state.coins)
+      .sort((a, b) => a.next.price - b.next.price);
+    const nextLockedCake = window.SDData.CAKE_TYPES
+      .filter(c => c.unlockLevel > this.state.level)
+      .sort((a, b) => a.unlockLevel - b.unlockLevel)[0];
+
+    let unlockHintHTML = '';
+    if (buyableUpgrades.length > 0) {
+      const top = buyableUpgrades[0];
+      unlockHintHTML = `🛠️ Đủ xu nâng cấp: <b>${top.next.name}</b> (${top.next.price} xu) <button class="btn btn-butter btn-xs" id="btn-endday-goto-upg">Mở Nâng Cấp</button>`;
+    } else if (buyableDecors.length > 0) {
+      const d = buyableDecors[0];
+      unlockHintHTML = `🎀 Đủ xu mua trang trí: <b>${d.name}</b> (${d.price} xu) <button class="btn btn-mint btn-xs" id="btn-endday-goto-decor">Mở Trang Trí</button>`;
+    } else if (nextLockedCake) {
+      const maxXp = this.economy.getMaxXpForCurrentLevel();
+      unlockHintHTML = `🍰 Mục tiêu xa: Đạt <b>Cấp ${nextLockedCake.unlockLevel}</b> (${this.state.xp}/${maxXp} EXP) để mở khóa <b>${nextLockedCake.name}</b>!`;
+    } else {
+      unlockHintHTML = `✨ Bạn đã mở khóa toàn bộ công thức bánh trong tiệm!`;
+    }
+
     document.getElementById('md-endday-title').textContent = isVictoryMilestone
       ? '👑 CHÚC MỪNG CHIẾN THẮNG! ĐẾ CHẾ SWEET DREAMS!'
       : `🌙 Tổng Kết Ngày ${this.state.day}`;
     document.getElementById('md-endday-body').innerHTML = `
       <div style="text-align:center;">
-        <p>Tiệm bánh đã khép lại một ngày ngọt ngào! Trước khi mở bán ngày mới, bạn có thể soạn lại nguyên liệu và học công thức mới.</p>
+        <p>${goalHit ? '🎉 Tuyệt vời! Bạn đã đạt mục tiêu doanh thu hôm nay!' : 'Tiệm bánh đã khép lại một ngày! Mai hãy canh lò chuẩn hơn để bùng nổ doanh thu nhé.'}</p>
       </div>
       <div class="breakdown-list">
+        <div class="breakdown-item"><span>Mục tiêu ngày (${dayGoal} xu)</span><b>${goalHit ? '✅ Đạt!' : `${dayCoins}/${dayGoal} xu`}</b></div>
         <div class="breakdown-item"><span>Đơn hoàn thành hôm nay</span><b>${this.state.stats.dayOrders}</b></div>
-        <div class="breakdown-item"><span>Doanh thu hôm nay</span><b>${this.state.stats.dayCoins} xu</b></div>
-        <div class="breakdown-item"><span>Tổng khách đã phục vụ</span><b>${this.state.stats.customersServed}</b></div>
+        <div class="breakdown-item"><span>Doanh thu hôm nay</span><b>${dayCoins} xu</b></div>
+        <div class="breakdown-item"><span>Chuỗi chuẩn cao nhất</span><b>🔥 x${this.state.stats.bestStreak || 0}</b></div>
         <div class="breakdown-item"><span>Danh tiếng hiện tại</span><b>${this.state.reputation} 💖</b></div>
       </div>
+      <div class="endday-unlock-card">${unlockHintHTML}</div>
       <div style="background:#f5ebff;padding:8px 12px;border-radius:10px;font-size:0.82rem;">
-        <b>🍰 Công thức hiện có (Cấp ${this.state.level}):</b> ${unlockedCakes}
+        <b>🍰 Công thức hiện có (${unlockedCakes.length}/${window.SDData.CAKE_TYPES.length} loại):</b> Cấp ${this.state.level}
       </div>
     `;
+
+    const gotoUpg = document.getElementById('btn-endday-goto-upg');
+    if (gotoUpg) {
+      gotoUpg.addEventListener('click', () => {
+        this.closeAllModals();
+        this.startNextDay('upgrades');
+      });
+    }
+    const gotoDecor = document.getElementById('btn-endday-goto-decor');
+    if (gotoDecor) {
+      gotoDecor.addEventListener('click', () => {
+        this.closeAllModals();
+        this.startNextDay('decor');
+      });
+    }
+
     this.openModal('modal-end-day');
   }
 
@@ -2702,14 +3109,17 @@ window.GameManager = class GameManager {
     this.state.day += 1;
     this.state.stats.dayOrders = 0;
     this.state.stats.dayCoins = 0;
+    this.state.stats.dayGoalClaimedDay = 0;
     this.dayElapsed = 0;
     // Enter Morning Preparation Phase: do NOT start selling or spawning customers yet!
     this.isDayActive = false;
     this.isPrepPhase = true;
     this.paused = false;
-    this.readyPackage = null;
+    this.readyPackages = {};
     this.activeOrderId = null;
-    this.baking.session = null;
+    this.baking.resetAll();
+    this.decoration.cakeState = null;
+    this.decoration.packaging = null;
     this.closeWorkshop();
     this.customers.resetForNewDay();
     this.upgrades.ensureDailyQuests(true);
@@ -2717,9 +3127,9 @@ window.GameManager = class GameManager {
     this.updateHUD();
     this.renderBakeryCustomers();
 
-    // Jump straight to Ingredient Prep (Kho hàng) or New Recipes (Công thức)
+    // Jump straight to Ingredient Prep (Kho hàng) or New Recipes / Upgrades / Decor
     this.switchTab(targetTab);
-    this.showToast(`🌅 Ngày ${this.state.day}: Hãy soạn nguyên liệu & công thức rồi nhấn "Mở Cửa Tiệm" nhé!`, 'info');
+    this.showToast(`🌅 Ngày ${this.state.day}: Hãy chuẩn bị rồi nhấn "Mở Cửa" để đón nhịp khách mới!`, 'info');
   }
 
   openBakeryForBusiness() {
@@ -2761,12 +3171,35 @@ window.GameManager = class GameManager {
           isDayActive: this.isDayActive,
           activeOrderIdBeingBaked: this.activeOrderId,
           isWorkshopOpen,
-          freezeWaitTimers: isReferenceTab || isWorkshopOpen,
+          freezeWaitTimers: isReferenceTab,
           freezeExecTimers: isReferenceTab
         });
 
-        if (this.baking.updateOven(dt)) {
-          this.updateOvenDynamicUI();
+        const ovenEvents = this.baking.updateOven(dt);
+        if (ovenEvents) {
+          if (ovenEvents.activeUpdated && isWorkshopOpen && this.workshopStep === 'bake') {
+            this.updateOvenDynamicUI();
+          }
+          if (ovenEvents.dings.length > 0) {
+            ovenEvents.dings.forEach(oid => {
+              const ord = this.orders.getOrder(oid);
+              if (ord && oid !== this.activeOrderId) {
+                this.showToast(`⚡ ${ord.orderNumber} ĐÃ CHÍN! Quay lại lò lấy ngay kẻo cháy!`, 'success');
+              }
+            });
+            if (isWorkshopOpen) this.renderWorkshopOrderSwitcher();
+            this.renderShopOvenDock();
+          }
+          if (ovenEvents.burns.length > 0) {
+            if (isWorkshopOpen) this.triggerShake('#view-workshop');
+            else this.triggerShake('#shop-oven-dock');
+            ovenEvents.burns.forEach(oid => {
+              const ord = this.orders.getOrder(oid);
+              this.showToast(`💥 ${ord ? ord.orderNumber : 'Bánh'} vừa bị CHÁY trong lò!`, 'error');
+            });
+            if (isWorkshopOpen) this.renderWorkshopOrderSwitcher();
+            this.renderShopOvenDock();
+          }
         }
 
         if (this.mixingCanvas && this.workshopStep === 'prep' && isWorkshopOpen) {
@@ -2782,6 +3215,7 @@ window.GameManager = class GameManager {
           this.updateHUD();
           if (isWorkshopOpen) {
             this.updateWorkshopTimerUI();
+            this.renderWorkshopOrderSwitcher();
           } else if (this.activeTab === 'bakery') {
             this.renderBakeryCustomers();
           } else if (this.activeTab === 'orders' && this.ordersView === 'active') {
@@ -2800,7 +3234,7 @@ window.GameManager = class GameManager {
   }
 
   // --------------------------------------------------------------------------
-  // VISUAL PARTICLES & TOASTS
+  // VISUAL PARTICLES, FLOATING TEXT, SHAKE & TOASTS
   // --------------------------------------------------------------------------
   showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -2809,6 +3243,34 @@ window.GameManager = class GameManager {
     div.textContent = message;
     container.appendChild(div);
     setTimeout(() => div.remove(), 2600);
+  }
+
+  spawnFloatingText(text, variant = 'coin', anchorSelector = '#hud-coin-box') {
+    const layer = document.getElementById('fx-layer');
+    if (!layer) return;
+    const anchor = document.querySelector(anchorSelector);
+    const div = document.createElement('div');
+    div.className = `floating-score-popup ${variant}`;
+    div.textContent = text;
+    if (anchor) {
+      const rect = anchor.getBoundingClientRect();
+      div.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      div.style.top = `${Math.round(rect.top + Math.min(24, rect.height * 0.35))}px`;
+    } else {
+      div.style.left = '50%';
+      div.style.top = '45%';
+    }
+    layer.appendChild(div);
+    setTimeout(() => div.remove(), 1350);
+  }
+
+  triggerShake(selector) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    el.classList.remove('juice-shake');
+    void el.offsetWidth;
+    el.classList.add('juice-shake');
+    setTimeout(() => el.classList.remove('juice-shake'), 480);
   }
 
   spawnHeartsFX() {

@@ -148,6 +148,52 @@ window.AudioManager = class AudioManager {
     this._playTone(1318.5, 0.35, 'triangle', 0.25, 0.12);
   }
 
+  playOvenWarning() {
+    this.init();
+    this._playTone(740, 0.06, 'triangle', 0.18, 0);
+    this._playTone(880, 0.06, 'triangle', 0.18, 0.1);
+  }
+
+  playPerfectSnap() {
+    this.init();
+    this._playTone(783.99, 0.12, 'triangle', 0.24, 0);
+    this._playTone(1046.5, 0.16, 'triangle', 0.26, 0.05);
+    this._playTone(1318.5, 0.24, 'triangle', 0.28, 0.11);
+    this._playTone(1567.98, 0.3, 'sine', 0.22, 0.17);
+  }
+
+  playBurnSizzle() {
+    this.init();
+    this._playTone(155, 0.24, 'sawtooth', 0.2, 0);
+    this._playTone(115, 0.3, 'sawtooth', 0.22, 0.08);
+    if (!this.enabled || !this.ctx || this.volume <= 0) return;
+    const dur = 0.28;
+    const bufSize = Math.floor(this.ctx.sampleRate * dur);
+    const buffer = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / bufSize);
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1800;
+    const gain = this.ctx.createGain();
+    gain.gain.value = Math.max(0.001, this.volume * 0.2);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    src.start();
+  }
+
+  playComboBonus() {
+    this.init();
+    [587.33, 739.99, 880, 1174.66].forEach((f, idx) => {
+      this._playTone(f, 0.18, 'triangle', 0.25, idx * 0.065);
+    });
+  }
+
   playOvenDoor(open = false) {
     this.init();
     if (open) {

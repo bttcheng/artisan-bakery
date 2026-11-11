@@ -414,9 +414,10 @@ window.SDData = (() => {
   const CUSTOMERS = [
     {
       id: 'miu', name: 'Bé Miu', role: 'Bé gái thích màu hồng', unlockLevel: 1,
+      personality: 'chill', personalityLabel: 'Thân thiện',
       hairColor: '#5C3A21', hairStyle: 'pigtails', skinColor: '#FFE0CC',
       outfitColor: '#FF9EBB', outfitStyle: 'dress', accessory: 'bow',
-      patienceBase: 95, tipMultiplier: 1.15, favoriteColor: 'pink',
+      patienceBase: 105, tipMultiplier: 1.15, favoriteColor: 'pink',
       greetings: [
         'Xin chào! Mình muốn đặt một chiếc bánh màu hồng thật xinh nhé!',
         'Chị chủ ơi! Làm cho Miu một chiếc bánh siêu dễ thương nha!'
@@ -427,9 +428,10 @@ window.SDData = (() => {
     },
     {
       id: 'ken', name: 'Cậu bé Ken', role: 'Tín đồ Chocolate', unlockLevel: 1,
+      personality: 'rush', personalityLabel: 'Khách Vội',
       hairColor: '#2B1B17', hairStyle: 'spiky', skinColor: '#FCD5B5',
       outfitColor: '#74C69D', outfitStyle: 'hoodie', accessory: 'cap',
-      patienceBase: 90, tipMultiplier: 1.1, favoriteFlavor: 'chocolate',
+      patienceBase: 72, tipMultiplier: 1.45, favoriteFlavor: 'chocolate',
       greetings: [
         'Yo! Cho mình một phần bánh thật đậm vị nhé!',
         'Nghe đồn tiệm làm bánh ngon nhất khu phố, làm giúp mình một cái nha!'
@@ -440,9 +442,10 @@ window.SDData = (() => {
     },
     {
       id: 'hoa', name: 'Chị Hoa', role: 'Cô gái yêu hoa & bánh kem', unlockLevel: 1,
+      personality: 'picky', personalityLabel: 'Khó Tính',
       hairColor: '#8D5524', hairStyle: 'long_wave', skinColor: '#FFE5D4',
       outfitColor: '#D8BBFF', outfitStyle: 'cardigan', accessory: 'flower',
-      patienceBase: 100, tipMultiplier: 1.2,
+      patienceBase: 76, tipMultiplier: 1.35,
       greetings: [
         'Chào bạn, tiệm trang trí xinh quá! Cho mình đặt chiếc bánh này nhé.',
         'Hôm nay trời đẹp, mình muốn thưởng thức một chiếc bánh thật tinh tế!'
@@ -453,9 +456,10 @@ window.SDData = (() => {
     },
     {
       id: 'minh', name: 'Anh Minh', role: 'Chàng trai mua bánh sinh nhật', unlockLevel: 1,
+      personality: 'rush', personalityLabel: 'Khách Vội',
       hairColor: '#1F2421', hairStyle: 'neat', skinColor: '#F5CBA7',
       outfitColor: '#99D6FF', outfitStyle: 'shirt', accessory: 'glasses',
-      patienceBase: 95, tipMultiplier: 1.25,
+      patienceBase: 68, tipMultiplier: 1.5,
       greetings: [
         'Chào tiệm! Hôm nay là sinh nhật bạn thân mình, làm giúp mình thật chỉn chu nhé!',
         'Mình cần một chiếc bánh đặc biệt để gây bất ngờ cho tiệc tối nay!'
@@ -466,9 +470,10 @@ window.SDData = (() => {
     },
     {
       id: 'lan', name: 'Mẹ Lan', role: 'Người mẹ mua bánh cho con', unlockLevel: 1,
+      personality: 'chill', personalityLabel: 'Thân thiện',
       hairColor: '#4A2C2A', hairStyle: 'bun', skinColor: '#FFE0CC',
       outfitColor: '#FFE599', outfitStyle: 'apron_dress', accessory: 'earrings',
-      patienceBase: 105, tipMultiplier: 1.15,
+      patienceBase: 110, tipMultiplier: 1.15,
       greetings: [
         'Chào cháu, cô muốn mua chiếc bánh ngọt cho bé nhà cô ăn xế.',
         'Nhờ tiệm làm giúp cô một phần thật thơm ngon và an toàn cho bé nhé!'
@@ -479,9 +484,10 @@ window.SDData = (() => {
     },
     {
       id: 'baovy', name: 'Bảo & Vy', role: 'Cặp đôi mua bánh kỷ niệm', unlockLevel: 2,
+      personality: 'vip', personalityLabel: 'Khách VIP',
       hairColor: '#3D2B1F', hairStyle: 'couple', skinColor: '#FFE0CC',
       outfitColor: '#FFB5A7', outfitStyle: 'couple_wear', accessory: 'heart_pin',
-      patienceBase: 100, tipMultiplier: 1.3,
+      patienceBase: 92, tipMultiplier: 1.55,
       greetings: [
         'Hôm nay là kỷ niệm của tụi mình! Làm giúp tụi mình một chiếc bánh ngọt ngào nhé!',
         'Tụi mình muốn chia sẻ một chiếc bánh thật lãng mạn tại Sweet Dreams!'
@@ -492,9 +498,10 @@ window.SDData = (() => {
     },
     {
       id: 'hanh', name: 'Bà Ngoại Hạnh', role: 'Khách hàng lớn tuổi hiền hậu', unlockLevel: 2,
+      personality: 'chill', personalityLabel: 'Thân thiện',
       hairColor: '#D9D9D9', hairStyle: 'grandma_bun', skinColor: '#FAD7C4',
       outfitColor: '#B8E0D2', outfitStyle: 'floral_blouse', accessory: 'round_glasses',
-      patienceBase: 115, tipMultiplier: 1.2,
+      patienceBase: 118, tipMultiplier: 1.2,
       greetings: [
         'Chào cháu yêu, tiệm lúc nào cũng thơm mùi bơ sữa dễ chịu quá.',
         'Bà thèm chút ngọt nhẹ nhàng, cháu làm giúp bà chiếc bánh này nhé.'
@@ -504,10 +511,11 @@ window.SDData = (() => {
       sadLines: ['Chà, bánh này hơi khác ý bà một tẹo...', 'Bà về nghỉ ngơi trước đây cháu nhé.']
     },
     {
-      id: 'bella', name: 'Cô Bella', role: 'Khách VIP sành điệu', unlockLevel: 3,
+      id: 'bella', name: 'Cô Bella', role: 'Khách VIP sành điệu', unlockLevel: 2,
+      personality: 'vip', personalityLabel: 'Khách VIP',
       hairColor: '#FFD166', hairStyle: 'glam_bob', skinColor: '#FFE5D9',
       outfitColor: '#9D4EDD', outfitStyle: 'vip_coat', accessory: 'crown_beret',
-      patienceBase: 85, tipMultiplier: 1.6,
+      patienceBase: 82, tipMultiplier: 1.85,
       greetings: [
         'Bonjour! Tôi nghe nói đây là tiệm bánh hot nhất. Hãy chứng minh tài năng đi!',
         'Tôi sẵn sàng trả hậu hĩnh nếu chiếc bánh đạt chuẩn hoàn hảo!'
@@ -517,10 +525,11 @@ window.SDData = (() => {
       sadLines: ['Không đạt tiêu chuẩn của tôi chút nào!', 'Thất vọng thật sự, tạm biệt!']
     },
     {
-      id: 'khotinh', name: 'Ông Khó Tính', role: 'Nhà phê bình ẩm thực', unlockLevel: 3,
+      id: 'khotinh', name: 'Ông Khó Tính', role: 'Nhà phê bình ẩm thực', unlockLevel: 2,
+      personality: 'picky', personalityLabel: 'Khó Tính',
       hairColor: '#4A4E69', hairStyle: 'mustache', skinColor: '#F3C9B1',
       outfitColor: '#6D6875', outfitStyle: 'suit', accessory: 'monocle',
-      patienceBase: 75, tipMultiplier: 1.5,
+      patienceBase: 64, tipMultiplier: 1.6,
       greetings: [
         'Hừm! Để xem tay nghề tiệm bánh này tới đâu. Làm đúng từng chi tiết cho tôi!',
         'Tôi rất kỹ tính về độ chín và cách trang trí đấy nhé!'
@@ -531,9 +540,10 @@ window.SDData = (() => {
     },
     {
       id: 'linh', name: 'Bạn Linh', role: 'Khách quen thân thiết', unlockLevel: 1,
+      personality: 'chill', personalityLabel: 'Thân thiện',
       hairColor: '#6B4226', hairStyle: 'ponytail', skinColor: '#FFE0CC',
       outfitColor: '#A0C4FF', outfitStyle: 'overall', accessory: 'hairclip',
-      patienceBase: 105, tipMultiplier: 1.15,
+      patienceBase: 108, tipMultiplier: 1.15,
       greetings: [
         'Lại là mình đây! Hôm nay tiệm có món gì ngon cho mình không?',
         'Chào chủ tiệm thân yêu! Cho mình order món quen thuộc nha!'
@@ -543,10 +553,11 @@ window.SDData = (() => {
       sadLines: ['Ủa hôm nay tay nghề xuống phong độ hả bạn?', 'Thôi mai mình quay lại vậy nha...']
     },
     {
-      id: 'ti', name: 'Đầu bếp Tí', role: 'Thực khách sành ăn', unlockLevel: 4,
+      id: 'ti', name: 'Đầu bếp Tí', role: 'Thực khách sành ăn', unlockLevel: 3,
+      personality: 'vip', personalityLabel: 'Khách VIP',
       hairColor: '#582F0E', hairStyle: 'chef_hat', skinColor: '#FFE2C6',
       outfitColor: '#FFFFFF', outfitStyle: 'chef_coat', accessory: 'scarf',
-      patienceBase: 90, tipMultiplier: 1.35,
+      patienceBase: 86, tipMultiplier: 1.55,
       greetings: [
         'Xin chào đồng nghiệp! Tôi muốn nếm thử công thức đặc biệt của tiệm bạn.',
         'Hương thơm từ lò nướng hấp dẫn quá, làm cho tôi một chiếc nhé!'
@@ -556,10 +567,11 @@ window.SDData = (() => {
       sadLines: ['Hương vị chưa cân bằng lắm...', 'Tiếc quá, tôi phải về bếp của mình rồi.']
     },
     {
-      id: 'keongot', name: 'Em Tôm Kẹo Ngọt', role: 'Khách nhí đáng yêu', unlockLevel: 2,
+      id: 'keongot', name: 'Em Tôm Kẹo Ngọt', role: 'Khách nhí đáng yêu', unlockLevel: 1,
+      personality: 'rush', personalityLabel: 'Khách Vội',
       hairColor: '#FF8FAB', hairStyle: 'curly', skinColor: '#FFE5D4',
       outfitColor: '#FFD166', outfitStyle: 'stripe_tee', accessory: 'star_clip',
-      patienceBase: 85, tipMultiplier: 1.2,
+      patienceBase: 74, tipMultiplier: 1.35,
       greetings: [
         'Oa oa nhiều bánh ngon quá! Cho em cái có thật nhiều kẹo ngọt nha!',
         'Em thích bánh lấp lánh ngôi sao cơ!'

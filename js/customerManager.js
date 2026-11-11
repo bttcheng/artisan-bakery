@@ -25,10 +25,14 @@ window.CustomerManager = class CustomerManager {
   }
 
   getMaxConcurrent() {
-    const base = this.economy.getLevelInfo(this.state.level).maxCustomers;
+    const day = this.state.day || 1;
+    // Day 1: strictly 1 focused customer at a time; Day 2+: scales to 2 -> 3 -> 4+ so multi-order juggling shines!
+    if (day === 1) return 1;
+    const dayCap = day === 2 ? 2 : day === 3 ? 3 : 4;
+    const lvlCap = this.economy.getLevelInfo(this.state.level).maxCustomers;
     const counterLvl = this.upgrades.getUpgradeLevelData('counter_service');
     const extra = counterLvl ? (counterLvl.extraSlots || 0) : 0;
-    return Math.min(6, base + extra);
+    return Math.min(6, Math.max(dayCap, lvlCap) + extra);
   }
 
   getOccupiedSlotIndices() {
@@ -45,20 +49,37 @@ window.CustomerManager = class CustomerManager {
     if (freeSlots.length === 0) return null;
     const slotIndex = freeSlots[0];
 
-    // Pick unlocked customer not already in shop
+    const day = this.state.day || 1;
+    // Pick unlocked customer not already in shop, gated smoothly by day progression:
+    // Day 1: Chill friendly regulars; Day 2+: Rush guests join; Day 3+: Picky critics & VIP join
     const activeIds = this.slots.map(s => s.customer.id);
-    const pool = window.SDData.CUSTOMERS.filter(
-      c => c.unlockLevel <= this.state.level && !activeIds.includes(c.id)
+    const allowedPersonalities = day <= 1
+      ? ['chill']
+      : day === 2
+        ? ['chill', 'rush']
+        : ['chill', 'rush', 'picky', 'vip'];
+
+    let pool = window.SDData.CUSTOMERS.filter(
+      c => c.unlockLevel <= Math.max(this.state.level, day)
+        && allowedPersonalities.includes(c.personality || 'chill')
+        && !activeIds.includes(c.id)
     );
-    const candidates = pool.length > 0 ? pool : window.SDData.CUSTOMERS.filter(c => c.unlockLevel <= this.state.level);
-    const customer = candidates[Math.floor(Math.random() * candidates.length)];
+    if (pool.length === 0) {
+      pool = window.SDData.CUSTOMERS.filter(c => allowedPersonalities.includes(c.personality || 'chill'));
+    }
+    if (pool.length === 0) pool = window.SDData.CUSTOMERS;
+    const customer = pool[Math.floor(Math.random() * pool.length)];
 
     const order = this.orders.generateOrder(customer, forceSpecial);
     const patienceBonus = this.upgrades.getTotalPatienceBonus();
-    // Unaccepted customer waiting patience: default 180-240s based on customer personality
-    const normalizedPatience = Math.max(0, Math.min(1, ((customer.patienceBase || 95) - 75) / 40));
-    const baseWaitSeconds = Math.round(180 + normalizedPatience * 60);
-    const maxPatience = Math.max(180, Math.round(baseWaitSeconds + patienceBonus + (order.isSpecial ? 15 : 0)));
+    // Personality-driven counter patience (short for Rush & Picky, comfortable on Day 1)
+    const pMult = customer.personality === 'rush' ? 0.62
+      : customer.personality === 'picky' ? 0.68
+      : customer.personality === 'vip' ? 0.85
+      : 1.05;
+    const dayTighten = Math.max(0.75, 1 - (day - 1) * 0.06);
+    const baseWait = day === 1 ? 95 : Math.round((customer.patienceBase || 85) * pMult * dayTighten);
+    const maxPatience = Math.max(36, Math.round(baseWait + patienceBonus + (order.isSpecial ? 14 : 0)));
 
     const entry = {
       slotIndex,
@@ -146,7 +167,10 @@ window.CustomerManager = class CustomerManager {
         this.spawnCooldown -= dt;
         if (this.spawnCooldown <= 0) {
           this.spawnCustomer();
-          this.spawnCooldown = 11 + Math.random() * 6;
+          const day = this.state.day || 1;
+          this.spawnCooldown = day <= 1
+            ? 2.2
+            : Math.max(3.8, 9.5 - (day - 1) * 1.1) + Math.random() * 2.5;
         }
       } else {
         this.spawnCooldown = Math.max(0, this.spawnCooldown - dt);
@@ -205,12 +229,13 @@ window.CustomerManager = class CustomerManager {
         continue;
       }
 
-      // 1. Unaccepted customer at counter: countdown stopped while player is busy baking or browsing shop tabs
-      if (slot.waitStopped || slot.cancelled || freezeWaitTimers || isWorkshopOpen) {
+      // 1. Unaccepted customer at counter: pause completely only in reference/shop tabs; tick gently during baking on Day 2+
+      if (slot.waitStopped || slot.cancelled || freezeWaitTimers) {
         continue;
       }
+      const waitRate = isWorkshopOpen ? ((this.state.day || 1) <= 1 ? 0.25 : 0.55) : 1.0;
 
-      slot.patience = Math.max(0, slot.patience - dt);
+      slot.patience = Math.max(0, slot.patience - dt * waitRate);
       const ratio = slot.maxPatience > 0 ? (slot.patience / slot.maxPatience) : 0;
       const prevMood = slot.mood;
 
@@ -271,6 +296,22 @@ window.CustomerManager = class CustomerManager {
 
     slot.status = 'leaving';
     slot.enterTimer = 1.6;
+    if (this.onShopChange) this.onShopChange({});
+    return slot;
+  }
+
+  failCustomerOrder(orderId, reasonText = 'Bánh bị cháy mất rồi!') {
+    const slot = this.getSlotByOrderId(orderId);
+    if (!slot || slot.completed || slot.cancelled) return null;
+    slot.cancelled = true;
+    slot.mood = 'angry';
+    slot.waving = false;
+    slot.status = 'leaving';
+    slot.enterTimer = 1.5;
+    slot.speech = reasonText;
+    this.state.stats.customersLost = (this.state.stats.customersLost || 0) + 1;
+    this.state.stats.streak = 0;
+    this.economy.addReputation(-3);
     if (this.onShopChange) this.onShopChange({});
     return slot;
   }

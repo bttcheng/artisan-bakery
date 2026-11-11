@@ -65,7 +65,10 @@ window.SaveManager = class SaveManager {
         totalEarned: 0,
         specialCompleted: 0,
         dayOrders: 0,
-        dayCoins: 0
+        dayCoins: 0,
+        streak: 0,
+        bestStreak: 0,
+        dayGoalClaimedDay: 0
       },
       settings: {
         soundEnabled: true,

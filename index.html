@@ -105,6 +105,12 @@
         <div class="hud-pill coin-pill" id="hud-coin-box" title="Số xu hiện có">
           <span data-sd-ico="coin" data-sd-size="18"></span> <b id="hud-coins">150</b>
         </div>
+        <div class="hud-pill goal-pill" id="hud-goal-pill" title="Mục tiêu xu hôm nay">
+          <span data-sd-ico="star_level" data-sd-size="16"></span> <b id="hud-day-goal">0/100</b>
+        </div>
+        <div class="hud-pill streak-pill" id="hud-streak-pill" title="Chuỗi phục vụ chuẩn liên tiếp (mỗi 5 khách thưởng lớn!)">
+          <span>🔥</span> <b id="hud-streak">x0</b>
+        </div>
         <div class="hud-pill served-pill" title="Tổng khách đã phục vụ">
           <span data-sd-ico="smile_served" data-sd-size="18"></span> <b id="hud-served">0</b>
         </div>
@@ -224,6 +230,7 @@
           </div>
 
           <!-- Ready-to-Deliver Box Banner (if player finished a cake & returned to shop) -->
+          <div id="shop-oven-dock" class="shop-oven-dock hidden"></div>
           <div id="ready-delivery-banner" class="ready-delivery-banner hidden"></div>
         </div>
       </div>
@@ -329,10 +336,13 @@
             <div class="step-item" data-step="package"><span data-sd-ico="gift_box" data-sd-size="14"></span> 4. Gói</div>
           </div>
           <div class="workshop-topbar-right">
-            <div class="workshop-timer-badge" id="ws-timer-badge">0s / 60s</div>
+            <div class="workshop-timer-badge" id="ws-timer-badge">0s / 28s</div>
             <div class="workshop-order-badge" id="ws-order-badge">#001</div>
           </div>
         </div>
+
+        <!-- Multi-Order Parallel Kitchen Switcher (Juggle up to 3 orders simultaneously!) -->
+        <div id="ws-order-switcher" class="ws-order-switcher"></div>
 
         <div class="workshop-body">
           <!-- LEFT/CENTER INTERACTIVE STAGE -->
@@ -421,7 +431,7 @@
                     <canvas id="oven-canvas" class="oven-canvas" width="560" height="380"></canvas>
                   </div>
                   <div class="oven-progress-wrap">
-                    <div class="oven-zones-track">
+                    <div class="oven-zones-track" id="oven-zones-track">
                       <div class="zone-raw">Sống</div>
                       <div class="zone-baking">Nở</div>
                       <div class="zone-perfect">Chín!</div>
@@ -433,6 +443,7 @@
                     <button id="btn-start-oven" class="btn btn-primary btn-lg"><span data-sd-ico="oven_flame" data-sd-size="18"></span> Nướng Bánh</button>
                     <button id="btn-take-out" class="btn btn-butter btn-lg hidden">Lấy Ra!</button>
                     <button id="btn-retry-bake" class="btn btn-soft btn-md hidden">Nướng Lại</button>
+                    <button id="btn-discard-burnt" class="btn btn-danger btn-md hidden">Bỏ Đơn Cháy</button>
                     <button id="btn-to-decorate" class="btn btn-mint btn-lg hidden"><span data-sd-ico="piping_bag" data-sd-size="18"></span> Trang Trí →</button>
                   </div>
                 </div>

@@ -11,6 +11,37 @@ window.ScoringManager = class ScoringManager {
 
   evaluate(order, cakeState, packaging, customerSlot) {
     const breakdown = [];
+    const customer = customerSlot ? customerSlot.customer : null;
+    const personality = customer ? (customer.personality || 'chill') : 'chill';
+    const execElapsed = Math.max(0, Math.round(order.execElapsed || 0));
+    const targetDuration = Math.max(20, order.targetDuration || 28);
+    const overtime = Math.max(0, execElapsed - targetDuration);
+
+    // 0. Burnt Cake Rule: Burnt cake spoils the entire order ("cháy thì mất đơn")
+    if (cakeState && cakeState.bakeState === 'burnt') {
+      breakdown.push({ label: 'Bánh bị cháy khét trong lò', pts: 0, max: 100, ok: false });
+      return {
+        burntFail: true,
+        score: 0,
+        grade: 'CHÁY KHÉT - MẤT ĐƠN',
+        stars: 0,
+        basePay: 0,
+        tip: 0,
+        totalCoins: 0,
+        xpEarned: 0,
+        repDelta: -3,
+        personalityFeedback: 'Khách từ chối nhận bánh bị cháy!',
+        speedInfo: {
+          execElapsed,
+          targetDuration,
+          overtime,
+          tipMultSpeed: 0,
+          speedLabel: 'Bánh hỏng do cháy lò'
+        },
+        breakdown
+      };
+    }
+
     let total = 0;
 
     // 1. Cake Type (14 pts)
@@ -92,48 +123,51 @@ window.ScoringManager = class ScoringManager {
     total += pkgPts;
     breakdown.push({ label: 'Đóng gói, ruy băng & phụ kiện hộp', pts: pkgPts, max: 14, ok: pkgPts >= 11 });
 
-    // 7. Baking & Mixing Quality (12 pts)
-    const bakeQual = cakeState.bakeQuality || 60;
+    // 7. Baking & Mixing Quality (12 pts — rewards snapping "Chín!" right on time)
+    const bakeQual = cakeState.bakeQuality || 40;
     const mixQual = cakeState.mixQuality || 70;
-    const avgQual = (bakeQual * 0.65 + mixQual * 0.35) / 100;
-    const qualPts = cakeState.bakeState === 'burnt' ? 2 : Math.round(avgQual * 12);
+    const avgQual = (bakeQual * 0.68 + mixQual * 0.32) / 100;
+    const qualPts = cakeState.bakeState === 'perfect'
+      ? Math.min(12, Math.max(9, Math.round(avgQual * 12)))
+      : Math.min(5, Math.round(avgQual * 6));
     total += qualPts;
-    breakdown.push({ label: 'Chất lượng trộn & nướng', pts: qualPts, max: 12, ok: cakeState.bakeState === 'perfect' });
+    breakdown.push({
+      label: cakeState.bakeState === 'perfect' ? 'Canh lò chuẩn "Chín!"' : 'Chất lượng trộn & nướng (Chưa chín tới)',
+      pts: qualPts,
+      max: 12,
+      ok: cakeState.bakeState === 'perfect'
+    });
 
-    // 8. Execution Speed vs Target Time (8 pts - independent from queue patience!)
-    const execElapsed = Math.max(0, Math.round(order.execElapsed || 0));
-    const targetDuration = Math.max(30, order.targetDuration || 65);
-    const overtime = Math.max(0, execElapsed - targetDuration);
-
+    // 8. Execution Speed vs 20-40s Arcade Target Time (8 pts)
     let timePts = 8;
     let tipMultSpeed = 1.0;
     let repSpeedDelta = 1;
-    let speedLabel = `Đúng hẹn (${execElapsed}s / ${targetDuration}s)`;
+    let speedLabel = `Đúng nhịp (${execElapsed}s / ${targetDuration}s)`;
     let speedOk = true;
 
     if (overtime === 0) {
       timePts = 8;
-      tipMultSpeed = 1.0;
-      repSpeedDelta = 1; // Speed reputation reward
-      speedLabel = `Hoàn thành đúng hẹn (${execElapsed}s / ${targetDuration}s)`;
+      tipMultSpeed = 1.1;
+      repSpeedDelta = 1;
+      speedLabel = `Hoàn hảo đúng hẹn (${execElapsed}s / ${targetDuration}s)`;
       speedOk = true;
-    } else if (overtime < 60) {
-      timePts = 6;
-      tipMultSpeed = 0.65;
+    } else if (overtime <= 15) {
+      timePts = 5;
+      tipMultSpeed = 0.6;
       repSpeedDelta = 0;
-      speedLabel = `Trễ ${overtime}s (<60s) • Giảm nhẹ tip`;
+      speedLabel = `Trễ nhẹ +${overtime}s • Giảm phần tip`;
       speedOk = true;
-    } else if (overtime <= 120) {
-      timePts = 3;
-      tipMultSpeed = 0.35;
+    } else if (overtime <= 35) {
+      timePts = 2;
+      tipMultSpeed = 0.25;
       repSpeedDelta = -1;
-      speedLabel = `Trễ ${overtime}s (60–120s) • Giảm tip & danh tiếng`;
+      speedLabel = `Hơi chậm +${overtime}s • Giảm tip & uy tín`;
       speedOk = false;
     } else {
       timePts = 0;
       tipMultSpeed = 0;
       repSpeedDelta = -1;
-      speedLabel = `Trễ ${overtime}s (>120s) • Vẫn giao thành công`;
+      speedLabel = `Quá chậm (+${overtime}s) • Mất tiền tip`;
       speedOk = false;
     }
 
@@ -142,37 +176,73 @@ window.ScoringManager = class ScoringManager {
 
     const score = Math.max(0, Math.min(100, Math.round(total)));
 
-    let grade = 'NEED IMPROVEMENT';
+    let grade = 'CHƯA ĐẠT - MẤT ĐƠN';
     let stars = 0;
-    if (score >= 90) {
-      grade = 'PERFECT';
+    if (score >= 88) {
+      grade = 'PERFECT!';
       stars = 3;
     } else if (score >= 70) {
-      grade = 'GREAT';
+      grade = 'NGON!';
       stars = 2;
     } else if (score >= 50) {
-      grade = 'GOOD';
+      grade = 'TẠM ĐƯỢC';
       stars = 1;
     }
 
-    // Calculate Money, Tip & XP
+    // Calculate Money, Tip & XP scaled sharply by quality & customer personality
     const cakeCfg = this.recipes.getCakeType(order.cakeType);
     const qtyMult = order.quantity || 1;
-    const basePay = Math.round(cakeCfg.basePrice * qtyMult * (0.45 + (score / 100) * 0.75) + (order.bonusCoins || 0) * (score >= 50 ? 1 : 0.3));
-    const tipMult = customerSlot ? customerSlot.customer.tipMultiplier : 1;
-    const decoTipBonus = this.upgrades.getTotalTipBonus();
-    const rawTip = score >= 85
-      ? (15 + decoTipBonus) * tipMult
-      : score >= 70
-        ? (7 + decoTipBonus * 0.5) * tipMult
-        : 0;
-    const tip = Math.max(0, Math.round(rawTip * tipMultSpeed));
+    const payScale = stars === 3 ? 1.15 : stars === 2 ? 0.88 : stars === 1 ? 0.55 : 0;
+    const vipMult = personality === 'vip' && stars >= 2 ? 1.35 : 1.0;
+    const basePay = stars === 0
+      ? 0
+      : Math.round((cakeCfg.basePrice * qtyMult * payScale + (order.bonusCoins || 0) * (stars >= 2 ? 1 : 0.4)) * vipMult);
 
-    const xpEarned = Math.round((cakeCfg.baseXp * qtyMult + (order.bonusXp || 0)) * (score >= 50 ? (0.6 + score / 200) : 0.3));
-    const baseRepDelta = stars === 3 ? 3 : stars === 2 ? 2 : stars === 1 ? 1 : -1;
-    const repDelta = stars >= 1 ? (baseRepDelta + repSpeedDelta) : Math.min(baseRepDelta, baseRepDelta + repSpeedDelta);
+    const tipMult = customer ? customer.tipMultiplier : 1;
+    const decoTipBonus = this.upgrades.getTotalTipBonus();
+    let rawTip = stars === 3
+      ? (18 + decoTipBonus) * tipMult
+      : stars === 2
+        ? (8 + decoTipBonus * 0.45) * tipMult
+        : 0; // 1 star ("Tạm được") = no tip!
+
+    let personalityFeedback = '';
+    let personalityRepDelta = 0;
+
+    if (personality === 'rush') {
+      if (overtime === 0 && stars >= 2) {
+        rawTip += 12 * tipMult;
+        personalityFeedback = 'Khách Vội rất hài lòng tốc độ · +Thưởng nhanh!';
+      } else if (overtime > 0) {
+        rawTip = 0;
+        personalityFeedback = 'Khách Vội chê giao chậm · Mất tiền tip!';
+      }
+    } else if (personality === 'picky') {
+      if (score < 85) {
+        rawTip = 0;
+        personalityRepDelta = -1;
+        personalityFeedback = 'Khách Khó Tính chê chất lượng chưa đạt · -1 uy tín!';
+      } else if (score >= 92) {
+        rawTip += 15;
+        personalityRepDelta = 2;
+        personalityFeedback = 'Khách Khó Tính gật gù khen ngợi · +15 tip & +2 uy tín!';
+      }
+    } else if (personality === 'vip') {
+      if (stars >= 2) {
+        personalityFeedback = 'Khách VIP hài lòng · Thưởng lớn!';
+      } else {
+        personalityRepDelta = -2;
+        personalityFeedback = 'Khách VIP thất vọng · -2 uy tín!';
+      }
+    }
+
+    const tip = stars === 0 ? 0 : Math.max(0, Math.round(rawTip * tipMultSpeed));
+    const xpEarned = stars === 0 ? 0 : Math.round((cakeCfg.baseXp * qtyMult + (order.bonusXp || 0)) * (stars === 3 ? 1.25 : stars === 2 ? 0.9 : 0.5) * (personality === 'vip' ? 1.3 : 1));
+    const baseRepDelta = stars === 3 ? 3 : stars === 2 ? 1 : stars === 1 ? 0 : -2;
+    const repDelta = baseRepDelta + (stars >= 2 ? Math.max(0, repSpeedDelta) : Math.min(0, repSpeedDelta)) + personalityRepDelta;
 
     return {
+      burntFail: false,
       score,
       grade,
       stars,
@@ -181,6 +251,7 @@ window.ScoringManager = class ScoringManager {
       totalCoins: basePay + tip,
       xpEarned,
       repDelta,
+      personalityFeedback,
       speedInfo: {
         execElapsed,
         targetDuration,
