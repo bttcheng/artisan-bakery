@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Sweet Dreams – Tiệm Bánh Ngọt</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Floating Effects Layer (Confetti, Hearts, Flying Coins, Toasts) -->
+  <div id="fx-layer" class="fx-layer"></div>
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- ======================================================================= -->
+  <!-- 1. INTRO SCREEN                                                         -->
+  <!-- ======================================================================= -->
+  <section id="screen-intro" class="screen active">
+    <div class="intro-card pastel-card">
+      <div class="bunting-deco">🎀 🌸 ⭐ 🧁 💖 🍰 ⭐ 🌸 🎀</div>
+      <div class="intro-illustration" id="intro-hero-art"></div>
+      <h1 class="game-title">SWEET DREAMS</h1>
+      <p class="game-subtitle">Tiệm Bánh Ngọt Pastel</p>
+      <p class="intro-desc">
+        Hóa thân thành chủ tiệm bánh đáng yêu! Tiếp nhận đơn hàng, tự tay cân đong nguyên liệu,
+        trộn bột, canh lò nướng, bắt kem trang trí, đóng gói hộp nơ xinh và chinh phục trái tim thực khách.
+      </p>
+      <button id="btn-go-start" class="btn btn-primary btn-lg pulse-btn">
+        ✨ Bước Vào Tiệm Bánh ✨
+      </button>
+    </div>
+  </section>
+
+  <!-- ======================================================================= -->
+  <!-- 2. START SCREEN                                                         -->
+  <!-- ======================================================================= -->
+  <section id="screen-start" class="screen">
+    <div class="start-card pastel-card">
+      <div class="logo-badge">🧁 SWEET DREAMS</div>
+      <h2>Chào mừng đến với Tiệm Bánh Ngọt!</h2>
+      <div id="save-summary-box" class="save-summary hidden"></div>
+      <div class="start-actions">
+        <button id="btn-continue-game" class="btn btn-primary btn-lg hidden">
+          ▶ Tiếp Tục Kinh Doanh
+        </button>
+        <button id="btn-new-game" class="btn btn-mint btn-lg">
+          🌟 Mở Tiệm Mới
+        </button>
+        <button id="btn-open-tutorial" class="btn btn-lavender btn-md">
+          📖 Hướng Dẫn Chơi
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================= -->
+  <!-- 3. TUTORIAL SCREEN                                                      -->
+  <!-- ======================================================================= -->
+  <section id="screen-tutorial" class="screen">
+    <div class="tutorial-card pastel-card">
+      <div class="screen-header">
+        <h2>📖 Cẩm Nang Chủ Tiệm Sweet Dreams</h2>
+        <button id="btn-close-tutorial" class="btn btn-soft">✕ Đóng</button>
+      </div>
+      <div class="tutorial-grid">
+        <div class="tut-step">
+          <div class="tut-num">1</div>
+          <h3>Tiếp Nhận Đơn Hàng</h3>
+          <p>Khách bước vào cửa và gọi món kèm hình ảnh bánh mẫu. Chú ý thanh kiên nhẫn màu Xanh → Vàng → Đỏ!</p>
+        </div>
+        <div class="tut-step">
+          <div class="tut-num">2</div>
+          <h3>Chuẩn Bị &amp; Trộn Bột</h3>
+          <p>Chọn đúng loại bánh &amp; cốt bánh, kéo thả (hoặc chạm) nguyên liệu vào tô rồi nhấn <b>TRỘN BỘT</b> đến vùng mịn hoàn hảo.</p>
+        </div>
+        <div class="tut-step">
+          <div class="tut-num">3</div>
+          <h3>Canh Lò Nướng</h3>
+          <p>Chọn khuôn, đổ bột, chỉnh nhiệt độ và nướng. Canh lấy bánh ra ngay khi đạt trạng thái <b>Chín Hoàn Hảo</b> kẻo bị cháy!</p>
+        </div>
+        <div class="tut-step">
+          <div class="tut-num">4</div>
+          <h3>Trang Trí &amp; Đóng Gói</h3>
+          <p>Chọn màu kem, vòi bắt kem để phủ lên bánh; kéo thả topping và phụ kiện đúng số lượng, đóng gói hộp nơ và giao đúng khách!</p>
+        </div>
+      </div>
+      <div class="tut-footer">
+        <button id="btn-tut-start-play" class="btn btn-primary btn-lg">🎂 Sẵn Sàng Làm Bánh!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================= -->
+  <!-- 4. MAIN GAME SHELL                                                      -->
+  <!-- ======================================================================= -->
+  <section id="screen-main" class="screen">
+    <!-- TOP HUD BAR -->
+    <header class="top-hud">
+      <div class="hud-left">
+        <div class="hud-logo">🧁 SWEET DREAMS</div>
+        <div class="hud-pill day-pill" title="Ngày hiện tại">
+          <span>☀️</span> <b id="hud-day">Ngày 1</b>
+          <span class="day-clock" id="hud-clock">08:00</span>
+        </div>
+        <div class="hud-pill level-pill" title="Cấp độ tiệm">
+          <span>⭐</span> <b id="hud-level">Cấp 1</b>
+          <div class="xp-mini-bar"><div id="hud-xp-fill" class="xp-mini-fill"></div></div>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <div class="hud-pill coin-pill" id="hud-coin-box">
+          <span>🪙</span> <b id="hud-coins">150</b> <small>xu</small>
+        </div>
+        <div class="hud-pill served-pill" title="Tổng khách đã phục vụ">
+          <span>😊</span> <b id="hud-served">0</b> <small>khách</small>
+        </div>
+        <div class="hud-pill rep-pill" title="Điểm danh tiếng">
+          <span>💖</span> <b id="hud-rep">10</b> <small>danh tiếng</small>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <button id="btn-end-day" class="btn btn-butter btn-sm" title="Kết thúc ngày sớm">🌙 Kết Ngày</button>
+        <button id="btn-sound-quick" class="btn btn-icon" title="Bật/Tắt âm thanh">🔊</button>
+        <button id="btn-pause" class="btn btn-icon" title="Tạm dừng">⏸️</button>
+        <button id="btn-settings" class="btn btn-icon" title="Cài đặt">⚙️</button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-viewport">
+      <!-- TAB 1: BAKERY FLOOR -->
+      <div id="tab-bakery" class="tab-panel active">
+        <div id="bakery-scene" class="bakery-scene">
+          <!-- Ambient Fairy Lights -->
+          <div id="scene-fairy-lights" class="fairy-lights">
+            <span class="bulb b1"></span><span class="bulb b2"></span><span class="bulb b3"></span>
+            <span class="bulb b4"></span><span class="bulb b5"></span><span class="bulb b6"></span>
+            <span class="bulb b7"></span><span class="bulb b8"></span>
+          </div>
+          <div id="scene-signboard" class="scene-signboard hidden">✨ SWEET DREAMS BAKERY ✨</div>
+          <div id="scene-bunting" class="scene-bunting hidden">🎀 ✨ 🌸 SWEET DREAMS 🌸 ✨ 🎀</div>
+
+          <!-- Bakery Architecture & Zones -->
+          <div class="bakery-backdrop">
+            <!-- Entrance Door -->
+            <div class="zone-door" id="bakery-door">
+              <div class="door-sign">OPEN</div>
+              <div class="door-leaf">
+                <div class="door-window"></div>
+                <div class="door-knob"></div>
+              </div>
+              <div id="scene-plant-corner" class="scene-plant-corner hidden" title="Cây xanh góc tiệm">🪴</div>
+            </div>
+
+            <!-- Window + Flower Pots + Wall Art -->
+            <div class="zone-window">
+              <div class="window-glass">
+                <span class="cloud-deco">☁️</span>
+                <span class="sun-deco">🌤️</span>
+              </div>
+              <div id="scene-flowers" class="window-flowers hidden">🌷 🌼 🌸</div>
+              <div id="scene-wall-art" class="scene-wall-art hidden" title="Bộ tranh bánh ngọt">🖼️ 🧁 🍰</div>
+            </div>
+
+            <!-- Kitchen Preview Corner (Clickable live zones!) -->
+            <div class="kitchen-strip">
+              <div class="kitchen-station clickable-station" data-station="inventory" data-hint="Bàn nguyên liệu">🥣 Nguyên liệu</div>
+              <div class="kitchen-station clickable-station" data-station="prep" data-hint="Khu trộn bột">
+                <span id="scene-mixer-badge">🥄 Phới trộn</span>
+              </div>
+              <div class="kitchen-station oven-mini clickable-station" data-station="bake" data-hint="Lò nướng bánh">
+                <div class="oven-glow-mini"></div>
+                <div class="steam-puff">💨</div>
+                <span id="scene-oven-badge">🔥 Lò nướng</span>
+              </div>
+              <div class="kitchen-station clickable-station" data-station="decorate" data-hint="Bàn trang trí">🎨 Trang trí</div>
+              <div class="kitchen-station clickable-station" data-station="package" data-hint="Đóng gói">🎁 Đóng gói</div>
+            </div>
+          </div>
+
+          <!-- Display Shelf & Customer Waiting Area -->
+          <div class="bakery-middle">
+            <!-- Display Case -->
+            <div class="zone-display" id="scene-display">
+              <div class="display-title">🧁 Tủ Trưng Bày</div>
+              <div class="display-cakes" id="display-cakes-row"></div>
+            </div>
+
+            <!-- Customer Counter & 4 Slots -->
+            <div class="zone-customers">
+              <div class="counter-header">
+                <span>🛎️ Quầy Tiếp Nhận Khách Hàng (Tối đa <b id="max-cust-label">2</b> khách)</span>
+                <button id="btn-call-customer" class="btn btn-soft btn-xs">🔔 Đón Khách Ngay</button>
+              </div>
+              <div id="customer-slots-grid" class="customer-slots-grid"></div>
+              <div id="cozy-seating-bar" class="cozy-seating-bar">
+                <span>🪑 Ghế chờ tiêu chuẩn</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ready-to-Deliver Box Banner (if player finished a cake & returned to shop) -->
+          <div id="ready-delivery-banner" class="ready-delivery-banner hidden"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: ORDERS QUEUE -->
+      <div id="tab-orders" class="tab-panel">
+        <div class="panel-inner">
+          <div class="panel-header row-between">
+            <div>
+              <h2>📋 Quản Lý Đơn Hàng</h2>
+              <p>Theo dõi trạng thái đơn đang chờ, đang chế biến và lịch sử đơn hàng đã giao.</p>
+            </div>
+            <div class="subtab-pills" id="orders-filter-pills">
+              <button class="subtab-btn active" data-order-view="active">🧁 Đơn Hiện Tại</button>
+              <button class="subtab-btn" data-order-view="history">📜 Lịch Sử Đã Giao</button>
+            </div>
+          </div>
+          <div id="orders-list-grid" class="cards-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: RECIPES & COLLECTION ALBUM -->
+      <div id="tab-collection" class="tab-panel">
+        <div class="panel-inner">
+          <div class="panel-header row-between">
+            <div>
+              <h2>📖 Công Thức &amp; Bộ Sưu Tập Bánh</h2>
+              <p>Khám phá công thức mở khóa theo cấp độ và chiêm ngưỡng album bánh bạn đã làm.</p>
+            </div>
+            <div class="subtab-pills">
+              <button class="subtab-btn active" data-subtab="recipes">🍰 Công Thức</button>
+              <button class="subtab-btn" data-subtab="styles">🎨 16 Kiểu Trang Trí</button>
+              <button class="subtab-btn" data-subtab="album">📸 Album Đã Làm</button>
+            </div>
+          </div>
+          <div id="recipe-category-bar" class="chip-row" style="margin-bottom:12px;">
+            <button class="chip-btn active" data-rcat="all">Tất cả</button>
+            <button class="chip-btn" data-rcat="cupcake">Cupcake</button>
+            <button class="chip-btn" data-rcat="donut">Donut</button>
+            <button class="chip-btn" data-rcat="round_cake">Bánh kem tròn</button>
+            <button class="chip-btn" data-rcat="cookie">Bánh quy</button>
+            <button class="chip-btn" data-rcat="other">Bánh đặc biệt khác</button>
+          </div>
+          <div id="collection-content" class="cards-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB 4: INGREDIENT INVENTORY -->
+      <div id="tab-inventory" class="tab-panel">
+        <div class="panel-inner">
+          <div class="panel-header row-between">
+            <div>
+              <h2>🧺 Kho Nguyên Liệu</h2>
+              <p>Mua thêm nguyên liệu để luôn sẵn sàng phục vụ mọi đơn hàng!</p>
+            </div>
+            <button id="btn-emergency-gift" class="btn btn-butter btn-sm hidden">🎁 Nhận Quà Hỗ Trợ (+60 xu &amp; Bột)</button>
+          </div>
+          <div id="inventory-order-alerts" class="inventory-alerts hidden"></div>
+          <div id="inventory-grid" class="cards-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB 5: SHOP DECORATIONS -->
+      <div id="tab-decor" class="tab-panel">
+        <div class="panel-inner">
+          <div class="panel-header">
+            <h2>🎀 Trang Trí Tiệm Bánh</h2>
+            <p>Vật phẩm bạn mua sẽ xuất hiện trực tiếp trong tiệm, tăng tiền tip và sự kiên nhẫn của khách!</p>
+          </div>
+          <div id="decor-shop-grid" class="cards-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB 6: EQUIPMENT UPGRADES -->
+      <div id="tab-upgrades" class="tab-panel">
+        <div class="panel-inner">
+          <div class="panel-header">
+            <h2>🛠️ Nâng Cấp Thiết Bị Bếp</h2>
+            <p>Nâng cấp lò nướng, máy đánh trứng, bàn trang trí và kệ bánh để làm việc nhanh &amp; chuẩn hơn.</p>
+          </div>
+          <div id="upgrades-grid" class="cards-grid"></div>
+        </div>
+      </div>
+
+      <!-- TAB 7: QUESTS & ACHIEVEMENTS -->
+      <div id="tab-achievements" class="tab-panel">
+        <div class="panel-inner">
+          <div class="panel-header">
+            <h2>🏆 Nhiệm Vụ &amp; Thành Tích</h2>
+            <p>Hoàn thành nhiệm vụ mỗi ngày và mở khóa danh hiệu chủ tiệm tài ba.</p>
+          </div>
+          <h3 class="section-subhead">📌 Nhiệm Vụ Hôm Nay</h3>
+          <div id="quests-grid" class="cards-grid"></div>
+          <h3 class="section-subhead">🌟 Thành Tích Của Tiệm</h3>
+          <div id="achievements-grid" class="cards-grid"></div>
+        </div>
+      </div>
+
+      <!-- =================================================================== -->
+      <!-- INTERACTIVE BAKING WORKSHOP VIEW (Overlays main tabs cleanly)       -->
+      <!-- =================================================================== -->
+      <div id="view-workshop" class="workshop-view hidden">
+        <!-- Workshop Top Step Bar -->
+        <div class="workshop-topbar">
+          <button id="btn-workshop-back" class="btn btn-soft btn-sm">← Quay Lại Tiệm</button>
+          <div class="step-progress">
+            <div class="step-item active" data-step="prep">1. Chuẩn bị &amp; Trộn</div>
+            <div class="step-item" data-step="bake">2. Nướng bánh</div>
+            <div class="step-item" data-step="decorate">3. Trang trí</div>
+            <div class="step-item" data-step="package">4. Đóng gói</div>
+          </div>
+          <div class="workshop-order-badge" id="ws-order-badge">Đơn #001</div>
+        </div>
+
+        <div class="workshop-body">
+          <!-- LEFT/CENTER INTERACTIVE STAGE -->
+          <div class="workshop-stage-area">
+            <!-- STAGE 1: PREP & MIXING -->
+            <div id="stage-prep" class="ws-stage active">
+              <div class="prep-selectors">
+                <div class="selector-group">
+                  <label>1. Chọn Loại Bánh:</label>
+                  <div id="prep-cake-types" class="chip-row"></div>
+                </div>
+                <div class="selector-group">
+                  <label>2. Chọn Cốt Bánh (Hương vị):</label>
+                  <div id="prep-batters" class="chip-row"></div>
+                </div>
+              </div>
+
+              <div class="mixing-center">
+                <div id="mixing-bowl-zone" class="mixing-bowl-zone" title="Kéo thả hoặc nhấn nguyên liệu để cho vào tô">
+                  <canvas id="mixing-canvas" class="mixing-canvas" width="340" height="240"></canvas>
+                  <div class="bowl-hint" id="bowl-hint">Kéo thả hoặc chạm nguyên liệu vào tô!</div>
+                </div>
+
+                <div class="mixing-controls">
+                  <div class="mix-meter-wrap">
+                    <div class="mix-meter-label">
+                      <span>Tiến độ trộn bột</span>
+                      <b id="mix-status-text">Chưa đủ nguyên liệu</b>
+                    </div>
+                    <div class="mix-meter-bar">
+                      <div class="mix-sweet-zone" title="Vùng mịn hoàn hảo"></div>
+                      <div id="mix-meter-fill" class="mix-meter-fill"></div>
+                    </div>
+                  </div>
+                  <div class="mix-btn-row">
+                    <button id="btn-whisk" class="btn btn-butter btn-lg">🥣 TRỘN BỘT (Nhấn / Giữ)</button>
+                    <button id="btn-to-oven" class="btn btn-primary btn-lg" disabled>🔥 Đem Đi Nướng →</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tray-box">
+                <div class="tray-title">🧺 Nguyên liệu (Kéo thả vào tô hoặc chạm để thêm nhanh):</div>
+                <div id="prep-ingredients-tray" class="ingredients-tray"></div>
+              </div>
+            </div>
+
+            <!-- STAGE 2: OVEN BAKING -->
+            <div id="stage-bake" class="ws-stage">
+              <div class="oven-layout">
+                <div class="oven-setup">
+                  <div class="setup-box">
+                    <h4>1. Chọn Khuôn Bánh</h4>
+                    <div id="oven-mold-list" class="chip-row"></div>
+                    <button id="btn-pour-batter" class="btn btn-mint btn-md" style="margin-top:8px;">🫗 Đổ Bột Vào Khuôn</button>
+                  </div>
+
+                  <div class="setup-box">
+                    <h4>2. Chọn Nhiệt Độ Nướng</h4>
+                    <div id="oven-temp-list" class="chip-row">
+                      <button class="chip-btn" data-temp="160">160°C</button>
+                      <button class="chip-btn" data-temp="170">170°C</button>
+                      <button class="chip-btn active" data-temp="180">180°C</button>
+                      <button class="chip-btn" data-temp="190">190°C</button>
+                      <button class="chip-btn" data-temp="200">200°C</button>
+                    </div>
+                    <small id="oven-temp-hint" class="muted-hint"></small>
+                  </div>
+                </div>
+
+                <div class="oven-machine">
+                  <div class="oven-top-panel">
+                    <span class="oven-dial">🌡️ <b id="oven-cur-temp">180°C</b></span>
+                    <span class="oven-timer" id="oven-timer-text">0.0s</span>
+                    <span class="oven-state-pill" id="oven-state-pill">Chờ vào lò</span>
+                  </div>
+                  <div class="oven-glass-door" id="oven-glass-door">
+                    <div class="oven-heat-glow" id="oven-heat-glow"></div>
+                    <div class="oven-cake-preview" id="oven-cake-preview"></div>
+                    <div class="oven-steam" id="oven-steam">💨 💨</div>
+                  </div>
+                  <div class="oven-progress-wrap">
+                    <div class="oven-zones-track">
+                      <div class="zone-raw">Sống</div>
+                      <div class="zone-baking">Đang nở</div>
+                      <div class="zone-perfect">Chín Hoàn Hảo!</div>
+                      <div class="zone-burnt">Cháy!</div>
+                    </div>
+                    <div class="oven-pointer" id="oven-pointer"></div>
+                  </div>
+                  <div class="oven-action-row">
+                    <button id="btn-start-oven" class="btn btn-primary btn-lg">🔥 Cho Vào Lò &amp; Nướng</button>
+                    <button id="btn-take-out" class="btn btn-butter btn-lg hidden">🧤 Lấy Bánh Ra Ngay!</button>
+                    <button id="btn-retry-bake" class="btn btn-soft btn-md hidden">🔄 Nướng Lại Mẻ Khác</button>
+                    <button id="btn-to-decorate" class="btn btn-mint btn-lg hidden">🎨 Sang Bàn Trang Trí →</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STAGE 3: DECORATING TABLE -->
+            <div id="stage-decorate" class="ws-stage">
+              <div class="decorate-layout">
+                <div class="decorate-canvas-wrap">
+                  <div class="decorate-toolbar">
+                    <button id="btn-deco-undo" class="btn btn-soft btn-sm">↩️ Hoàn Tác</button>
+                    <button id="btn-deco-clear" class="btn btn-soft btn-sm">🗑️ Xóa Trang Trí</button>
+                    <span class="deco-tip">💡 Mẹo: Chạm vào bánh để phủ kem / đặt topping, kéo topping trên bánh để dời vị trí!</span>
+                  </div>
+                  <div id="decorate-cake-canvas" class="decorate-cake-canvas"></div>
+                  <div class="decorate-bottom-next">
+                    <button id="btn-to-package" class="btn btn-primary btn-lg">🎁 Chuyển Sang Đóng Gói →</button>
+                  </div>
+                </div>
+
+                <div class="decorate-tools-panel">
+                  <div class="deco-mode-tabs">
+                    <button class="deco-tab active" data-mode="frosting">🍦 Kem &amp; Vòi</button>
+                    <button class="deco-tab" data-mode="topping">🍓 Topping</button>
+                    <button class="deco-tab" data-mode="accessory">🕯️ Phụ Kiện</button>
+                  </div>
+
+                  <!-- Frosting Options -->
+                  <div id="deco-pane-frosting" class="deco-pane active">
+                    <h4>Màu Kem Phủ:</h4>
+                    <div id="deco-frosting-colors" class="swatch-grid"></div>
+                    <h4>Kiểu Vòi Bắt Kem:</h4>
+                    <div id="deco-nozzles" class="chip-row"></div>
+                    <button id="btn-apply-frosting" class="btn btn-primary btn-md" style="width:100%; margin-top:10px;">
+                      ✨ Phủ Kem Lên Bánh
+                    </button>
+                  </div>
+
+                  <!-- Topping Options -->
+                  <div id="deco-pane-topping" class="deco-pane">
+                    <h4>Kéo thả hoặc chạm để rắc lên bánh:</h4>
+                    <div id="deco-toppings-grid" class="deco-items-grid"></div>
+                    <div id="deco-topping-counter" class="muted-hint" style="margin-top:8px;"></div>
+                  </div>
+
+                  <!-- Accessory Options -->
+                  <div id="deco-pane-accessory" class="deco-pane">
+                    <h4>Chọn phụ kiện (chạm để gắn lên bánh):</h4>
+                    <div id="deco-accessories-grid" class="deco-items-grid"></div>
+                    <div id="sign-text-wrap" class="sign-input-wrap">
+                      <label>Chữ trên biển chúc mừng:</label>
+                      <input type="text" id="deco-sign-input" value="Happy Birthday" maxlength="20" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- STAGE 4: PACKAGING -->
+            <div id="stage-package" class="ws-stage">
+              <div class="package-layout">
+                <div class="package-preview-wrap">
+                  <h3>🎁 Đóng Gói Thành Phẩm</h3>
+                  <div id="package-box-canvas" class="package-box-canvas"></div>
+                  <div class="package-actions">
+                    <button id="btn-close-box" class="btn btn-butter btn-lg">🎀 Đóng Nắp Hộp &amp; Thắt Nơ</button>
+                    <button id="btn-deliver-cake" class="btn btn-primary btn-lg" disabled>✅ HOÀN THÀNH &amp; GIAO BÁNH!</button>
+                  </div>
+                </div>
+
+                <div class="package-options-panel">
+                  <div class="pkg-group">
+                    <h4>1. Màu Hộp Bánh:</h4>
+                    <div id="pkg-box-colors" class="swatch-grid"></div>
+                  </div>
+                  <div class="pkg-group">
+                    <h4>2. Màu Ruy Băng:</h4>
+                    <div id="pkg-ribbon-colors" class="swatch-grid"></div>
+                  </div>
+                  <div class="pkg-group">
+                    <h4>3. Thiệp Chúc Mừng:</h4>
+                    <div id="pkg-cards" class="chip-row"></div>
+                  </div>
+                  <div class="pkg-group">
+                    <h4>4. Sticker Trang Trí Hộp:</h4>
+                    <div id="pkg-stickers" class="chip-row"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT SIDEBAR: TARGET ORDER REFERENCE -->
+          <aside class="workshop-order-ref" id="workshop-order-ref"></aside>
+        </div>
+      </div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="nav-btn active" data-tab="bakery"><span>🏠</span><small>Tiệm bánh</small></button>
+      <button class="nav-btn" data-tab="orders"><span>📋</span><small>Đơn hàng</small><i class="nav-badge" id="badge-orders">0</i></button>
+      <button class="nav-btn" data-tab="collection"><span>📖</span><small>Công thức</small></button>
+      <button class="nav-btn" data-tab="inventory"><span>🧺</span><small>Kho hàng</small></button>
+      <button class="nav-btn" data-tab="decor"><span>🎀</span><small>Trang trí tiệm</small></button>
+      <button class="nav-btn" data-tab="upgrades"><span>🛠️</span><small>Nâng cấp</small></button>
+      <button class="nav-btn" data-tab="achievements"><span>🏆</span><small>Thành tích</small></button>
+    </nav>
+  </section>
+
+  <!-- ======================================================================= -->
+  <!-- MODALS (Order Detail, Delivery Evaluation, End Day, Pause, Settings)    -->
+  <!-- ======================================================================= -->
+  <div id="modal-backdrop" class="modal-backdrop hidden">
+    <!-- Order Detail Modal -->
+    <div id="modal-order-detail" class="modal-card pastel-card hidden">
+      <div class="modal-head">
+        <h3 id="md-order-title">Chi Tiết Đơn Hàng</h3>
+        <button class="btn btn-soft btn-xs modal-close-btn">✕</button>
+      </div>
+      <div id="md-order-body" class="modal-body"></div>
+      <div class="modal-foot">
+        <button class="btn btn-soft modal-close-btn">Đóng</button>
+        <button id="btn-accept-bake-order" class="btn btn-primary">👩‍🍳 Vào Bếp Làm Ngay!</button>
+      </div>
+    </div>
+
+    <!-- Delivery & Scoring Modal -->
+    <div id="modal-delivery" class="modal-card pastel-card hidden">
+      <div class="modal-head">
+        <h3>✨ Kết Quả Giao Bánh</h3>
+      </div>
+      <div id="md-delivery-body" class="modal-body"></div>
+      <div class="modal-foot">
+        <button id="btn-delivery-continue" class="btn btn-primary btn-lg">🏠 Quay Về Tiệm Bánh</button>
+      </div>
+    </div>
+
+    <!-- End of Day / Victory Modal -->
+    <div id="modal-end-day" class="modal-card pastel-card hidden">
+      <div class="modal-head">
+        <h3 id="md-endday-title">🌙 Tổng Kết Ngày Kinh Doanh</h3>
+      </div>
+      <div id="md-endday-body" class="modal-body"></div>
+      <div class="modal-foot">
+        <button id="btn-next-day" class="btn btn-primary btn-lg">☀️ Bắt Đầu Ngày Mới!</button>
+      </div>
+    </div>
+
+    <!-- Pause Modal -->
+    <div id="modal-pause" class="modal-card pastel-card hidden">
+      <div class="modal-head"><h3>⏸️ Tạm Dừng Trò Chơi</h3></div>
+      <div class="modal-body" style="text-align:center;">
+        <p>Tiệm bánh đang nghỉ giải lao một chút. Khách hàng sẽ kiên nhẫn chờ bạn quay lại!</p>
+      </div>
+      <div class="modal-foot">
+        <button id="btn-resume-game" class="btn btn-primary btn-lg">▶ Tiếp Tục Chơi</button>
+        <button id="btn-pause-tutorial" class="btn btn-lavender">📖 Xem Hướng Dẫn</button>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="modal-card pastel-card hidden">
+      <div class="modal-head">
+        <h3>⚙️ Cài Đặt Tiệm Bánh</h3>
+        <button class="btn btn-soft btn-xs modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body settings-body">
+        <label class="setting-row">
+          <span>🔊 Hiệu ứng âm thanh</span>
+          <input type="checkbox" id="set-sound" checked />
+        </label>
+        <label class="setting-row">
+          <span>🎵 Nhạc nền tiệm bánh</span>
+          <input type="checkbox" id="set-music" checked />
+        </label>
+        <label class="setting-row">
+          <span>🎚️ Âm lượng</span>
+          <input type="range" id="set-volume" min="0" max="1" step="0.05" value="0.55" />
+        </label>
+        <hr />
+        <button id="btn-reset-save" class="btn btn-danger btn-sm" style="width:100%;">🗑️ Xóa Dữ Liệu &amp; Chơi Lại Từ Đầu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts loaded sequentially so it works cleanly on both HTTP and file:// -->
+  <script defer src="js/data.js"></script>
+  <script defer src="js/svgRenderer.js"></script>
+  <script defer src="js/audioManager.js"></script>
+  <script defer src="js/saveManager.js"></script>
+  <script defer src="js/economyManager.js"></script>
+  <script defer src="js/recipeManager.js"></script>
+  <script defer src="js/upgradeManager.js"></script>
+  <script defer src="js/orderManager.js"></script>
+  <script defer src="js/customerManager.js"></script>
+  <script defer src="js/bakingManager.js"></script>
+  <script defer src="js/mixingCanvas.js"></script>
+  <script defer src="js/decorationManager.js"></script>
+  <script defer src="js/scoringManager.js"></script>
+  <script defer src="game.js"></script>
+</body>
+</html>
+
