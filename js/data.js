@@ -506,7 +506,7 @@ window.SDData = (() => {
       cakeType: 'tiered_cake', batter: 'vanilla', frostingColor: 'pink', nozzle: 'piped',
       topping: 'strawberry', toppingCount: 4, accessory: 'candle', accCount: 5,
       extraAccessory: 'sign', signText: 'Happy Birthday',
-      boxColor: 'pink', ribbonColor: 'rose', card: 'birthday',
+      boxColor: 'pink', ribbonColor: 'rose', card: 'birthday', sticker: 'crown',
       bonusCoins: 120, bonusXp: 65,
       speech: 'ĐẶC BIỆT: Mình cần bánh sinh nhật 2 tầng kem hồng, dâu tây, 5 cây nến và biển Happy Birthday!'
     },
@@ -515,7 +515,7 @@ window.SDData = (() => {
       cakeType: 'tiered_cake', batter: 'strawberry', frostingColor: 'lavender', nozzle: 'swirl',
       topping: 'sugar_flower', toppingCount: 4, accessory: 'heart', accCount: 2,
       extraAccessory: 'sign', signText: 'Happy Anniversary',
-      boxColor: 'lavender', ribbonColor: 'purple', card: 'love',
+      boxColor: 'lavender', ribbonColor: 'purple', card: 'love', sticker: 'heart',
       bonusCoins: 130, bonusXp: 70,
       speech: 'ĐẶC BIỆT: Tụi mình đặt bánh kỷ niệm 2 tầng kem tím, hoa đường và trái tim nhé!'
     },
@@ -524,7 +524,7 @@ window.SDData = (() => {
       cakeType: 'tiered_cake', batter: 'vanilla', frostingColor: 'white', nozzle: 'piped',
       topping: 'cherry', toppingCount: 5, accessory: 'ribbon', accCount: 1,
       extraAccessory: 'heart', signText: 'Sweet Love',
-      boxColor: 'cream', ribbonColor: 'gold', card: 'love',
+      boxColor: 'cream', ribbonColor: 'gold', card: 'love', sticker: 'flower',
       bonusCoins: 160, bonusXp: 85,
       speech: 'ĐẶC BIỆT: Cần chiếc bánh cưới 2 tầng trắng tinh khôi, cherry đỏ, ruy băng và trái tim!'
     },
@@ -532,7 +532,7 @@ window.SDData = (() => {
       id: 'seasonal', name: 'Đơn Bánh Theo Mùa', badge: '🌸 Theo Mùa',
       cakeType: 'tart', batter: 'matcha', frostingColor: 'mint', nozzle: 'swirl',
       topping: 'blueberry', toppingCount: 4, accessory: 'star', accCount: 2,
-      boxColor: 'mint', ribbonColor: 'mint', card: 'sweet',
+      boxColor: 'mint', ribbonColor: 'mint', card: 'sweet', sticker: 'flower',
       bonusCoins: 95, bonusXp: 50,
       speech: 'ĐẶC BIỆT: Mùa xuân tới rồi! Cho mình Tart trà xanh kem mint, việt quất và 2 ngôi sao!'
     },
@@ -541,7 +541,7 @@ window.SDData = (() => {
       cakeType: 'cupcake', batter: 'chocolate', frostingColor: 'pink', nozzle: 'swirl',
       topping: 'candy', toppingCount: 3, accessory: 'star', accCount: 1,
       quantity: 3,
-      boxColor: 'special', ribbonColor: 'rose', card: 'sweet',
+      boxColor: 'special', ribbonColor: 'rose', card: 'sweet', sticker: 'star',
       bonusCoins: 110, bonusXp: 60,
       speech: 'ĐẶC BIỆT: Lớp mình tổ chức tiệc! Đặt 3 chiếc Cupcake Chocolate kem hồng, 3 viên kẹo & ngôi sao!'
     }

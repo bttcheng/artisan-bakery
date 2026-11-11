@@ -148,6 +148,24 @@ window.AudioManager = class AudioManager {
     this._playTone(1318.5, 0.35, 'triangle', 0.25, 0.12);
   }
 
+  playOvenDoor(open = false) {
+    this.init();
+    if (open) {
+      this._playTone(260, 0.08, 'triangle', 0.18, 0);
+      this._playTone(420, 0.1, 'sine', 0.14, 0.05);
+    } else {
+      this._playTone(340, 0.06, 'triangle', 0.16, 0);
+      this._playTone(170, 0.12, 'sine', 0.22, 0.04);
+    }
+  }
+
+  playPourBatter() {
+    this.init();
+    [290, 350, 410, 360].forEach((f, i) => {
+      this._playTone(f, 0.11, 'sine', 0.15, i * 0.08);
+    });
+  }
+
   playFrosting() {
     this.init();
     this._playTone(540, 0.1, 'sine', 0.18, 0);

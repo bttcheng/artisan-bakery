@@ -190,8 +190,22 @@ window.SDRenderer = (() => {
   }
 
   // --------------------------------------------------------------------------
-  // 2. DYNAMIC LAYERED CAKE RENDERER
+  // 2. KAWAII 2D CARTOON CAKE ASSET RESOLVER & DYNAMIC LAYERED CAKE RENDERER
   // --------------------------------------------------------------------------
+  function getCakeAssetPath(cakeType, batterId, frostingColorId) {
+    if (cakeType === 'cupcake') return 'assets/cakes/cupcake.svg';
+    if (cakeType === 'donut') return 'assets/cakes/donut.svg';
+    if (cakeType === 'cookie') return 'assets/cakes/cookie.svg';
+    if (cakeType === 'macaron') return 'assets/cakes/macaron.svg';
+    if (batterId === 'chocolate' || batterId === 'cacao' || frostingColorId === 'chocolate') {
+      return 'assets/cakes/chocolate_cake.svg';
+    }
+    if (batterId === 'strawberry' || frostingColorId === 'strawberry') {
+      return 'assets/cakes/strawberry_cake.svg';
+    }
+    return 'assets/cakes/round_cake.svg';
+  }
+
   function renderCake(cakeState, size = 220) {
     const s = cakeState || {};
     const type = s.cakeType || 'cupcake';
@@ -221,180 +235,197 @@ window.SDRenderer = (() => {
       bodyColor = '#3B2820';
       rimColor = '#21140F';
       charOverlay = `
-        <circle cx="88" cy="118" r="10" fill="#1A110E" opacity="0.5"/>
-        <circle cx="122" cy="126" r="13" fill="#1A110E" opacity="0.45"/>
+        <circle cx="88" cy="118" r="9" fill="#1A110E" opacity="0.5"/>
+        <circle cx="122" cy="126" r="11" fill="#1A110E" opacity="0.45"/>
         <path d="M80,78 Q75,62 84,50" stroke="#777" stroke-width="3" fill="none" opacity="0.6"/>
         <path d="M125,74 Q132,58 122,45" stroke="#777" stroke-width="3" fill="none" opacity="0.6"/>
       `;
     }
 
+    const outline = '#3E2723';
     let baseSvg = '';
     let frostingSvg = '';
     let topZoneY = 95;
 
-    // --- BASE SHAPES ---
+    // --- BASE SHAPES (Kawaii 2D Cartoon Style Matching Reference) ---
     if (type === 'cupcake') {
-      topZoneY = 92;
+      topZoneY = 86;
       baseSvg = `
-        <!-- Cupcake Liner -->
-        <polygon points="62,115 138,115 126,168 74,168" fill="#FFD6E0" stroke="#4A3531" stroke-width="2.5" stroke-linejoin="round"/>
-        <line x1="76" y1="115" x2="82" y2="168" stroke="#FFACC2" stroke-width="2"/>
-        <line x1="92" y1="115" x2="94" y2="168" stroke="#FFACC2" stroke-width="2"/>
-        <line x1="108" y1="115" x2="106" y2="168" stroke="#FFACC2" stroke-width="2"/>
-        <line x1="124" y1="115" x2="118" y2="168" stroke="#FFACC2" stroke-width="2"/>
-        <!-- Sponge dome -->
-        <path d="M58,115 Q58,86 100,86 Q142,86 142,115 Z" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5"/>
+        <!-- Fluted Pastel Paper Cupcake Liner -->
+        <path d="M56,115 L144,115 L132,167 Q100,175 68,167 Z" fill="#FFB3C6" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+        <path d="M112,115 L144,115 L132,167 Q118,171 106,171 Z" fill="#FF9BB3" opacity="0.5"/>
+        <path d="M71,117 L78,168 M86,117 L89,170 M100,117 L100,171 M114,117 L111,170 M129,117 L122,168" stroke="${outline}" stroke-width="2.2" stroke-linecap="round" opacity="0.55"/>
+        <path d="M56,115 L144,115 L132,167 Q100,175 68,167 Z" fill="none" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+        <!-- Soft Sponge Dome -->
+        <path d="M54,115 Q54,84 100,84 Q146,84 146,115 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
       `;
       if (frostingApplied) {
         if (nozzle === 'swirl') {
           frostingSvg = `
-            <path d="M54,112 C48,96 68,88 100,88 C132,88 152,96 146,112 C136,120 64,120 54,112 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.3"/>
-            <path d="M64,95 C60,80 78,72 100,72 C122,72 140,80 136,95 C124,102 76,102 64,95 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
-            <path d="M77,77 C76,63 92,50 102,48 C108,56 122,64 123,77 C114,83 86,83 77,77 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
+            <path d="M48,112 C48,96 64,88 100,88 C136,88 152,96 152,112 C152,120 142,124 134,119 C126,125 114,125 107,119 C100,126 93,126 86,119 C78,125 66,125 58,119 C52,122 48,118 48,112 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <path d="M58,95 C56,77 78,68 100,68 C122,68 144,77 142,95 C134,104 66,104 58,95 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <path d="M72,74 C72,57 88,46 100,45 C112,46 128,57 128,74 C118,82 82,82 72,74 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <path d="M82,58 Q90,52 97,53" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" opacity="0.85"/>
+            <path d="M68,84 Q78,78 88,79" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
           `;
         } else if (nozzle === 'smooth') {
           frostingSvg = `
-            <path d="M55,113 Q56,74 100,74 Q144,74 145,113 Q125,121 100,118 Q75,121 55,113 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.3"/>
+            <path d="M50,113 C50,74 72,66 100,66 C128,66 150,74 150,113 C136,121 118,121 100,117 C82,121 64,121 50,113 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <path d="M70,84 Q86,74 106,75" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/>
           `;
         } else if (nozzle === 'piped') {
           frostingSvg = `
-            <path d="M56,112 Q58,78 100,78 Q142,78 144,112 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
-            <circle cx="64" cy="112" r="8" fill="${frosting.hex}" stroke="#4A3531" stroke-width="1.8"/>
-            <circle cx="82" cy="114" r="8" fill="${frosting.hex}" stroke="#4A3531" stroke-width="1.8"/>
-            <circle cx="100" cy="115" r="8" fill="${frosting.hex}" stroke="#4A3531" stroke-width="1.8"/>
-            <circle cx="118" cy="114" r="8" fill="${frosting.hex}" stroke="#4A3531" stroke-width="1.8"/>
-            <circle cx="136" cy="112" r="8" fill="${frosting.hex}" stroke="#4A3531" stroke-width="1.8"/>
+            <path d="M52,110 Q56,73 100,73 Q144,73 148,110 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <circle cx="60" cy="111" r="9" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
+            <circle cx="80" cy="113" r="9" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
+            <circle cx="100" cy="114" r="9" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
+            <circle cx="120" cy="113" r="9" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
+            <circle cx="140" cy="111" r="9" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
           `;
         } else {
           frostingSvg = `
-            <path d="M56,110 Q60,82 100,82 Q140,82 144,110 Q136,123 128,112 Q120,125 110,112 Q100,126 90,112 Q80,124 72,112 Q64,122 56,110 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
+            <path d="M51,109 Q56,77 100,77 Q144,77 149,109 Q140,124 130,112 C122,126 112,112 100,125 C88,112 78,126 70,112 Q60,123 51,109 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
           `;
         }
       }
     } else if (type === 'donut') {
-      topZoneY = 108;
+      topZoneY = 104;
       baseSvg = `
-        <ellipse cx="100" cy="122" rx="58" ry="44" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.6"/>
-        <ellipse cx="100" cy="126" rx="56" ry="38" fill="none" stroke="${rimColor}" stroke-width="3" opacity="0.5"/>
-        <ellipse cx="100" cy="122" rx="19" ry="13" fill="#FFFDF9" stroke="#4A3531" stroke-width="2.4"/>
+        <ellipse cx="100" cy="120" rx="64" ry="44" fill="${bodyColor}" stroke="${outline}" stroke-width="3.6"/>
+        <path d="M40,126 C46,149 72,162 100,162 C128,162 154,149 160,126 C146,144 126,152 100,152 C74,152 54,144 40,126 Z" fill="${rimColor}" opacity="0.65"/>
+        <ellipse cx="100" cy="116" rx="20" ry="11" fill="#FFFDF9" stroke="${outline}" stroke-width="3.4"/>
       `;
       if (frostingApplied) {
         if (nozzle === 'drizzle') {
           frostingSvg = `
-            <path d="M52,114 Q100,80 148,114" fill="none" stroke="${frosting.hex}" stroke-width="14" stroke-linecap="round"/>
-            <path d="M48,125 Q72,108 100,136 Q128,108 152,125" fill="none" stroke="${frosting.hex}" stroke-width="10" stroke-linecap="round"/>
+            <path d="M48,112 Q100,76 152,112" fill="none" stroke="${frosting.hex}" stroke-width="14" stroke-linecap="round"/>
+            <path d="M44,123 Q70,105 100,134 Q130,105 156,123" fill="none" stroke="${frosting.hex}" stroke-width="10" stroke-linecap="round"/>
+            <ellipse cx="100" cy="116" rx="20" ry="11" fill="#FFFDF9" stroke="${outline}" stroke-width="3.2"/>
           `;
         } else {
           frostingSvg = `
-            <path d="M44,118 C44,90 156,90 156,118 C156,136 142,146 132,138 C122,130 116,144 100,144 C84,144 78,130 68,138 C58,146 44,136 44,118 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
-            <ellipse cx="100" cy="122" rx="19" ry="13" fill="#FFFDF9" stroke="#4A3531" stroke-width="2.2"/>
+            <path d="M38,112 C39,82 70,75 100,75 C130,75 161,82 162,112 C161,126 149,129 141,121 C133,113 128,133 116,131 C106,129 103,118 95,120 C87,122 82,136 70,131 C59,127 57,117 49,120 C41,123 38,119 38,112 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <path d="M55,93 Q73,83 94,83" fill="none" stroke="#FFFFFF" stroke-width="3.6" stroke-linecap="round" opacity="0.8"/>
+            <ellipse cx="100" cy="116" rx="20" ry="11" fill="#FFFDF9" stroke="${outline}" stroke-width="3.2"/>
           `;
         }
       }
     } else if (type === 'round_cake') {
-      topZoneY = 85;
+      topZoneY = 82;
       baseSvg = `
-        <rect x="44" y="96" width="112" height="58" rx="12" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5"/>
-        <ellipse cx="100" cy="96" rx="56" ry="18" fill="${rimColor}" stroke="#4A3531" stroke-width="2.5"/>
-        <ellipse cx="100" cy="154" rx="56" ry="14" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5"/>
+        <path d="M42,96 L158,96 L158,152 C158,162 132,169 100,169 C68,169 42,162 42,152 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M42,125 Q100,134 158,125 L158,136 Q100,145 42,136 Z" fill="#FFB3C6" stroke="${outline}" stroke-width="2.6"/>
+        <ellipse cx="100" cy="96" rx="58" ry="16" fill="${rimColor}" stroke="${outline}" stroke-width="3.4"/>
       `;
       if (frostingApplied) {
         if (nozzle === 'drizzle') {
           frostingSvg = `
-            <ellipse cx="100" cy="96" rx="56" ry="18" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
-            <path d="M46,98 L46,120 Q53,132 60,115 Q68,135 76,112 Q86,128 96,115 Q106,134 116,114 Q128,130 138,116 Q148,128 154,114 L154,98 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2"/>
+            <path d="M40,96 C40,81 67,72 100,72 C133,72 160,81 160,96 L160,111 C152,121 144,118 139,108 C133,97 127,122 115,121 C105,120 100,104 92,107 C84,110 79,123 67,118 C58,114 55,104 48,110 C42,114 40,107 40,96 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+            <ellipse cx="100" cy="94" rx="56" ry="14" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.6"/>
           `;
         } else {
           frostingSvg = `
-            <rect x="44" y="96" width="112" height="58" rx="12" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.4"/>
-            <ellipse cx="100" cy="96" rx="56" ry="18" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.4"/>
+            <path d="M42,96 L158,96 L158,152 C158,162 132,169 100,169 C68,169 42,162 42,152 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+            <ellipse cx="100" cy="96" rx="58" ry="16" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4"/>
+            <path d="M62,92 Q86,84 114,85" fill="none" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" opacity="0.75"/>
             ${nozzle === 'piped' ? `
-              <circle cx="52" cy="103" r="6" fill="${frosting.shadow}"/><circle cx="68" cy="108" r="6" fill="${frosting.shadow}"/>
-              <circle cx="84" cy="111" r="6" fill="${frosting.shadow}"/><circle cx="100" cy="112" r="6" fill="${frosting.shadow}"/>
-              <circle cx="116" cy="111" r="6" fill="${frosting.shadow}"/><circle cx="132" cy="108" r="6" fill="${frosting.shadow}"/>
-              <circle cx="148" cy="103" r="6" fill="${frosting.shadow}"/>
+              <circle cx="50" cy="103" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/><circle cx="67" cy="108" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/>
+              <circle cx="84" cy="111" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/><circle cx="100" cy="112" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/>
+              <circle cx="116" cy="111" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/><circle cx="133" cy="108" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/>
+              <circle cx="150" cy="103" r="6.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="2"/>
             ` : ''}
             ${nozzle === 'swirl' ? `
-              <circle cx="100" cy="84" r="14" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2"/>
-              <path d="M92,84 Q100,74 108,84" fill="none" stroke="${frosting.shadow}" stroke-width="2"/>
+              <circle cx="100" cy="84" r="14" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
+              <path d="M92,84 Q100,74 108,84" fill="none" stroke="${frosting.shadow}" stroke-width="2.4"/>
             ` : ''}
           `;
         }
       }
     } else if (type === 'cookie') {
-      topZoneY = 104;
+      topZoneY = 98;
       baseSvg = `
-        <path d="M100,74 C128,74 150,94 150,120 C150,146 128,166 100,166 C72,166 50,146 50,120 C50,94 72,74 100,74 Z" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.6"/>
-        <circle cx="72" cy="105" r="3" fill="${rimColor}" opacity="0.6"/>
-        <circle cx="128" cy="132" r="3.5" fill="${rimColor}" opacity="0.6"/>
-        <circle cx="105" cy="144" r="2.8" fill="${rimColor}" opacity="0.6"/>
+        <!-- Kawaii Organic Scalloped Cookie with Playful Bite & Crumbs -->
+        <path d="M98,66 C114,65 127,70 136,78 C129,84 131,93 139,96 C135,103 139,111 147,112 C153,122 154,135 150,147 C144,163 125,172 100,173 C68,174 44,151 44,119 C44,87 68,67 98,66 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.6" stroke-linejoin="round"/>
+        <path d="M58,99 Q66,79 88,73" fill="none" stroke="#FFE5C4" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+        <circle cx="74" cy="101" r="6.5" fill="${rimColor}" stroke="${outline}" stroke-width="2.4"/>
+        <circle cx="106" cy="96" r="5.5" fill="${rimColor}" stroke="${outline}" stroke-width="2.4"/>
+        <circle cx="70" cy="136" r="6" fill="${rimColor}" stroke="${outline}" stroke-width="2.4"/>
+        <circle cx="105" cy="132" r="7" fill="${rimColor}" stroke="${outline}" stroke-width="2.4"/>
+        <circle cx="130" cy="142" r="5.5" fill="${rimColor}" stroke="${outline}" stroke-width="2.4"/>
+        <polygon points="151,82 162,79 157,90" fill="${bodyColor}" stroke="${outline}" stroke-width="2.6" stroke-linejoin="round"/>
+        <polygon points="161,100 170,104 162,111" fill="${bodyColor}" stroke="${outline}" stroke-width="2.6" stroke-linejoin="round"/>
       `;
       if (frostingApplied) {
         if (nozzle === 'drizzle') {
           frostingSvg = `
-            <path d="M62,102 Q100,88 138,104 M58,120 Q100,106 142,122 M66,138 Q100,126 134,140" fill="none" stroke="${frosting.hex}" stroke-width="7" stroke-linecap="round"/>
+            <path d="M58,104 Q94,88 128,104 M54,122 Q94,108 134,124 M62,140 Q94,128 126,142" fill="none" stroke="${frosting.hex}" stroke-width="7.5" stroke-linecap="round"/>
           `;
         } else {
           frostingSvg = `
-            <circle cx="100" cy="120" r="36" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2"/>
+            <circle cx="96" cy="122" r="32" fill="${frosting.hex}" stroke="${outline}" stroke-width="3"/>
+            <path d="M74,109 Q88,97 104,99" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
           `;
         }
       }
     } else if (type === 'macaron') {
-      topZoneY = 96;
+      topZoneY = 92;
       baseSvg = `
-        <ellipse cx="100" cy="136" rx="50" ry="18" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.4"/>
-        <rect x="52" y="114" width="96" height="22" rx="8" fill="${frostingApplied ? frosting.hex : '#FFF5E1'}" stroke="#4A3531" stroke-width="2.2"/>
-        <ellipse cx="100" cy="108" rx="50" ry="20" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.4"/>
+        <path d="M44,129 C44,154 70,163 100,163 C130,163 156,154 156,129 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M46,129 Q55,134 64,129 Q74,134 84,129 Q94,134 104,129 Q114,134 124,129 Q134,134 144,129 Q152,134 155,129" fill="${bodyColor}" stroke="${outline}" stroke-width="2.8" stroke-linecap="round"/>
+        <path d="M47,114 C47,109 153,109 153,114 L153,128 C144,133 135,128 127,131 C119,134 110,128 102,131 C94,134 85,128 77,131 C69,134 60,128 52,131 C48,132 47,129 47,126 Z" fill="${frostingApplied ? frosting.hex : '#FFF5E1'}" stroke="${outline}" stroke-width="3.2" stroke-linejoin="round"/>
+        <path d="M44,111 C44,76 70,66 100,66 C130,66 156,76 156,111 C148,116 140,111 132,115 C124,118 116,111 108,115 C100,118 92,111 84,115 C76,118 68,111 60,115 C52,117 46,114 44,111 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M64,87 Q82,74 106,75" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
       `;
       if (frostingApplied) {
-        frostingSvg = `<path d="M60,104 Q100,90 140,104" fill="none" stroke="${frosting.hex}" stroke-width="7" stroke-linecap="round"/>`;
+        frostingSvg = `<path d="M60,101 Q100,86 140,101" fill="none" stroke="${frosting.hex}" stroke-width="7" stroke-linecap="round"/>`;
       }
     } else if (type === 'tart') {
-      topZoneY = 96;
+      topZoneY = 92;
       baseSvg = `
-        <path d="M46,112 L58,154 Q100,164 142,154 L154,112 Z" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5" stroke-linejoin="round"/>
-        <ellipse cx="100" cy="112" rx="54" ry="16" fill="${rimColor}" stroke="#4A3531" stroke-width="2.5"/>
+        <path d="M44,112 L56,154 Q100,166 144,154 L156,112 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <path d="M52,112 Q60,120 68,112 Q76,120 84,112 Q92,120 100,112 Q108,120 116,112 Q124,120 132,112 Q140,120 148,112" fill="none" stroke="${rimColor}" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="100" cy="112" rx="56" ry="16" fill="${rimColor}" stroke="${outline}" stroke-width="3.4"/>
       `;
       if (frostingApplied) {
         frostingSvg = `
-          <ellipse cx="100" cy="112" rx="46" ry="13" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2"/>
-          ${nozzle === 'swirl' ? `<path d="M72,110 Q100,88 128,110" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2"/>` : ''}
+          <ellipse cx="100" cy="112" rx="48" ry="13" fill="${frosting.hex}" stroke="${outline}" stroke-width="2.8"/>
+          ${nozzle === 'swirl' ? `<path d="M70,110 Q100,84 130,110" fill="${frosting.hex}" stroke="${outline}" stroke-width="3"/>` : ''}
         `;
       }
     } else if (type === 'swiss_roll') {
-      topZoneY = 94;
+      topZoneY = 90;
       baseSvg = `
-        <path d="M54,96 L132,96 C152,96 154,152 132,152 L54,152 Z" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5"/>
-        <ellipse cx="54" cy="124" rx="20" ry="28" fill="${rimColor}" stroke="#4A3531" stroke-width="2.5"/>
-        <path d="M54,124 m-12,0 a12,16 0 1,0 24,0 a8,11 0 1,0 -16,0" fill="none" stroke="#FFFDF9" stroke-width="4" stroke-linecap="round"/>
+        <path d="M54,96 L132,96 C152,96 154,152 132,152 L54,152 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <ellipse cx="54" cy="124" rx="20" ry="28" fill="${rimColor}" stroke="${outline}" stroke-width="3.5"/>
+        <path d="M54,124 m-12,0 a12,16 0 1,0 24,0 a8,11 0 1,0 -16,0" fill="none" stroke="#FFFDF9" stroke-width="4.5" stroke-linecap="round"/>
       `;
       if (frostingApplied) {
         frostingSvg = `
-          <path d="M56,96 L132,96 Q146,105 138,114 Q122,124 110,112 Q96,126 84,112 Q70,124 56,110 Z" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.2"/>
+          <path d="M56,96 L132,96 Q146,105 138,115 Q122,125 110,112 Q96,126 84,112 Q70,124 56,111 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.2" stroke-linejoin="round"/>
         `;
       }
     } else if (type === 'tiered_cake') {
-      topZoneY = 64;
+      topZoneY = 62;
       baseSvg = `
         <!-- Bottom Tier -->
-        <rect x="38" y="114" width="124" height="50" rx="10" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5"/>
-        <ellipse cx="100" cy="114" rx="62" ry="15" fill="${rimColor}" stroke="#4A3531" stroke-width="2.5"/>
+        <path d="M36,114 L164,114 L164,158 C164,166 136,172 100,172 C64,172 36,166 36,158 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <ellipse cx="100" cy="114" rx="64" ry="15" fill="${rimColor}" stroke="${outline}" stroke-width="3.4"/>
         <!-- Top Tier -->
-        <rect x="58" y="72" width="84" height="42" rx="8" fill="${bodyColor}" stroke="#4A3531" stroke-width="2.5"/>
-        <ellipse cx="100" cy="72" rx="42" ry="12" fill="${rimColor}" stroke="#4A3531" stroke-width="2.5"/>
+        <path d="M56,72 L144,72 L144,111 C144,118 125,123 100,123 C75,123 56,118 56,111 Z" fill="${bodyColor}" stroke="${outline}" stroke-width="3.5" stroke-linejoin="round"/>
+        <ellipse cx="100" cy="72" rx="44" ry="12" fill="${rimColor}" stroke="${outline}" stroke-width="3.4"/>
       `;
       if (frostingApplied) {
         frostingSvg = `
-          <rect x="38" y="114" width="124" height="50" rx="10" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.3"/>
-          <ellipse cx="100" cy="114" rx="62" ry="15" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.3"/>
-          <rect x="58" y="72" width="84" height="42" rx="8" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.3"/>
-          <ellipse cx="100" cy="72" rx="42" ry="12" fill="${frosting.hex}" stroke="#4A3531" stroke-width="2.3"/>
+          <path d="M36,114 L164,114 L164,158 C164,166 136,172 100,172 C64,172 36,166 36,158 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+          <ellipse cx="100" cy="114" rx="64" ry="15" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.2"/>
+          <path d="M56,72 L144,72 L144,111 C144,118 125,123 100,123 C75,123 56,118 56,111 Z" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.4" stroke-linejoin="round"/>
+          <ellipse cx="100" cy="72" rx="44" ry="12" fill="${frosting.hex}" stroke="${outline}" stroke-width="3.2"/>
+          <path d="M70,69 Q88,63 108,64" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
           ${nozzle === 'piped' ? `
-            <circle cx="46" cy="120" r="5" fill="${frosting.shadow}"/><circle cx="64" cy="124" r="5" fill="${frosting.shadow}"/>
-            <circle cx="82" cy="127" r="5" fill="${frosting.shadow}"/><circle cx="100" cy="128" r="5" fill="${frosting.shadow}"/>
-            <circle cx="118" cy="127" r="5" fill="${frosting.shadow}"/><circle cx="136" cy="124" r="5" fill="${frosting.shadow}"/>
-            <circle cx="154" cy="120" r="5" fill="${frosting.shadow}"/>
+            <circle cx="45" cy="121" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/><circle cx="63" cy="125" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/>
+            <circle cx="81" cy="128" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/><circle cx="100" cy="129" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/>
+            <circle cx="119" cy="128" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/><circle cx="137" cy="125" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/>
+            <circle cx="155" cy="121" r="5.5" fill="${frosting.shadow}" stroke="${outline}" stroke-width="1.8"/>
           ` : ''}
         `;
       }
@@ -408,9 +439,10 @@ window.SDRenderer = (() => {
 
     return `
       <svg viewBox="0 0 200 200" width="${size}" height="${size}" class="cake-svg" xmlns="http://www.w3.org/2000/svg">
-        <!-- Cake Plate -->
-        <ellipse cx="100" cy="172" rx="76" ry="14" fill="#FFFDF9" stroke="#D8C4B6" stroke-width="2.5"/>
-        <ellipse cx="100" cy="170" rx="62" ry="9" fill="#FFF3E6"/>
+        <!-- Soft Shadow & Cute Pastel Ceramic Plate -->
+        <ellipse cx="100" cy="176" rx="76" ry="13" fill="rgba(74,53,49,0.12)"/>
+        <ellipse cx="100" cy="172" rx="76" ry="14" fill="#FFFDF9" stroke="${outline}" stroke-width="3"/>
+        <ellipse cx="100" cy="170" rx="60" ry="9" fill="#FFF3E6"/>
         <g transform="translate(0, ${(1 - scaleY) * 85}) scale(1, ${scaleY})">
           ${baseSvg}
           ${frostingSvg}
@@ -614,6 +646,7 @@ window.SDRenderer = (() => {
   }
 
   return {
+    getCakeAssetPath,
     renderCharacter,
     renderCake,
     renderIngredient,

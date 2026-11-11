@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <!-- Soft Drop Shadow -->
+  <ellipse cx="110" cy="196" rx="56" ry="11" fill="#4A3531" opacity="0.14"/>
+
+  <!-- Fluted Pastel Paper Cupcake Liner -->
+  <path d="M56,124 L164,124 L150,186 Q110,196 70,186 Z" fill="#FFB3C6" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Soft shading on right side of cup -->
+  <path d="M126,124 L164,124 L150,186 Q134,191 118,191 Z" fill="#FF9BB3" opacity="0.55"/>
+  <!-- Cup ridges -->
+  <path d="M74,126 L82,188 M92,126 L96,190 M110,126 L110,191 M128,126 L124,190 M146,126 L138,188" stroke="#3E2723" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+  <!-- Re-stroke cup border cleanly -->
+  <path d="M56,124 L164,124 L150,186 Q110,196 70,186 Z" fill="none" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Scalloped Wavy Base Rim of Frosting -->
+  <path d="M46,118 C46,102 64,92 110,92 C156,92 174,102 174,118 C174,128 162,132 152,126 C142,133 128,133 120,127 C110,134 100,134 92,127 C82,133 68,133 58,126 C50,130 46,125 46,118 Z"
+        fill="#FFF5F8" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+  <path d="M56,116 C75,123 145,123 164,116" fill="none" stroke="#FFD6E0" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Middle Frosting Swirl Tier -->
+  <path d="M58,98 C56,78 80,68 110,68 C140,68 164,78 162,98 C154,109 66,109 58,98 Z"
+        fill="#FFD6E4" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+  <path d="M68,94 C88,101 132,101 152,94" fill="none" stroke="#FFB3C6" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Top Frosting Swirl Peak -->
+  <path d="M74,73 C74,54 92,43 110,43 C128,43 146,54 146,73 C136,82 84,82 74,73 Z"
+        fill="#FFE8F0" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Glossy Frosting Highlights -->
+  <path d="M84,56 Q92,50 100,52" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M68,84 Q78,77 90,78" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Colorful Rainbow Sprinkles -->
+  <rect x="74" y="106" width="11" height="4.5" rx="2.2" transform="rotate(-22 79 108)" fill="#FF5D8F" stroke="#3E2723" stroke-width="1.6"/>
+  <rect x="104" y="110" width="11" height="4.5" rx="2.2" transform="rotate(18 109 112)" fill="#74C69D" stroke="#3E2723" stroke-width="1.6"/>
+  <rect x="136" y="105" width="11" height="4.5" rx="2.2" transform="rotate(-15 141 107)" fill="#FFD166" stroke="#3E2723" stroke-width="1.6"/>
+  <rect x="86" y="83" width="10" height="4.5" rx="2.2" transform="rotate(28 91 85)" fill="#A0C4FF" stroke="#3E2723" stroke-width="1.6"/>
+  <rect x="124" y="82" width="10" height="4.5" rx="2.2" transform="rotate(-28 129 84)" fill="#C77DFF" stroke="#3E2723" stroke-width="1.6"/>
+  <rect x="108" y="61" width="9" height="4" rx="2" transform="rotate(12 112 63)" fill="#FFD166" stroke="#3E2723" stroke-width="1.6"/>
+
+  <!-- Glossy Cherry on Top -->
+  <path d="M112,30 Q122,12 135,14" fill="none" stroke="#3E2723" stroke-width="4.2" stroke-linecap="round"/>
+  <path d="M112,30 Q122,12 135,14" fill="none" stroke="#52B788" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="110" cy="36" r="15" fill="#FF4D6D" stroke="#3E2723" stroke-width="4.2"/>
+  <path d="M118,27 A13,13 0 0,1 114,48" fill="none" stroke="#D90429" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  <ellipse cx="104" cy="31" rx="4.5" ry="2.8" transform="rotate(-25 104 31)" fill="#FFFFFF"/>
+</svg>
+

@@ -1215,14 +1215,350 @@ window.SDCanvasIcons = (() => {
     ctx.fill();
   }
 
+  function drawDecoIcon(canvas, kind, id) {
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = 80;
+    const h = 80;
+    if (canvas.width !== w) canvas.width = w;
+    if (canvas.height !== h) canvas.height = h;
+    ctx.clearRect(0, 0, w, h);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(130, 88, 96, 0.12)';
+    ctx.beginPath();
+    ctx.ellipse(40, 70, 22, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (kind === 'topping') {
+      if (id === 'strawberry') {
+        ctx.save();
+        ctx.translate(40, 42);
+        ctx.scale(0.82, 0.82);
+        ctx.translate(-48, -50);
+        drawStrawberry(ctx);
+        ctx.restore();
+      } else if (id === 'blueberry') {
+        ctx.save();
+        ctx.translate(40, 42);
+        ctx.scale(0.82, 0.82);
+        ctx.translate(-48, -50);
+        drawBlueberry(ctx);
+        ctx.restore();
+      } else if (id === 'cherry') {
+        // Curved green stem
+        ctx.strokeStyle = '#40916C';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(40, 38);
+        ctx.quadraticCurveTo(46, 16, 56, 14);
+        ctx.stroke();
+        // Stem leaf
+        ctx.fillStyle = '#52B788';
+        ctx.beginPath();
+        ctx.ellipse(54, 18, 7, 3.5, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        // Glossy cherry body
+        const g = ctx.createRadialGradient(34, 42, 3, 40, 48, 18);
+        g.addColorStop(0, '#FF4D6D');
+        g.addColorStop(1, '#B50024');
+        ctx.fillStyle = g;
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.arc(40, 48, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.beginPath();
+        ctx.ellipse(34, 42, 4, 2.5, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (id === 'chocochip') {
+        [[28, 48, 0.85], [52, 48, 0.85], [40, 34, 1]].forEach(([x, y, sc]) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.scale(sc, sc);
+          ctx.fillStyle = '#5C3422';
+          ctx.strokeStyle = '#2B1408';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(0, -14);
+          ctx.quadraticCurveTo(14, 4, 11, 10);
+          ctx.quadraticCurveTo(0, 14, -11, 10);
+          ctx.quadraticCurveTo(-14, 4, 0, -14);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(255,255,255,0.28)';
+          ctx.beginPath();
+          ctx.ellipse(-4, 1, 2, 4, 0.3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      } else if (id === 'candy') {
+        const candies = [[26, 46, '#FF85A1'], [52, 48, '#72EFDD'], [40, 30, '#FFD166'], [38, 56, '#C77DFF']];
+        candies.forEach(([x, y, col]) => {
+          ctx.fillStyle = col;
+          ctx.strokeStyle = '#4A3531';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 5, Math.PI * 1.1, Math.PI * 1.6);
+          ctx.stroke();
+        });
+      } else if (id === 'cookie_crumb') {
+        [[26, 48, -0.3], [52, 46, 0.4], [39, 32, 0.1]].forEach(([x, y, rot]) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.fillStyle = '#D4A373';
+          ctx.strokeStyle = '#4A3531';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-10, -4);
+          ctx.lineTo(0, -11);
+          ctx.lineTo(11, -3);
+          ctx.lineTo(7, 9);
+          ctx.lineTo(-8, 8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#5C3422';
+          ctx.beginPath();
+          ctx.arc(-2, -2, 2, 0, Math.PI * 2);
+          ctx.arc(4, 3, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      } else if (id === 'marshmallow') {
+        [[28, 44, '#FFF0F5', -0.2], [50, 48, '#FFE5EC', 0.2], [40, 30, '#FFFFFF', 0]].forEach(([x, y, col, rot]) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.fillStyle = col;
+          ctx.strokeStyle = '#E5989B';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.roundRect(-12, -10, 24, 20, 7);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        });
+      } else if (id === 'sprinkles') {
+        const rods = [
+          [24, 34, -0.5, '#FF5D8F'], [44, 28, 0.4, '#4EA8DE'], [56, 40, -0.3, '#FFD166'],
+          [32, 48, 0.6, '#74C69D'], [48, 52, -0.4, '#C77DFF'], [24, 56, 0.2, '#FF9E00']
+        ];
+        rods.forEach(([x, y, rot, col]) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(rot);
+          ctx.fillStyle = col;
+          ctx.strokeStyle = '#4A3531';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.roundRect(-8, -3, 16, 6, 3);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        });
+      } else if (id === 'sugar_flower') {
+        ctx.translate(40, 42);
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 5; i++) {
+          ctx.save();
+          ctx.rotate((i * Math.PI * 2) / 5);
+          ctx.fillStyle = '#FFB3C6';
+          ctx.beginPath();
+          ctx.ellipse(0, -14, 8, 12, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle = '#FFD166';
+        ctx.beginPath();
+        ctx.arc(0, 0, 7.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    } else if (kind === 'accessory') {
+      if (id === 'candle') {
+        // Candle stick
+        ctx.fillStyle = '#FFF0F5';
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.roundRect(33, 28, 14, 38, 4);
+        ctx.fill();
+        ctx.stroke();
+        // Diagonal pink stripes
+        ctx.strokeStyle = '#FF5D8F';
+        ctx.lineWidth = 3.5;
+        [37, 47, 57].forEach(y => {
+          ctx.beginPath();
+          ctx.moveTo(35, y - 3);
+          ctx.lineTo(45, y + 3);
+          ctx.stroke();
+        });
+        // Flame glow + teardrop
+        ctx.fillStyle = 'rgba(255, 209, 102, 0.4)';
+        ctx.beginPath();
+        ctx.arc(40, 18, 11, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#FFB703';
+        ctx.strokeStyle = '#E85D04';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(40, 8);
+        ctx.quadraticCurveTo(48, 20, 40, 26);
+        ctx.quadraticCurveTo(32, 20, 40, 8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#FFF3B0';
+        ctx.beginPath();
+        ctx.arc(40, 20, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (id === 'star') {
+        ctx.translate(40, 42);
+        ctx.fillStyle = '#FFD166';
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2.3;
+        ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+          const r = i % 2 === 0 ? 24 : 11;
+          const a = (i * Math.PI) / 5 - Math.PI / 2;
+          if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+          else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.beginPath();
+        ctx.arc(-5, -6, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (id === 'heart') {
+        const g = ctx.createRadialGradient(34, 34, 3, 40, 44, 24);
+        g.addColorStop(0, '#FF8FAB');
+        g.addColorStop(1, '#FF4D6D');
+        ctx.fillStyle = g;
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2.3;
+        ctx.beginPath();
+        ctx.moveTo(40, 62);
+        ctx.bezierCurveTo(12, 45, 14, 20, 30, 20);
+        ctx.bezierCurveTo(37, 20, 40, 26, 40, 29);
+        ctx.bezierCurveTo(40, 26, 43, 20, 50, 20);
+        ctx.bezierCurveTo(66, 20, 68, 45, 40, 62);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.65)';
+        ctx.beginPath();
+        ctx.ellipse(28, 30, 4, 2.5, -0.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (id === 'ribbon') {
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2.2;
+        // Tails
+        ctx.fillStyle = '#FF5D8F';
+        ctx.beginPath();
+        ctx.moveTo(37, 42);
+        ctx.lineTo(24, 62);
+        ctx.lineTo(34, 59);
+        ctx.lineTo(40, 45);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(43, 42);
+        ctx.lineTo(56, 62);
+        ctx.lineTo(46, 59);
+        ctx.lineTo(40, 45);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Bow loops
+        ctx.fillStyle = '#FF8FAB';
+        ctx.beginPath();
+        ctx.moveTo(40, 40);
+        ctx.bezierCurveTo(14, 20, 14, 54, 40, 42);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(40, 40);
+        ctx.bezierCurveTo(66, 20, 66, 54, 40, 42);
+        ctx.fill();
+        ctx.stroke();
+        // Center knot
+        ctx.fillStyle = '#FF4D6D';
+        ctx.beginPath();
+        ctx.arc(40, 41, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      } else if (id === 'sign') {
+        // Wooden stick
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2;
+        ctx.fillStyle = '#D4A373';
+        ctx.fillRect(38, 44, 4, 22);
+        ctx.strokeRect(38, 44, 4, 22);
+        // Plaque
+        ctx.fillStyle = '#FFFDF9';
+        ctx.strokeStyle = '#FF5D8F';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.roundRect(12, 20, 56, 26, 9);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#D90429';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Happy!', 40, 37);
+      } else if (id === 'topper_stick') {
+        // Stick
+        ctx.fillStyle = '#D4A373';
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2;
+        ctx.fillRect(38, 40, 4, 26);
+        ctx.strokeRect(38, 40, 4, 26);
+        // Mint lollipop topper with 4-point star
+        ctx.fillStyle = '#A8E6CF';
+        ctx.lineWidth = 2.3;
+        ctx.beginPath();
+        ctx.arc(40, 28, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#FFD166';
+        ctx.beginPath();
+        ctx.moveTo(40, 17);
+        ctx.quadraticCurveTo(40, 28, 51, 28);
+        ctx.quadraticCurveTo(40, 28, 40, 39);
+        ctx.quadraticCurveTo(40, 28, 29, 28);
+        ctx.quadraticCurveTo(40, 28, 40, 17);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
   function paintAll(root = document) {
     if (!root || !root.querySelectorAll) return;
     root.querySelectorAll('canvas.ing-canvas-icon').forEach(cv => {
       drawIcon(cv, cv.dataset.ing);
     });
+    root.querySelectorAll('canvas.deco-canvas-icon').forEach(cv => {
+      drawDecoIcon(cv, cv.dataset.decoKind, cv.dataset.decoId);
+    });
   }
 
-  return { drawIcon, paintAll };
+  return { drawIcon, drawDecoIcon, paintAll };
 })();
 
 

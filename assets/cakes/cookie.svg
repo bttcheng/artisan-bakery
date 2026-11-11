@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <!-- Soft Drop Shadow -->
+  <ellipse cx="106" cy="184" rx="68" ry="12" fill="#4A3531" opacity="0.14"/>
+
+  <!-- Main Organic Scalloped Cookie with Cute Bite Mark -->
+  <path d="M108,36 C126,35 142,41 153,51 C145,58 147,68 156,72 C151,80 156,90 166,91 C174,104 176,120 172,135 C166,158 144,176 112,178 C72,180 42,150 42,110 C42,68 72,38 108,36 Z"
+        fill="#E6B17A" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Baked Golden Edge Depth -->
+  <path d="M50,126 C58,156 85,172 116,170 C145,168 164,150 168,128 C156,149 136,161 108,162 C80,163 60,149 50,126 Z"
+        fill="#CE8F52" opacity="0.65"/>
+
+  <!-- Glossy Highlight Arc -->
+  <path d="M58,86 Q68,58 96,49" fill="none" stroke="#FFE5C4" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- Chocolate Chips -->
+  <circle cx="84" cy="76" r="10.5" fill="#5C3422" stroke="#3E2723" stroke-width="3.5"/>
+  <circle cx="80.5" cy="72.5" r="2.5" fill="#8B5A2B"/>
+
+  <circle cx="124" cy="74" r="8" fill="#5C3422" stroke="#3E2723" stroke-width="3.5"/>
+  <circle cx="121.5" cy="71.5" r="2" fill="#8B5A2B"/>
+
+  <circle cx="72" cy="122" r="9.5" fill="#5C3422" stroke="#3E2723" stroke-width="3.5"/>
+  <circle cx="69" cy="119" r="2.2" fill="#8B5A2B"/>
+
+  <circle cx="114" cy="114" r="11" fill="#5C3422" stroke="#3E2723" stroke-width="3.5"/>
+  <circle cx="110.5" cy="110.5" r="2.8" fill="#8B5A2B"/>
+
+  <circle cx="144" cy="126" r="8.5" fill="#5C3422" stroke="#3E2723" stroke-width="3.5"/>
+
+  <circle cx="100" cy="149" r="7.5" fill="#5C3422" stroke="#3E2723" stroke-width="3.2"/>
+
+  <!-- Cute Floating Crumbs from Bite -->
+  <polygon points="170,56 184,52 178,66" fill="#E6B17A" stroke="#3E2723" stroke-width="3.6" stroke-linejoin="round"/>
+  <polygon points="184,78 196,82 186,91" fill="#E6B17A" stroke="#3E2723" stroke-width="3.6" stroke-linejoin="round"/>
+  <circle cx="169" cy="39" r="4" fill="#E6B17A" stroke="#3E2723" stroke-width="3"/>
+</svg>
+

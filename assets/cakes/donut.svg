@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <!-- Soft Drop Shadow -->
+  <ellipse cx="110" cy="176" rx="74" ry="14" fill="#4A3531" opacity="0.14"/>
+
+  <!-- Plump Golden Baked Donut Body -->
+  <ellipse cx="110" cy="116" rx="82" ry="56" fill="#F4C078" stroke="#3E2723" stroke-width="4.5"/>
+  <!-- Soft warm bottom shading -->
+  <path d="M32,122 C36,154 72,171 110,171 C148,171 184,154 188,122 C172,146 144,158 110,158 C76,158 48,146 32,122 Z" fill="#E2A455" opacity="0.7"/>
+
+  <!-- Wavy Dripping Pastel Glaze Frosting -->
+  <path d="M31,106 C32,68 72,58 110,58 C148,58 188,68 189,106 C188,122 174,126 164,117 C154,108 148,132 132,130 C118,128 114,112 104,114 C94,116 88,135 72,130 C58,125 56,112 46,116 C36,120 31,115 31,106 Z"
+        fill="#FFB3C6" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Glossy Frosting Highlight -->
+  <path d="M52,82 Q74,69 102,68" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+  <circle cx="114" cy="68" r="2.8" fill="#FFFFFF" opacity="0.85"/>
+
+  <!-- Center Donut Hole -->
+  <ellipse cx="110" cy="107" rx="26" ry="14" fill="#E2A455" stroke="#3E2723" stroke-width="4.2"/>
+  <ellipse cx="110" cy="111" rx="22" ry="9" fill="#FFFFFF"/>
+  <!-- Cutout crisp inner rim -->
+  <path d="M88,111 Q110,101 132,111" fill="none" stroke="#3E2723" stroke-width="3.6" stroke-linecap="round"/>
+
+  <!-- Colorful Pastel Sprinkles & Candies -->
+  <rect x="64" y="92" width="12" height="5" rx="2.5" transform="rotate(-24 70 94)" fill="#FFD166" stroke="#3E2723" stroke-width="1.7"/>
+  <rect x="86" y="76" width="12" height="5" rx="2.5" transform="rotate(16 92 78)" fill="#A8E6CF" stroke="#3E2723" stroke-width="1.7"/>
+  <rect x="130" y="75" width="12" height="5" rx="2.5" transform="rotate(-18 136 77)" fill="#D8BBFF" stroke="#3E2723" stroke-width="1.7"/>
+  <rect x="150" y="95" width="12" height="5" rx="2.5" transform="rotate(32 156 97)" fill="#FFFDF9" stroke="#3E2723" stroke-width="1.7"/>
+  <rect x="128" y="106" width="11" height="4.8" rx="2.4" transform="rotate(-35 133 108)" fill="#99D6FF" stroke="#3E2723" stroke-width="1.7"/>
+  <circle cx="62" cy="111" r="5" fill="#FF5D8F" stroke="#3E2723" stroke-width="1.8"/>
+  <circle cx="164" cy="108" r="4.5" fill="#FFD166" stroke="#3E2723" stroke-width="1.8"/>
+</svg>
+

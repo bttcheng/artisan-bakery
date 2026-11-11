@@ -28,6 +28,7 @@ window.GameManager = class GameManager {
     this.ordersView = 'active';
     this.recipeCategory = 'all';
     this.isDayActive = false;
+    this.isPrepPhase = false;
     this.paused = false;
     this.dayElapsed = 0;
     this.dayDuration = 420; // 7 minutes per in-game day (~08:00 to 20:00)
@@ -74,6 +75,18 @@ window.GameManager = class GameManager {
   // --------------------------------------------------------------------------
   initDOM() {
     this.mixingCanvas = new window.MixingCanvasController('mixing-canvas');
+    this.ovenCanvas = new window.OvenCanvasController('oven-canvas');
+    this.packageStage = new window.PackagingStageController('package-box-canvas', this.decoration, this.audio);
+    this.packageStage.onStateChange = () => {
+      if (this.decoration.packaging && this.decoration.packaging.closed) {
+        this.readyPackage = {
+          orderId: this.activeOrderId,
+          cakeState: JSON.parse(JSON.stringify(this.decoration.cakeState)),
+          packaging: JSON.parse(JSON.stringify(this.decoration.packaging))
+        };
+      }
+      this.renderPackageStage();
+    };
     this.renderIntroHero();
     this.refreshStartScreen();
     this.bindScreenNavigation();
@@ -88,7 +101,7 @@ window.GameManager = class GameManager {
     if (!el) return;
     el.innerHTML =
       window.SDRenderer.renderCharacter('miu', 'delighted', { width: 92, height: 112, wave: true }) +
-      window.SDRenderer.renderCake({ cakeType: 'tiered_cake', batter: 'vanilla', frostingColor: 'pink', nozzle: 'piped', frostingApplied: true, toppings: [{ type: 'strawberry', x: 80, y: 74 }, { type: 'strawberry', x: 120, y: 74 }], accessories: [{ type: 'candle', x: 100, y: 54 }] }, 115) +
+      `<img src="assets/cakes/cupcake.svg" alt="Cupcake" class="cake-asset-img" style="width:110px;height:110px;" />` +
       window.SDRenderer.renderCharacter('ken', 'happy', { width: 92, height: 112 });
   }
 
@@ -348,13 +361,34 @@ window.GameManager = class GameManager {
 
     document.getElementById('btn-end-day').addEventListener('click', () => {
       this.audio.playClick();
+      if (this.isPrepPhase) {
+        this.openBakeryForBusiness();
+        return;
+      }
       this.finishCurrentDay();
     });
 
     document.getElementById('btn-next-day').addEventListener('click', () => {
-      this.audio.playSuccess();
+      this.audio.playClick();
       this.closeAllModals();
-      this.startNextDay();
+      this.startNextDay('inventory');
+    });
+
+    document.getElementById('btn-next-day-recipes').addEventListener('click', () => {
+      this.audio.playClick();
+      this.closeAllModals();
+      this.startNextDay('collection');
+    });
+
+    document.getElementById('btn-open-bakery-day').addEventListener('click', () => {
+      this.openBakeryForBusiness();
+    });
+
+    document.querySelectorAll('.prep-jump-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.audio.playClick();
+        this.switchTab(btn.dataset.jumpTab);
+      });
     });
   }
 
@@ -381,12 +415,32 @@ window.GameManager = class GameManager {
     document.getElementById('max-cust-label').textContent = this.customers.getMaxConcurrent();
     document.getElementById('btn-sound-quick').textContent = this.state.settings.soundEnabled ? '🔊' : '🔇';
 
-    // Update clock (08:00 -> 20:00)
-    const ratio = Math.min(1, this.dayElapsed / this.dayDuration);
-    const totalMinutes = Math.round(8 * 60 + ratio * 12 * 60);
-    const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-    const mm = String(Math.floor((totalMinutes % 60) / 10) * 10).padStart(2, '0');
-    document.getElementById('hud-clock').textContent = `${hh}:${mm}`;
+    // Update clock (08:00 -> 20:00) or Prep Phase
+    const clockEl = document.getElementById('hud-clock');
+    const endDayBtn = document.getElementById('btn-end-day');
+    if (this.isPrepPhase) {
+      clockEl.textContent = 'Chuẩn bị';
+      if (endDayBtn) endDayBtn.textContent = '☀️ Mở Cửa';
+    } else {
+      const ratio = Math.min(1, this.dayElapsed / this.dayDuration);
+      const totalMinutes = Math.round(8 * 60 + ratio * 12 * 60);
+      const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+      const mm = String(Math.floor((totalMinutes % 60) / 10) * 10).padStart(2, '0');
+      clockEl.textContent = `${hh}:${mm}`;
+      if (endDayBtn) endDayBtn.textContent = '🌙 Kết Ngày';
+    }
+
+    const prepBanner = document.getElementById('prep-phase-banner');
+    if (prepBanner) {
+      prepBanner.classList.toggle('hidden', !this.isPrepPhase);
+      const prepTitle = document.getElementById('prep-banner-title');
+      if (prepTitle) prepTitle.textContent = `🌅 Buổi Sáng Chuẩn Bị – Ngày ${this.state.day}`;
+    }
+    const doorSign = document.getElementById('bakery-door-sign');
+    if (doorSign) {
+      doorSign.textContent = this.isPrepPhase ? 'PREP' : 'OPEN';
+      doorSign.style.background = this.isPrepPhase ? '#f4a261' : '#74c69d';
+    }
 
     this.updateBadges();
   }
@@ -448,20 +502,47 @@ window.GameManager = class GameManager {
   renderDisplayCakes() {
     const row = document.getElementById('display-cakes-row');
     const colKeys = Object.keys(this.state.collection);
-    const samples = colKeys.length > 0
-      ? colKeys.slice(0, 4).map(k => this.state.collection[k].cakeSnapshot)
-      : [
-          { cakeType: 'cupcake', batter: 'vanilla', frostingColor: 'pink', nozzle: 'swirl', frostingApplied: true, toppings: [{ type: 'strawberry', x: 100, y: 78 }] },
-          { cakeType: 'donut', batter: 'chocolate', frostingColor: 'mint', nozzle: 'smooth', frostingApplied: true, toppings: [{ type: 'sprinkles', x: 85, y: 100 }] },
-          { cakeType: 'round_cake', batter: 'strawberry', frostingColor: 'white', nozzle: 'piped', frostingApplied: true, toppings: [{ type: 'cherry', x: 100, y: 90 }] },
-          { cakeType: 'cookie', batter: 'vanilla', frostingColor: 'yellow', nozzle: 'drizzle', frostingApplied: true, toppings: [{ type: 'candy', x: 100, y: 118 }] }
-        ];
-    row.innerHTML = samples.map(s => `<div class="display-cake-slot">${window.SDRenderer.renderCake(s, 72)}</div>`).join('');
+    if (colKeys.length > 0) {
+      const items = colKeys.slice(0, 6).map(k => {
+        const snap = this.state.collection[k].cakeSnapshot;
+        return `<div class="display-cake-slot">${window.SDRenderer.renderCake(snap, 72)}</div>`;
+      });
+      // Fill remaining slots with showcase 2D cake assets
+      const showcaseAssets = [
+        'assets/cakes/cupcake.svg',
+        'assets/cakes/donut.svg',
+        'assets/cakes/round_cake.svg',
+        'assets/cakes/cookie.svg',
+        'assets/cakes/chocolate_cake.svg',
+        'assets/cakes/strawberry_cake.svg'
+      ];
+      while (items.length < 6) {
+        const src = showcaseAssets[items.length];
+        items.push(`<div class="display-cake-slot"><img src="${src}" class="cake-asset-img" style="width:68px;height:68px;" alt="Bánh trưng bày" /></div>`);
+      }
+      row.innerHTML = items.join('');
+    } else {
+      const showcaseAssets = [
+        { src: 'assets/cakes/cupcake.svg', alt: 'Cupcake' },
+        { src: 'assets/cakes/donut.svg', alt: 'Donut' },
+        { src: 'assets/cakes/round_cake.svg', alt: 'Bánh kem tròn' },
+        { src: 'assets/cakes/cookie.svg', alt: 'Bánh quy' },
+        { src: 'assets/cakes/chocolate_cake.svg', alt: 'Bánh chocolate' },
+        { src: 'assets/cakes/strawberry_cake.svg', alt: 'Bánh dâu' }
+      ];
+      row.innerHTML = showcaseAssets.map(a =>
+        `<div class="display-cake-slot"><img src="${a.src}" class="cake-asset-img" style="width:68px;height:68px;" alt="${a.alt}" /></div>`
+      ).join('');
+    }
   }
 
   bindBakeryActions() {
     document.getElementById('btn-call-customer').addEventListener('click', () => {
       this.audio.init();
+      if (this.isPrepPhase) {
+        this.openBakeryForBusiness();
+        return;
+      }
       const res = this.customers.spawnCustomer();
       if (!res) {
         this.showToast('Quầy đang đủ khách rồi, hãy phục vụ các khách hiện tại nhé!', 'error');
@@ -506,12 +587,23 @@ window.GameManager = class GameManager {
     }
 
     if (this.customers.slots.length === 0) {
-      grid.innerHTML = `
-        <div class="empty-slot-placeholder">
-          <div style="font-size:2rem;">🔔</div>
-          <p>Đang chờ khách bước vào tiệm... Nhấn <b>Đón Khách Ngay</b> hoặc đợi trong giây lát!</p>
-        </div>
-      `;
+      if (this.isPrepPhase) {
+        grid.innerHTML = `
+          <div class="empty-slot-placeholder">
+            <div style="font-size:2rem;">🌅</div>
+            <p><b>Tiệm đang trong giờ chuẩn bị buổi sáng!</b><br/>Hãy soạn nguyên liệu trong Kho hàng, xem Công thức mới hoặc trang trí tiệm trước khi mở cửa.</p>
+            <button id="btn-empty-open-shop" class="btn btn-primary btn-md" style="margin-top:8px;">☀️ Mở Cửa Tiệm &amp; Bắt Đầu Bán Hàng!</button>
+          </div>
+        `;
+        document.getElementById('btn-empty-open-shop').onclick = () => this.openBakeryForBusiness();
+      } else {
+        grid.innerHTML = `
+          <div class="empty-slot-placeholder">
+            <div style="font-size:2rem;">🔔</div>
+            <p>Đang chờ khách bước vào tiệm... Nhấn <b>Đón Khách Ngay</b> hoặc đợi trong giây lát!</p>
+          </div>
+        `;
+      }
       return;
     }
 
@@ -533,6 +625,7 @@ window.GameManager = class GameManager {
             </div>
             <div class="order-mini-preview">
               <div class="order-code-tag">
+                <img src="${window.SDRenderer.getCakeAssetPath(order.cakeType, order.batter, order.frostingColor)}" class="order-cake-badge" alt="" />
                 ${order.isSpecial ? order.specialBadge : `ĐƠN ${order.orderNumber}`}
               </div>
               ${window.SDRenderer.renderCake(order.targetPreview, 96)}
@@ -590,6 +683,8 @@ window.GameManager = class GameManager {
     const extraAcc = order.extraAccessory ? window.SDData.ACCESSORIES.find(a => a.id === order.extraAccessory) : null;
     const box = window.SDData.BOX_COLORS.find(b => b.id === order.boxColor);
     const ribbon = window.SDData.RIBBON_COLORS.find(r => r.id === order.ribbonColor);
+    const card = order.card && order.card !== 'none' ? window.SDData.BOX_CARDS.find(c => c.id === order.card) : null;
+    const sticker = order.sticker && order.sticker !== 'none' ? window.SDData.BOX_STICKERS.find(st => st.id === order.sticker) : null;
 
     return `
       <div class="ref-preview-box">${window.SDRenderer.renderCake(order.targetPreview, 155)}</div>
@@ -599,7 +694,7 @@ window.GameManager = class GameManager {
         <li><b>Kem phủ:</b> ${frost ? frost.name : ''} (${nozzle ? nozzle.name : ''})</li>
         <li><b>Topping:</b> ${order.toppingCount} × ${top ? top.name : 'Không'}</li>
         <li><b>Phụ kiện:</b> ${acc ? `${order.accCount} × ${acc.name}` : 'Không'}${extraAcc ? ` + ${extraAcc.name}` : ''}</li>
-        <li><b>Đóng gói:</b> ${box ? box.name : ''} + ${ribbon ? ribbon.name : ''}</li>
+        <li><b>Đóng gói:</b> ${box ? box.name : ''} + ${ribbon ? ribbon.name : ''}${card ? ` + ${card.name}` : ''}${sticker ? ` + ${sticker.name}` : ''}</li>
       </ul>
     `;
   }
@@ -632,6 +727,7 @@ window.GameManager = class GameManager {
       this.baking.startSession(order);
       this.workshopStep = 'prep';
       if (this.mixingCanvas) this.mixingCanvas.reset();
+      if (this.ovenCanvas) this.ovenCanvas.reset();
     }
 
     this.audio.playClick();
@@ -716,44 +812,85 @@ window.GameManager = class GameManager {
       this.renderOvenStage();
     });
 
-    // Oven Actions
-    document.getElementById('btn-pour-batter').addEventListener('click', () => {
-      const res = this.baking.pourBatter();
-      if (!res.ok) return this.showToast(res.reason, 'error');
-      this.showToast('Đã đổ bột vào khuôn!', 'success');
-      this.renderOvenStage();
-    });
+    // Oven Actions (Rotary Dial + Animated Door + Interactive Take Out)
+    const setOvenTempUI = (temp) => {
+      if (this.baking.session && this.baking.session.ovenRunning) return;
+      this.baking.setTemperature(temp);
+      document.querySelectorAll('#oven-temp-list .chip-btn').forEach(b => {
+        b.classList.toggle('active', Number(b.dataset.temp) === Number(temp));
+      });
+      document.getElementById('oven-cur-temp').textContent = `${temp}°C`;
+      const knob = document.getElementById('oven-temp-knob');
+      if (window.SDOvenUI && knob) window.SDOvenUI.drawTempKnob(knob, temp);
+      this.updateOvenDynamicUI();
+    };
 
     document.querySelectorAll('#oven-temp-list .chip-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('#oven-temp-list .chip-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.baking.setTemperature(btn.dataset.temp);
-        document.getElementById('oven-cur-temp').textContent = `${btn.dataset.temp}°C`;
-      });
+      btn.addEventListener('click', () => setOvenTempUI(Number(btn.dataset.temp)));
     });
 
-    document.getElementById('btn-start-oven').addEventListener('click', () => {
+    const knobCanvas = document.getElementById('oven-temp-knob');
+    if (knobCanvas) {
+      let knobDragging = false;
+      const pickTempFromPointer = (ev) => {
+        const rect = knobCanvas.getBoundingClientRect();
+        const dx = ev.clientX - (rect.left + rect.width / 2);
+        const dy = ev.clientY - (rect.top + rect.height / 2);
+        let ang = Math.atan2(dy, dx);
+        if (ang < Math.PI * 0.5) ang += Math.PI * 2;
+        const startAng = Math.PI * 0.78;
+        const endAng = Math.PI * 2.22;
+        const ratio = Math.max(0, Math.min(1, (ang - startAng) / (endAng - startAng)));
+        const temps = [160, 170, 180, 190, 200];
+        const idx = Math.round(ratio * (temps.length - 1));
+        setOvenTempUI(temps[idx]);
+      };
+      knobCanvas.addEventListener('pointerdown', (ev) => {
+        knobDragging = true;
+        pickTempFromPointer(ev);
+      });
+      window.addEventListener('pointermove', (ev) => {
+        if (knobDragging) pickTempFromPointer(ev);
+      });
+      window.addEventListener('pointerup', () => { knobDragging = false; });
+    }
+
+    const doStartOven = () => {
       const res = this.baking.startBaking();
       if (!res.ok) return this.showToast(res.reason, 'error');
+      this.audio.playOvenDoor(false);
       this.renderOvenStage();
-    });
+    };
 
-    document.getElementById('btn-take-out').addEventListener('click', () => {
+    const doTakeOutOven = () => {
       const res = this.baking.takeOutOfOven();
       if (!res.ok) return;
+      this.audio.playOvenDoor(true);
       if (res.bakeState === 'perfect') {
-        this.showToast('🎉 Bánh chín vàng hoàn hảo!', 'success');
+        if (this.ovenCanvas) this.ovenCanvas.triggerPerfectBurst();
+        this.audio.playSuccess();
+        this.spawnConfettiFX();
+        this.showToast('✨ Bánh chín vàng hoàn hảo!', 'success');
       } else if (res.bakeState === 'burnt') {
-        this.showToast('🔥 Ôi không, bánh bị cháy mất rồi! Bạn có thể nướng lại hoặc tiếp tục.', 'error');
+        this.audio.playError();
+        this.showToast('Bánh bị cháy mất rồi! Bạn có thể nướng lại hoặc tiếp tục.', 'error');
       } else {
         this.showToast('Bánh lấy ra hơi sớm nên còn chưa chín kỹ.', 'error');
       }
       this.renderOvenStage();
+    };
+
+    document.getElementById('btn-start-oven').addEventListener('click', doStartOven);
+    document.getElementById('btn-take-out').addEventListener('click', doTakeOutOven);
+    document.getElementById('oven-canvas').addEventListener('click', () => {
+      if (this.baking.session && this.baking.session.ovenRunning) {
+        doTakeOutOven();
+      }
     });
 
     document.getElementById('btn-retry-bake').addEventListener('click', () => {
       this.baking.retryBake();
+      if (this.ovenCanvas) this.ovenCanvas.reset();
       this.renderOvenStage();
     });
 
@@ -921,17 +1058,27 @@ window.GameManager = class GameManager {
   }
 
   // --------------------------------------------------------------------------
-  // STAGE 2 RENDERING: OVEN
+  // STAGE 2 RENDERING: OVEN (2D COOKING SIMULATION)
   // --------------------------------------------------------------------------
   renderOvenStage() {
     const s = this.baking.session;
     if (!s) return;
 
     const moldList = document.getElementById('oven-mold-list');
-    moldList.innerHTML = this.recipes.getUnlockedCakeTypes().map(c =>
-      `<button class="chip-btn ${s.selectedMold === c.id ? 'active' : ''}" data-mold="${c.id}">${c.moldName}</button>`
-    ).join('');
-    moldList.querySelectorAll('.chip-btn').forEach(b => {
+    moldList.innerHTML = this.recipes.getUnlockedCakeTypes().map(c => `
+      <button class="mold-card ${s.selectedMold === c.id ? 'active' : ''}" data-mold="${c.id}" title="${c.moldName}">
+        <canvas data-mold-icon="${c.id}" width="96" height="72"></canvas>
+        <span>${c.name}</span>
+      </button>
+    `).join('');
+
+    if (window.SDOvenUI) {
+      moldList.querySelectorAll('canvas[data-mold-icon]').forEach(cv => {
+        window.SDOvenUI.drawMoldIcon(cv, cv.dataset.moldIcon);
+      });
+    }
+
+    moldList.querySelectorAll('.mold-card').forEach(b => {
       b.addEventListener('click', () => {
         if (s.ovenRunning) return;
         this.baking.selectMold(b.dataset.mold);
@@ -939,24 +1086,25 @@ window.GameManager = class GameManager {
       });
     });
 
+    const batterCfg = this.recipes.getBatter(s.selectedBatter || 'vanilla');
+    const batterCanvas = document.getElementById('oven-batter-canvas');
+    if (window.SDOvenUI && batterCanvas) {
+      window.SDOvenUI.drawBatterSourceBowl(batterCanvas, batterCfg.color, s.batterPoured);
+    }
+    const dragCard = document.getElementById('oven-batter-drag-card');
+    if (dragCard) {
+      dragCard.classList.toggle('poured', !!s.batterPoured);
+      document.getElementById('oven-batter-label').textContent = s.batterPoured ? 'Đã đổ bột vào khay' : 'Kéo bột thả vào khay';
+    }
+
     const targetCake = this.recipes.getCakeType(s.selectedCakeType);
     document.getElementById('oven-temp-hint').textContent = `Gợi ý nhiệt độ cho ${targetCake.name}: ${targetCake.idealTemp}°C`;
     document.getElementById('oven-cur-temp').textContent = `${s.selectedTemp}°C`;
-
-    const glass = document.getElementById('oven-glass-door');
-    glass.classList.toggle('heating', s.ovenRunning);
-
-    const preview = document.getElementById('oven-cake-preview');
-    if (s.batterPoured) {
-      preview.innerHTML = window.SDRenderer.renderCake({
-        cakeType: s.selectedMold || s.selectedCakeType,
-        batter: s.selectedBatter,
-        bakeState: s.bakeState,
-        frostingApplied: false
-      }, 150);
-    } else {
-      preview.innerHTML = `<span style="color:#fff;font-size:0.85rem;">Chưa đổ bột vào khuôn</span>`;
-    }
+    document.querySelectorAll('#oven-temp-list .chip-btn').forEach(b => {
+      b.classList.toggle('active', Number(b.dataset.temp) === Number(s.selectedTemp));
+    });
+    const knob = document.getElementById('oven-temp-knob');
+    if (window.SDOvenUI && knob) window.SDOvenUI.drawTempKnob(knob, s.selectedTemp);
 
     const startBtn = document.getElementById('btn-start-oven');
     const takeBtn = document.getElementById('btn-take-out');
@@ -984,19 +1132,16 @@ window.GameManager = class GameManager {
     const labels = {
       raw: 'Bột sống',
       baking: 'Đang nở...',
-      perfect: '✨ Chín Hoàn Hảo!',
-      burnt: '🔥 Bị Cháy!'
+      perfect: 'Chín Hoàn Hảo!',
+      burnt: 'Cảnh báo: Bị Cháy!'
     };
     const pill = document.getElementById('oven-state-pill');
-    pill.textContent = s.inOven ? labels[s.bakeState] : (s.batterPoured ? 'Sẵn sàng nướng' : 'Chờ đổ bột');
+    pill.textContent = s.inOven ? labels[s.bakeState] : (s.batterPoured ? 'Sẵn sàng đưa vào lò' : 'Chờ đổ bột vào khay');
 
-    if (s.ovenRunning) {
-      document.getElementById('oven-cake-preview').innerHTML = window.SDRenderer.renderCake({
-        cakeType: s.selectedMold || s.selectedCakeType,
-        batter: s.selectedBatter,
-        bakeState: s.bakeState,
-        frostingApplied: false
-      }, 150);
+    if (this.ovenCanvas) {
+      const batterCfg = this.recipes.getBatter(s.selectedBatter || 'vanilla');
+      this.ovenCanvas.syncState(s, batterCfg, ovenLvl.perfectWindow);
+      this.ovenCanvas.render();
     }
   }
 
@@ -1032,17 +1177,28 @@ window.GameManager = class GameManager {
       });
     });
 
-    // Toppings Grid (supports tap-select OR drag-to-cake!)
+    // Toppings Grid (Canvas 2D icons + supports tap-select OR drag-to-cake!)
     const topGrid = document.getElementById('deco-toppings-grid');
-    topGrid.innerHTML = this.recipes.getUnlockedToppings().map(t =>
-      `<button class="deco-item-btn ${tool.toppingId === t.id ? 'active' : ''}" data-top="${t.id}">${t.name}</button>`
-    ).join('');
+    topGrid.innerHTML = this.recipes.getUnlockedToppings().map(t => `
+      <button class="deco-item-btn ${tool.toppingId === t.id ? 'active' : ''}" data-top="${t.id}" title="${t.name}">
+        <canvas class="deco-canvas-icon" data-deco-kind="topping" data-deco-id="${t.id}" width="80" height="80" style="width:40px;height:40px;"></canvas>
+        <span>${t.name}</span>
+      </button>
+    `).join('');
 
-    // Accessories Grid
+    // Accessories Grid (Canvas 2D icons + supports tap-select OR drag-to-cake!)
     const accGrid = document.getElementById('deco-accessories-grid');
-    accGrid.innerHTML = this.recipes.getUnlockedAccessories().map(a =>
-      `<button class="deco-item-btn ${tool.accessoryId === a.id ? 'active' : ''}" data-acc="${a.id}">${a.name}</button>`
-    ).join('');
+    accGrid.innerHTML = this.recipes.getUnlockedAccessories().map(a => `
+      <button class="deco-item-btn ${tool.accessoryId === a.id ? 'active' : ''}" data-acc="${a.id}" title="${a.name}">
+        <canvas class="deco-canvas-icon" data-deco-kind="accessory" data-deco-id="${a.id}" width="80" height="80" style="width:40px;height:40px;"></canvas>
+        <span>${a.name}</span>
+      </button>
+    `).join('');
+
+    if (window.SDCanvasIcons) {
+      window.SDCanvasIcons.paintAll(topGrid);
+      window.SDCanvasIcons.paintAll(accGrid);
+    }
 
     this.renderDecorateCakeCanvas();
   }
@@ -1057,14 +1213,21 @@ window.GameManager = class GameManager {
   }
 
   // --------------------------------------------------------------------------
-  // STAGE 4 RENDERING: PACKAGING
+  // STAGE 4 RENDERING: INTERACTIVE PACKAGING GAMEPLAY
   // --------------------------------------------------------------------------
   renderPackageStage() {
     const pkg = this.decoration.packaging;
     if (!pkg) return;
 
-    document.getElementById('package-box-canvas').innerHTML =
-      window.SDRenderer.renderBox(pkg, this.decoration.cakeState, 240);
+    if (this.packageStage) {
+      this.packageStage.render();
+      const curStep = this.packageStage.getCurrentStepInfo().step;
+      document.querySelectorAll('#pkg-step-pills .pkg-pill').forEach(p => {
+        const ps = Number(p.dataset.pstep);
+        p.classList.toggle('active', ps === curStep);
+        p.classList.toggle('done', ps < curStep || pkg.closed);
+      });
+    }
 
     // Box colors
     const boxWrap = document.getElementById('pkg-box-colors');
@@ -1114,8 +1277,10 @@ window.GameManager = class GameManager {
       });
     });
 
+    const closeBtn = document.getElementById('btn-close-box');
+    const readyToClose = this.decoration.isPackagingStepsComplete() && !pkg.closed;
+    closeBtn.classList.toggle('hidden', !readyToClose);
     document.getElementById('btn-deliver-cake').disabled = !pkg.closed;
-    document.getElementById('btn-close-box').textContent = pkg.closed ? '🎀 Đã Đóng Hộp Đẹp Mắt!' : '🎀 Đóng Nắp Hộp & Thắt Nơ';
   }
 
   // --------------------------------------------------------------------------
@@ -1130,6 +1295,19 @@ window.GameManager = class GameManager {
         this._dragState = {
           kind: 'ingredient',
           id: ingId,
+          startX: e.clientX,
+          startY: e.clientY,
+          moved: false,
+          ghost: null
+        };
+        return;
+      }
+
+      // 1b. Batter Bowl Drag/Tap in Oven Stage
+      const batterCard = e.target.closest('#oven-batter-drag-card');
+      if (batterCard && this.workshopStep === 'bake' && this.baking.session && !this.baking.session.batterPoured) {
+        this._dragState = {
+          kind: 'oven_batter',
           startX: e.clientX,
           startY: e.clientY,
           moved: false,
@@ -1236,10 +1414,19 @@ window.GameManager = class GameManager {
         ghost.className = 'drag-ghost';
         if (this._dragState.kind === 'ingredient') {
           ghost.innerHTML = window.SDRenderer.renderIngredient(this._dragState.id, 52);
-          if (window.SDCanvasIcons) window.SDCanvasIcons.paintAll(ghost);
-        } else {
-          ghost.innerHTML = `<div class="chip-btn active">${this._dragState.id}</div>`;
+        } else if (this._dragState.kind === 'oven_batter') {
+          const s = this.baking.session;
+          const bCfg = s ? this.recipes.getBatter(s.selectedBatter || 'vanilla') : null;
+          ghost.innerHTML = `<canvas id="ghost-batter-cv" width="110" height="84" style="width:76px;height:58px;"></canvas>`;
+          if (window.SDOvenUI) {
+            const gCv = ghost.querySelector('#ghost-batter-cv');
+            window.SDOvenUI.drawBatterSourceBowl(gCv, bCfg ? bCfg.color : '#FFE9A8', false);
+          }
+        } else if (this._dragState.kind === 'new_topping' || this._dragState.kind === 'new_acc') {
+          const kind = this._dragState.kind === 'new_topping' ? 'topping' : 'accessory';
+          ghost.innerHTML = `<canvas class="deco-canvas-icon" data-deco-kind="${kind}" data-deco-id="${this._dragState.id}" width="80" height="80" style="width:48px;height:48px;"></canvas>`;
         }
+        if (window.SDCanvasIcons) window.SDCanvasIcons.paintAll(ghost);
         document.body.appendChild(ghost);
         this._dragState.ghost = ghost;
       }
@@ -1252,6 +1439,10 @@ window.GameManager = class GameManager {
         const rect = bowl.getBoundingClientRect();
         const over = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
         bowl.classList.toggle('drag-over', over);
+      } else if (this._dragState.kind === 'oven_batter' && this.ovenCanvas) {
+        const oc = document.getElementById('oven-canvas');
+        const rect = oc.getBoundingClientRect();
+        this.ovenCanvas.dragHighlight = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
       }
     });
 
@@ -1262,8 +1453,24 @@ window.GameManager = class GameManager {
 
       if (ds.ghost) ds.ghost.remove();
       document.getElementById('mixing-bowl-zone')?.classList.remove('drag-over');
+      if (this.ovenCanvas) this.ovenCanvas.dragHighlight = false;
 
-      if (ds.kind === 'ingredient') {
+      if (ds.kind === 'oven_batter') {
+        const oc = document.getElementById('oven-canvas');
+        const rect = oc.getBoundingClientRect();
+        const overOven = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+        if (!ds.moved || overOven) {
+          const res = this.baking.pourBatter();
+          if (!res.ok) {
+            this.showToast(res.reason, 'error');
+          } else {
+            this.audio.playPourBatter();
+            if (this.ovenCanvas) this.ovenCanvas.triggerPourAnimation();
+            this.showToast('Đã đổ bột vào khay bánh!', 'success');
+            this.renderOvenStage();
+          }
+        }
+      } else if (ds.kind === 'ingredient') {
         const bowl = document.getElementById('mixing-bowl-zone');
         const rect = bowl.getBoundingClientRect();
         const overBowl = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
@@ -1516,7 +1723,7 @@ window.GameManager = class GameManager {
             ${window.SDRenderer.renderCake(order.targetPreview, 84)}
             <div>
               <span class="status-pill ${st.key}">${st.label}</span>
-              <h4>${order.isSpecial ? order.specialBadge : `Đơn ${order.orderNumber}`}</h4>
+              <h4><img src="${window.SDRenderer.getCakeAssetPath(order.cakeType, order.batter, order.frostingColor)}" class="order-cake-badge" alt="" /> ${order.isSpecial ? order.specialBadge : `Đơn ${order.orderNumber}`}</h4>
               <p>Khách: <b>${cust ? cust.name : ''}</b> • ⏱️ ${slot ? Math.ceil(slot.patience) : 0}s</p>
             </div>
           </div>
@@ -1568,7 +1775,7 @@ window.GameManager = class GameManager {
         return `
           <div class="info-card ${unlocked ? '' : 'locked'}">
             <div class="info-card-top">
-              ${window.SDRenderer.renderCake({ cakeType: c.id, batter: 'vanilla', frostingColor: 'pink', nozzle: 'swirl', frostingApplied: true }, 82)}
+              <img src="${window.SDRenderer.getCakeAssetPath(c.id, 'vanilla', 'pink')}" class="cake-asset-img" style="width:82px;height:82px;" alt="${c.name}" />
               <div>
                 <h4>${c.name}</h4>
                 <p>${unlocked ? `💰 ${c.basePrice} xu • ⏱️ Nướng ${c.bakeTime}s (${c.idealTemp}°C)` : `🔒 Mở khóa ở Cấp ${c.unlockLevel}`}</p>
@@ -1832,14 +2039,16 @@ window.GameManager = class GameManager {
   // --------------------------------------------------------------------------
   finishCurrentDay() {
     this.isDayActive = false;
+    this.isPrepPhase = false;
     this.paused = true;
     const isVictoryMilestone = this.state.level >= 15;
+    const unlockedCakes = this.recipes.getUnlockedCakeTypes().map(c => c.name).join(', ');
     document.getElementById('md-endday-title').textContent = isVictoryMilestone
       ? '👑 CHÚC MỪNG CHIẾN THẮNG! ĐẾ CHẾ SWEET DREAMS!'
       : `🌙 Tổng Kết Ngày ${this.state.day}`;
     document.getElementById('md-endday-body').innerHTML = `
       <div style="text-align:center;">
-        <p>Tiệm bánh đã khép lại một ngày ngọt ngào!</p>
+        <p>Tiệm bánh đã khép lại một ngày ngọt ngào! Trước khi mở bán ngày mới, bạn có thể soạn lại nguyên liệu và học công thức mới.</p>
       </div>
       <div class="breakdown-list">
         <div class="breakdown-item"><span>Đơn hoàn thành hôm nay</span><b>${this.state.stats.dayOrders}</b></div>
@@ -1847,16 +2056,21 @@ window.GameManager = class GameManager {
         <div class="breakdown-item"><span>Tổng khách đã phục vụ</span><b>${this.state.stats.customersServed}</b></div>
         <div class="breakdown-item"><span>Danh tiếng hiện tại</span><b>${this.state.reputation} 💖</b></div>
       </div>
+      <div style="background:#f5ebff;padding:8px 12px;border-radius:10px;font-size:0.82rem;">
+        <b>🍰 Công thức hiện có (Cấp ${this.state.level}):</b> ${unlockedCakes}
+      </div>
     `;
     this.openModal('modal-end-day');
   }
 
-  startNextDay() {
+  startNextDay(targetTab = 'inventory') {
     this.state.day += 1;
     this.state.stats.dayOrders = 0;
     this.state.stats.dayCoins = 0;
     this.dayElapsed = 0;
-    this.isDayActive = true;
+    // Enter Morning Preparation Phase: do NOT start selling or spawning customers yet!
+    this.isDayActive = false;
+    this.isPrepPhase = true;
     this.paused = false;
     this.readyPackage = null;
     this.activeOrderId = null;
@@ -1868,12 +2082,28 @@ window.GameManager = class GameManager {
     this.updateHUD();
     this.renderBakeryCustomers();
 
-    // Chance of special order on new day!
+    // Jump straight to Ingredient Prep (Kho hàng) or New Recipes (Công thức)
+    this.switchTab(targetTab);
+    this.showToast(`🌅 Ngày ${this.state.day}: Hãy soạn nguyên liệu & công thức rồi nhấn "Mở Cửa Tiệm" nhé!`, 'info');
+  }
+
+  openBakeryForBusiness() {
+    this.audio.init();
+    this.isPrepPhase = false;
+    this.isDayActive = true;
+    this.paused = false;
+    this.dayElapsed = 0;
+    this.switchTab('bakery');
+    this.updateHUD();
+    this.renderBakeryCustomers();
+    this.showToast(`☀️ Tiệm bánh Ngày ${this.state.day} đã mở cửa đón khách!`, 'success');
+
+    // Spawn first customer (with chance of special event!)
     setTimeout(() => {
-      if (this.isDayActive) {
+      if (this.isDayActive && this.customers.slots.length === 0) {
         this.customers.spawnCustomer(this.state.day >= 2 && Math.random() < 0.65);
       }
-    }, 500);
+    }, 450);
   }
 
   startLoop() {
@@ -1892,6 +2122,9 @@ window.GameManager = class GameManager {
 
         if (this.mixingCanvas && this.workshopStep === 'prep' && isWorkshopOpen) {
           this.mixingCanvas.update(dt);
+        }
+        if (this.ovenCanvas && this.workshopStep === 'bake' && isWorkshopOpen) {
+          this.ovenCanvas.update(dt);
         }
 
         this._uiTick += dt;

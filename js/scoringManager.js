@@ -13,11 +13,11 @@ window.ScoringManager = class ScoringManager {
     const breakdown = [];
     let total = 0;
 
-    // 1. Cake Type (15 pts)
+    // 1. Cake Type (14 pts)
     const cakeOk = cakeState.cakeType === order.cakeType;
-    const cakePts = cakeOk ? 15 : 0;
+    const cakePts = cakeOk ? 14 : 0;
     total += cakePts;
-    breakdown.push({ label: 'Loại bánh', pts: cakePts, max: 15, ok: cakeOk });
+    breakdown.push({ label: 'Loại bánh', pts: cakePts, max: 14, ok: cakeOk });
 
     // 2. Batter Flavor (12 pts)
     const batterOk = cakeState.batter === order.batter;
@@ -25,65 +25,72 @@ window.ScoringManager = class ScoringManager {
     total += batterPts;
     breakdown.push({ label: 'Cốt bánh', pts: batterPts, max: 12, ok: batterOk });
 
-    // 3. Frosting Color & Application (15 pts)
+    // 3. Frosting Color & Application (14 pts)
     let frostPts = 0;
     if (cakeState.frostingApplied) {
-      if (cakeState.frostingColor === order.frostingColor) frostPts += 11;
+      if (cakeState.frostingColor === order.frostingColor) frostPts += 10;
       else frostPts += 4;
       if (cakeState.nozzle === order.nozzle) frostPts += 4;
       else frostPts += 2;
     }
     total += frostPts;
-    breakdown.push({ label: 'Kem & Vòi bắt kem', pts: frostPts, max: 15, ok: cakeState.frostingApplied && cakeState.frostingColor === order.frostingColor });
+    breakdown.push({ label: 'Kem & Vòi bắt kem', pts: frostPts, max: 14, ok: cakeState.frostingApplied && cakeState.frostingColor === order.frostingColor });
 
-    // 4. Topping Type & Count (16 pts)
+    // 4. Topping Type & Count (15 pts)
     const matchingToppings = (cakeState.toppings || []).filter(t => t.type === order.topping).length;
     const targetTopCount = order.toppingCount || 0;
     let topPts = 0;
     let topOk = false;
     if (targetTopCount === 0) {
-      topPts = 16;
+      topPts = 15;
       topOk = true;
     } else if (matchingToppings === targetTopCount) {
-      topPts = 16;
+      topPts = 15;
       topOk = true;
     } else if (matchingToppings > 0) {
       const diff = Math.abs(matchingToppings - targetTopCount);
-      topPts = Math.max(5, 16 - diff * 4);
+      topPts = Math.max(5, 15 - diff * 3);
     }
     total += topPts;
-    breakdown.push({ label: `Topping (${matchingToppings}/${targetTopCount})`, pts: topPts, max: 16, ok: topOk });
+    breakdown.push({ label: `Topping (${matchingToppings}/${targetTopCount})`, pts: topPts, max: 15, ok: topOk });
 
-    // 5. Accessories (12 pts)
+    // 5. Accessories (11 pts)
     let accPts = 0;
     let accOk = false;
     const placedAcc = cakeState.accessories || [];
     if (!order.accessory || order.accessory === 'none') {
-      accPts = 12;
+      accPts = 11;
       accOk = true;
     } else {
       const mainCount = placedAcc.filter(a => a.type === order.accessory).length;
       const targetAccCount = order.accCount || 1;
       const hasExtra = !order.extraAccessory || placedAcc.some(a => a.type === order.extraAccessory);
       if (mainCount >= targetAccCount && hasExtra) {
-        accPts = 12;
+        accPts = 11;
         accOk = true;
       } else if (mainCount > 0) {
-        accPts = 7;
+        accPts = 6;
       }
     }
     total += accPts;
-    breakdown.push({ label: 'Phụ kiện trang trí', pts: accPts, max: 12, ok: accOk });
+    breakdown.push({ label: 'Phụ kiện trang trí', pts: accPts, max: 11, ok: accOk });
 
-    // 6. Packaging (10 pts)
+    // 6. Packaging & Interactive Wrapping (14 pts)
     let pkgPts = 0;
     if (packaging && packaging.closed) {
-      pkgPts += 4;
+      const stepsDone = packaging.cakePlaced === undefined
+        ? true
+        : (packaging.cakePlaced && packaging.leftFold >= 1 && packaging.rightFold >= 1 && packaging.endsFold >= 1 && packaging.tapeApplied && packaging.ribbonWrapped && packaging.bowTieProgress >= 1);
+      pkgPts += stepsDone ? 4 : 2;
       if (packaging.boxColor === order.boxColor) pkgPts += 3;
       if (packaging.ribbonColor === order.ribbonColor) pkgPts += 3;
+      const reqCard = order.card || 'none';
+      if (reqCard === 'none' || packaging.card === reqCard) pkgPts += 2;
+      const reqSticker = order.sticker || 'none';
+      if (reqSticker === 'none' || packaging.sticker === reqSticker) pkgPts += 2;
     }
     total += pkgPts;
-    breakdown.push({ label: 'Đóng gói & Hộp bánh', pts: pkgPts, max: 10, ok: pkgPts >= 8 });
+    breakdown.push({ label: 'Đóng gói, ruy băng & phụ kiện hộp', pts: pkgPts, max: 14, ok: pkgPts >= 11 });
 
     // 7. Baking & Mixing Quality (12 pts)
     const bakeQual = cakeState.bakeQuality || 60;

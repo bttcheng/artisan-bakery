@@ -37,6 +37,15 @@ window.DecorationManager = class DecorationManager {
       ribbonColor: 'rose',
       card: 'none',
       sticker: 'none',
+      stickerPos: { x: 278, y: 214 },
+      cakePlaced: false,
+      leftFold: 0,      // 0..1
+      rightFold: 0,     // 0..1
+      endsFold: 0,      // 0..1
+      tapeApplied: false,
+      ribbonWrapped: false,
+      bowTieProgress: 0, // 0..1
+      lidProgress: 0,   // 0..1
       closed: false
     };
     this.history = [];
@@ -145,8 +154,90 @@ window.DecorationManager = class DecorationManager {
     this.audio.playClick();
   }
 
+  moveSticker(x, y) {
+    if (!this.packaging) return;
+    this.packaging.stickerPos = {
+      x: Math.max(150, Math.min(330, Math.round(x))),
+      y: Math.max(145, Math.min(275, Math.round(y)))
+    };
+  }
+
+  placeCakeInBox() {
+    if (!this.packaging || this.packaging.cakePlaced) return;
+    this.packaging.cakePlaced = true;
+    this.audio.playIngredientDrop();
+  }
+
+  setFoldProgress(side, val) {
+    if (!this.packaging) return;
+    const clamped = Math.max(0, Math.min(1, val));
+    if (side === 'left') {
+      this.packaging.leftFold = clamped >= 0.78 ? 1 : clamped;
+      if (this.packaging.leftFold === 1) this.audio.playClick();
+    } else if (side === 'right' && this.packaging.leftFold >= 1) {
+      this.packaging.rightFold = clamped >= 0.78 ? 1 : clamped;
+      if (this.packaging.rightFold === 1) this.audio.playClick();
+    } else if (side === 'ends' && this.packaging.rightFold >= 1) {
+      this.packaging.endsFold = clamped >= 0.78 ? 1 : clamped;
+      if (this.packaging.endsFold === 1) this.audio.playClick();
+    }
+  }
+
+  applyTape() {
+    if (!this.packaging || this.packaging.endsFold < 1) return false;
+    this.packaging.tapeApplied = true;
+    this.audio.playToppingPop();
+    return true;
+  }
+
+  wrapRibbon() {
+    if (!this.packaging || !this.packaging.tapeApplied) return false;
+    this.packaging.ribbonWrapped = true;
+    this.audio.playFrosting();
+    return true;
+  }
+
+  setBowTieProgress(val) {
+    if (!this.packaging || !this.packaging.ribbonWrapped) return;
+    const clamped = Math.max(0, Math.min(1, val));
+    this.packaging.bowTieProgress = clamped >= 0.82 ? 1 : clamped;
+    if (this.packaging.bowTieProgress === 1) this.audio.playSuccess();
+  }
+
+  setLidProgress(val) {
+    if (!this.packaging || this.packaging.bowTieProgress < 1) return;
+    const clamped = Math.max(0, Math.min(1, val));
+    this.packaging.lidProgress = clamped >= 0.82 ? 1 : clamped;
+    if (this.packaging.lidProgress === 1 && !this.packaging.closed) {
+      this.packaging.closed = true;
+      this.audio.playBoxClose();
+    }
+  }
+
+  isPackagingStepsComplete() {
+    const p = this.packaging;
+    if (!p) return false;
+    return !!(
+      p.cakePlaced &&
+      p.leftFold >= 1 &&
+      p.rightFold >= 1 &&
+      p.endsFold >= 1 &&
+      p.tapeApplied &&
+      p.ribbonWrapped &&
+      p.bowTieProgress >= 1
+    );
+  }
+
   closeBox() {
     if (!this.packaging) return;
+    this.packaging.cakePlaced = true;
+    this.packaging.leftFold = 1;
+    this.packaging.rightFold = 1;
+    this.packaging.endsFold = 1;
+    this.packaging.tapeApplied = true;
+    this.packaging.ribbonWrapped = true;
+    this.packaging.bowTieProgress = 1;
+    this.packaging.lidProgress = 1;
     this.packaging.closed = true;
     this.audio.playBoxClose();
   }

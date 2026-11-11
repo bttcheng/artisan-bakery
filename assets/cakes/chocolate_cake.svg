@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <!-- Soft Drop Shadow -->
+  <ellipse cx="110" cy="186" rx="82" ry="14" fill="#4A3531" opacity="0.14"/>
+
+  <!-- Pastel Cream Plate -->
+  <ellipse cx="110" cy="171" rx="84" ry="18" fill="#FFFDF9" stroke="#3E2723" stroke-width="4.5"/>
+  <ellipse cx="110" cy="169" rx="68" ry="11" fill="#FDE8D7"/>
+
+  <!-- Rich Cocoa Sponge Cake Body -->
+  <path d="M42,92 L178,92 L178,160 C178,172 148,180 110,180 C72,180 42,172 42,160 Z"
+        fill="#7D4E38" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Caramel/Cream Ganache Stripe -->
+  <path d="M42,126 Q110,136 178,126 L178,139 Q110,149 42,139 Z" fill="#F3C677" stroke="#3E2723" stroke-width="3.4"/>
+
+  <!-- Glossy Melted Chocolate Ganache Drip -->
+  <path d="M40,92 C40,74 71,64 110,64 C149,64 180,74 180,92 L180,113 C172,125 162,120 156,108 C149,95 142,128 128,127 C116,126 111,106 101,111 C91,116 86,129 72,121 C61,114 58,104 49,111 C42,116 40,106 40,92 Z"
+        fill="#5C3422" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+  <ellipse cx="110" cy="88" rx="68" ry="16" fill="#6F422D" stroke="#3E2723" stroke-width="3.2"/>
+
+  <!-- Glossy Ganache Highlight -->
+  <path d="M62,84 Q88,75 118,76" fill="none" stroke="#9C6644" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Whipped Chocolate Cream Puffs & Truffle -->
+  <circle cx="76" cy="76" r="12" fill="#FFF0E1" stroke="#3E2723" stroke-width="3.8"/>
+  <circle cx="144" cy="76" r="12" fill="#FFF0E1" stroke="#3E2723" stroke-width="3.8"/>
+
+  <!-- Chocolate Wafer Curls & Center Cherry -->
+  <rect x="86" y="42" width="14" height="28" rx="4" transform="rotate(-14 93 56)" fill="#4A2511" stroke="#3E2723" stroke-width="3.5"/>
+  <rect x="120" y="42" width="14" height="28" rx="4" transform="rotate(14 127 56)" fill="#8B5A2B" stroke="#3E2723" stroke-width="3.5"/>
+
+  <!-- Glossy Red Cherry Centerpiece -->
+  <path d="M111,48 Q121,28 134,30" fill="none" stroke="#3E2723" stroke-width="3.8" stroke-linecap="round"/>
+  <circle cx="110" cy="56" r="14" fill="#FF4D6D" stroke="#3E2723" stroke-width="4"/>
+  <ellipse cx="105" cy="51" rx="4" ry="2.4" transform="rotate(-25 105 51)" fill="#FFFFFF"/>
+</svg>
+

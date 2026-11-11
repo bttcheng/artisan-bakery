@@ -58,7 +58,8 @@ window.OrderManager = class OrderManager {
         quantity: ev.quantity || 1,
         boxColor: ev.boxColor,
         ribbonColor: ev.ribbonColor,
-        card: ev.card,
+        card: ev.card || 'none',
+        sticker: ev.sticker || 'none',
         bonusCoins: ev.bonusCoins,
         bonusXp: ev.bonusXp,
         createdAt: Date.now()
@@ -96,6 +97,8 @@ window.OrderManager = class OrderManager {
 
         const box = this._pickRandom(window.SDData.BOX_COLORS);
         const ribbon = this._pickRandom(window.SDData.RIBBON_COLORS);
+        const cardPick = Math.random() < 0.55 ? this._pickRandom(window.SDData.BOX_CARDS.slice(1)) : window.SDData.BOX_CARDS[0];
+        const stickerPick = Math.random() < 0.65 ? this._pickRandom(window.SDData.BOX_STICKERS.slice(1)) : window.SDData.BOX_STICKERS[0];
         const quantity = (cake.id === 'cupcake' || cake.id === 'cookie' || cake.id === 'donut') && level >= 2 && Math.random() < 0.3 ? 2 : 1;
 
         const sig = `${cake.id}|${batter.id}|${frosting.id}|${topping.id}|${toppingCount}`;
@@ -122,7 +125,8 @@ window.OrderManager = class OrderManager {
             quantity,
             boxColor: box.id,
             ribbonColor: ribbon.id,
-            card: 'none',
+            card: cardPick.id,
+            sticker: stickerPick.id,
             bonusCoins: 0,
             bonusXp: 0,
             createdAt: Date.now()

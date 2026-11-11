@@ -343,6 +343,30 @@ html, body {
   flex-direction: column;
 }
 
+.prep-phase-banner {
+  background: linear-gradient(90deg, #fff3cd 0%, #ffe5ec 55%, #edf9f4 100%);
+  border-bottom: 2.5px solid var(--border-soft);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  z-index: 22;
+}
+.prep-banner-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.84rem;
+}
+.prep-banner-text b { color: #c94168; font-size: 0.92rem; }
+.prep-banner-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .panel-inner {
   max-width: 1180px;
   width: 100%;
@@ -738,6 +762,27 @@ html, body {
   animation: gentleFloat 3s infinite ease-in-out;
 }
 .display-cake-slot:nth-child(even) { animation-delay: 1.2s; }
+
+.cake-asset-img {
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px rgba(74, 53, 49, 0.14));
+  flex-shrink: 0;
+}
+
+.order-code-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.order-cake-badge {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+}
 
 @keyframes gentleFloat {
   0%, 100% { transform: translateY(0); }
@@ -1308,31 +1353,112 @@ html, body {
   color: var(--cocoa-light);
 }
 
-/* Stage 2: Oven */
+/* Stage 2: Oven (2D Cooking Simulation) */
 .oven-layout {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 16px;
+  grid-template-columns: 265px 1fr;
+  gap: 14px;
   align-items: start;
 }
-.oven-setup { display: flex; flex-direction: column; gap: 12px; }
+.oven-setup { display: flex; flex-direction: column; gap: 10px; }
 .setup-box {
   background: var(--cream);
   border: 2px solid var(--border-soft);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 10px;
 }
-.setup-box h4 { margin: 0 0 8px; font-size: 0.92rem; }
-.muted-hint { color: var(--cocoa-light); font-size: 0.78rem; display: block; margin-top: 6px; }
+.setup-box h4 { margin: 0 0 6px; font-size: 0.88rem; }
+.muted-hint { color: var(--cocoa-light); font-size: 0.76rem; display: block; margin-top: 4px; }
 
-.oven-machine {
-  background: linear-gradient(180deg, #ffe5ec 0%, #ffd6e0 100%);
-  border: 3.5px solid #4a3531;
-  border-radius: var(--radius-lg);
-  padding: 14px;
+.mold-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.mold-card {
+  background: #fff;
+  border: 2px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 5px 4px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cocoa);
+  transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease;
+}
+.mold-card:hover { transform: translateY(-2px); border-color: var(--pink); }
+.mold-card.active {
+  background: #ffe5ec;
+  border-color: #ff4d6d;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.18), 0 4px 10px rgba(255, 117, 151, 0.25);
+  transform: translateY(-2px);
+}
+.mold-card canvas { display: block; width: 64px; height: 48px; pointer-events: none; }
+
+.batter-drag-card {
+  background: #fff;
+  border: 2.5px dashed var(--mint-deep);
+  border-radius: 14px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: grab;
+  touch-action: none;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--cocoa);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.batter-drag-card:hover { background: #edf9f4; transform: scale(1.02); }
+.batter-drag-card.poured { border-style: solid; border-color: #d8c4b6; opacity: 0.72; cursor: default; }
+
+.temp-num-badge {
+  background: #ff4d6d;
+  color: #fff;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+.temp-dial-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.temp-knob-canvas {
+  width: 112px;
+  height: 112px;
+  cursor: pointer;
+  touch-action: none;
+  flex-shrink: 0;
+}
+.temp-quick-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.temp-quick-dots .chip-btn {
+  padding: 3px 6px;
+  font-size: 0.74rem;
+  text-align: center;
+}
+
+.oven-machine {
+  background: linear-gradient(180deg, #fff6f9 0%, #ffe8ef 100%);
+  border: 3px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .oven-top-panel {
   display: flex;
@@ -1340,9 +1466,9 @@ html, body {
   align-items: center;
   background: #4a3531;
   color: #fff;
-  padding: 8px 14px;
+  padding: 7px 14px;
   border-radius: 12px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 .oven-state-pill {
   background: #ffd166;
@@ -1352,34 +1478,22 @@ html, body {
   font-weight: 800;
   font-size: 0.8rem;
 }
-.oven-glass-door {
-  height: 200px;
-  background: #3d2c2e;
-  border: 5px solid #7c5e57;
-  border-radius: 16px;
-  position: relative;
+.oven-canvas-wrap {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle, #fffdf9 0%, #fff0f5 100%);
+  border-radius: 18px;
+  border: 2.5px solid #f2cad6;
+  padding: 6px;
   overflow: hidden;
 }
-.oven-heat-glow {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(255, 145, 0, 0.45), rgba(255, 72, 0, 0.12));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.oven-glass-door.heating .oven-heat-glow { opacity: 1; }
-.oven-steam {
-  position: absolute;
-  top: 10px;
-  font-size: 1.4rem;
-  opacity: 0;
-}
-.oven-glass-door.heating .oven-steam {
-  opacity: 0.8;
-  animation: steamRise 1.8s infinite;
+.oven-canvas {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  display: block;
+  cursor: pointer;
 }
 
 .oven-progress-wrap {
@@ -1506,15 +1620,24 @@ html, body {
 .deco-item-btn {
   background: #fff;
   border: 2px solid var(--border-soft);
-  border-radius: 10px;
-  padding: 7px 4px;
-  font-size: 0.75rem;
+  border-radius: 12px;
+  padding: 6px 4px;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
   touch-action: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--cocoa);
+  transition: transform 0.12s ease, border-color 0.12s ease;
 }
+.deco-item-btn:hover { transform: translateY(-2px); border-color: var(--pink); }
 .deco-item-btn.active { background: #ffe5ec; border-color: #ff4d6d; }
+.deco-canvas-icon { display: block; pointer-events: none; }
 .sign-input-wrap { margin-top: 10px; }
 .sign-input-wrap label { font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 4px; }
 .sign-input-wrap input {
@@ -1525,26 +1648,109 @@ html, body {
   font-family: inherit;
 }
 
-/* Stage 4: Packaging */
+/* Stage 4: Interactive Packaging Gameplay */
 .package-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: 1fr 250px;
+  gap: 14px;
+  align-items: start;
+  height: 100%;
 }
 .package-preview-wrap {
   background: var(--cream);
-  border: 2px dashed var(--mint-deep);
+  border: 2.5px solid var(--border-soft);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+.pkg-step-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+.pkg-pill {
+  background: #fff;
+  border: 1.8px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cocoa-light);
+}
+.pkg-pill.active {
+  background: var(--pink);
+  color: #fff;
+  border-color: #d6456b;
+}
+.pkg-pill.done {
+  background: #d8f3dc;
+  color: #1b4332;
+  border-color: #52b788;
+}
+.pkg-step-hint {
+  background: #fff8eb;
+  border: 2px dashed #f4c95d;
+  border-radius: 12px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #7a5200;
+  text-align: center;
+  width: 100%;
+}
+.package-box-canvas {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+  touch-action: none;
+}
+.pkg-interactive-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.pkg-draggable {
+  cursor: grab;
+  touch-action: none;
+}
+.pkg-draggable:active { cursor: grabbing; }
+.pkg-pulse-handle {
+  animation: pulseHandle 1.3s infinite ease-in-out;
+}
+@keyframes pulseHandle {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+.pkg-ribbon-sway {
+  transform-origin: 0 4px;
+  animation: ribbonSway 2.4s infinite ease-in-out;
+}
+@keyframes ribbonSway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+.pkg-tape-pop {
+  animation: tapePop 0.25s ease-out;
+}
+@keyframes tapePop {
+  from { opacity: 0; transform: scaleX(0.4); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+.pkg-finished-pop {
+  animation: finishPop 0.45s cubic-bezier(0.22, 1.28, 0.36, 1);
+}
+@keyframes finishPop {
+  from { transform: scale(0.88); opacity: 0.5; }
+  to { transform: scale(1); opacity: 1; }
 }
 .package-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-.package-options-panel { display: flex; flex-direction: column; gap: 12px; }
-.pkg-group h4 { margin: 0 0 6px; font-size: 0.88rem; }
+.package-options-panel { display: flex; flex-direction: column; gap: 10px; background: var(--cream); border: 2px solid var(--border-soft); border-radius: var(--radius-md); padding: 10px; }
+.pkg-group h4 { margin: 0 0 6px; font-size: 0.85rem; }
 
 /* ============================================================================
    MODALS & FLOATING EFFECTS

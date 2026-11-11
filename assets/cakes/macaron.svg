@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <!-- Soft Drop Shadow -->
+  <ellipse cx="110" cy="176" rx="70" ry="13" fill="#4A3531" opacity="0.14"/>
+
+  <!-- Bottom Macaron Shell -->
+  <path d="M40,126 C40,158 72,168 110,168 C148,168 180,158 180,126 Z"
+        fill="#D8BBFF" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+  <!-- Bottom Ruffled Feet -->
+  <path d="M42,126 Q52,133 62,126 Q74,133 86,126 Q98,133 110,126 Q122,133 134,126 Q146,133 158,126 Q170,133 178,126"
+        fill="#E5D4FF" stroke="#3E2723" stroke-width="3.8" stroke-linecap="round"/>
+
+  <!-- Fluffy Cream Filling -->
+  <path d="M44,108 C44,102 176,102 176,108 L176,124 C166,130 156,124 146,128 C136,132 126,124 116,128 C106,132 96,124 86,128 C76,132 66,124 56,128 C48,130 44,126 44,122 Z"
+        fill="#FFF5F8" stroke="#3E2723" stroke-width="4.2" stroke-linejoin="round"/>
+
+  <!-- Top Ruffled Feet & Dome Shell -->
+  <path d="M40,104 C40,60 74,48 110,48 C146,48 180,60 180,104 C170,111 160,105 150,110 C140,114 130,105 120,110 C110,114 100,105 90,110 C80,114 70,105 60,110 C50,113 43,109 40,104 Z"
+        fill="#E0C3FF" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
+
+  <!-- Soft Gloss Highlight -->
+  <path d="M62,74 Q84,58 114,58" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" opacity="0.85"/>
+  <circle cx="127" cy="59" r="3" fill="#FFFFFF" opacity="0.85"/>
+</svg>
+

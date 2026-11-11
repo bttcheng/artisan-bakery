@@ -129,6 +129,20 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="main-viewport">
+      <!-- MORNING PREP PHASE BANNER (Shown after ending a day until player opens shop) -->
+      <div id="prep-phase-banner" class="prep-phase-banner hidden">
+        <div class="prep-banner-text">
+          <b id="prep-banner-title">🌅 Buổi Sáng Chuẩn Bị – Ngày 2</b>
+          <span>Hãy soạn nguyên liệu, học công thức bánh mới hoặc nâng cấp tiệm trước khi mở cửa bán hàng!</span>
+        </div>
+        <div class="prep-banner-actions">
+          <button class="btn btn-soft btn-xs prep-jump-btn" data-jump-tab="inventory">🧺 Soạn Nguyên Liệu</button>
+          <button class="btn btn-lavender btn-xs prep-jump-btn" data-jump-tab="collection">📖 Học Công Thức</button>
+          <button class="btn btn-butter btn-xs prep-jump-btn" data-jump-tab="upgrades">🛠️ Nâng Cấp</button>
+          <button id="btn-open-bakery-day" class="btn btn-primary btn-sm">☀️ Mở Cửa Tiệm &amp; Bán Hàng!</button>
+        </div>
+      </div>
+
       <!-- TAB 1: BAKERY FLOOR -->
       <div id="tab-bakery" class="tab-panel active">
         <div id="bakery-scene" class="bakery-scene">
@@ -145,7 +159,7 @@
           <div class="bakery-backdrop">
             <!-- Entrance Door -->
             <div class="zone-door" id="bakery-door">
-              <div class="door-sign">OPEN</div>
+              <div class="door-sign" id="bakery-door-sign">OPEN</div>
               <div class="door-leaf">
                 <div class="door-window"></div>
                 <div class="door-knob"></div>
@@ -361,39 +375,48 @@
               </div>
             </div>
 
-            <!-- STAGE 2: OVEN BAKING -->
+            <!-- STAGE 2: OVEN BAKING (2D Cooking Simulation) -->
             <div id="stage-bake" class="ws-stage">
               <div class="oven-layout">
+                <!-- Left Area: Illustrated Mold Cards + Draggable Batter Bowl + Rotary Temp Knob -->
                 <div class="oven-setup">
                   <div class="setup-box">
                     <h4>1. Chọn Khuôn Bánh</h4>
-                    <div id="oven-mold-list" class="chip-row"></div>
-                    <button id="btn-pour-batter" class="btn btn-mint btn-md" style="margin-top:8px;">🫗 Đổ Bột Vào Khuôn</button>
+                    <div id="oven-mold-list" class="mold-cards-grid"></div>
                   </div>
 
-                  <div class="setup-box">
-                    <h4>2. Chọn Nhiệt Độ Nướng</h4>
-                    <div id="oven-temp-list" class="chip-row">
-                      <button class="chip-btn" data-temp="160">160°C</button>
-                      <button class="chip-btn" data-temp="170">170°C</button>
-                      <button class="chip-btn active" data-temp="180">180°C</button>
-                      <button class="chip-btn" data-temp="190">190°C</button>
-                      <button class="chip-btn" data-temp="200">200°C</button>
+                  <div class="setup-box batter-source-box">
+                    <h4>2. Kéo Bột Vào Khay</h4>
+                    <div id="oven-batter-drag-card" class="batter-drag-card" title="Kéo tô bột thả vào khay nướng hoặc chạm để đổ bột">
+                      <canvas id="oven-batter-canvas" width="110" height="84"></canvas>
+                      <span id="oven-batter-label">Kéo thả vào khay</span>
+                    </div>
+                  </div>
+
+                  <div class="setup-box temp-dial-box">
+                    <h4>3. Núm Nhiệt Độ: <b id="oven-cur-temp" class="temp-num-badge">180°C</b></h4>
+                    <div class="temp-dial-row">
+                      <canvas id="oven-temp-knob" class="temp-knob-canvas" width="136" height="136" title="Xoay hoặc chạm để chỉnh nhiệt độ"></canvas>
+                      <div id="oven-temp-list" class="temp-quick-dots">
+                        <button class="chip-btn" data-temp="160">160°</button>
+                        <button class="chip-btn" data-temp="170">170°</button>
+                        <button class="chip-btn active" data-temp="180">180°</button>
+                        <button class="chip-btn" data-temp="190">190°</button>
+                        <button class="chip-btn" data-temp="200">200°</button>
+                      </div>
                     </div>
                     <small id="oven-temp-hint" class="muted-hint"></small>
                   </div>
                 </div>
 
+                <!-- Main Area: Large 2D Animated Oven Scene -->
                 <div class="oven-machine">
                   <div class="oven-top-panel">
-                    <span class="oven-dial">🌡️ <b id="oven-cur-temp">180°C</b></span>
-                    <span class="oven-timer" id="oven-timer-text">0.0s</span>
-                    <span class="oven-state-pill" id="oven-state-pill">Chờ vào lò</span>
+                    <span class="oven-dial">Thời gian: <b id="oven-timer-text">0.0s</b></span>
+                    <span class="oven-state-pill" id="oven-state-pill">Chờ đổ bột vào khay</span>
                   </div>
-                  <div class="oven-glass-door" id="oven-glass-door">
-                    <div class="oven-heat-glow" id="oven-heat-glow"></div>
-                    <div class="oven-cake-preview" id="oven-cake-preview"></div>
-                    <div class="oven-steam" id="oven-steam">💨 💨</div>
+                  <div id="oven-canvas-wrap" class="oven-canvas-wrap">
+                    <canvas id="oven-canvas" class="oven-canvas" width="560" height="380"></canvas>
                   </div>
                   <div class="oven-progress-wrap">
                     <div class="oven-zones-track">
@@ -405,10 +428,10 @@
                     <div class="oven-pointer" id="oven-pointer"></div>
                   </div>
                   <div class="oven-action-row">
-                    <button id="btn-start-oven" class="btn btn-primary btn-lg">🔥 Cho Vào Lò &amp; Nướng</button>
-                    <button id="btn-take-out" class="btn btn-butter btn-lg hidden">🧤 Lấy Bánh Ra Ngay!</button>
-                    <button id="btn-retry-bake" class="btn btn-soft btn-md hidden">🔄 Nướng Lại Mẻ Khác</button>
-                    <button id="btn-to-decorate" class="btn btn-mint btn-lg hidden">🎨 Sang Bàn Trang Trí →</button>
+                    <button id="btn-start-oven" class="btn btn-primary btn-lg">Đưa Khay Vào Lò &amp; Nướng</button>
+                    <button id="btn-take-out" class="btn btn-butter btn-lg hidden">Lấy Khay Bánh Ra!</button>
+                    <button id="btn-retry-bake" class="btn btn-soft btn-md hidden">Nướng Lại Mẻ Khác</button>
+                    <button id="btn-to-decorate" class="btn btn-mint btn-lg hidden">Sang Bàn Trang Trí →</button>
                   </div>
                 </div>
               </div>
@@ -467,25 +490,31 @@
               </div>
             </div>
 
-            <!-- STAGE 4: PACKAGING -->
+            <!-- STAGE 4: INTERACTIVE PACKAGING GAMEPLAY -->
             <div id="stage-package" class="ws-stage">
               <div class="package-layout">
                 <div class="package-preview-wrap">
-                  <h3>🎁 Đóng Gói Thành Phẩm</h3>
+                  <div class="pkg-step-pills" id="pkg-step-pills">
+                    <span class="pkg-pill active" data-pstep="1">1. Trải giấy &amp; Đặt bánh</span>
+                    <span class="pkg-pill" data-pstep="2">2. Gấp giấy &amp; Dán keo</span>
+                    <span class="pkg-pill" data-pstep="3">3. Quấn &amp; Thắt ruy băng</span>
+                    <span class="pkg-pill" data-pstep="5">4. Đóng nắp hộp</span>
+                  </div>
+                  <div id="pkg-step-hint" class="pkg-step-hint">Bước 1: Chọn màu giấy gói và kéo chiếc bánh vào giữa tờ giấy!</div>
                   <div id="package-box-canvas" class="package-box-canvas"></div>
                   <div class="package-actions">
-                    <button id="btn-close-box" class="btn btn-butter btn-lg">🎀 Đóng Nắp Hộp &amp; Thắt Nơ</button>
+                    <button id="btn-close-box" class="btn btn-butter btn-md hidden">Đóng Nắp Hộp Nhanh</button>
                     <button id="btn-deliver-cake" class="btn btn-primary btn-lg" disabled>✅ HOÀN THÀNH &amp; GIAO BÁNH!</button>
                   </div>
                 </div>
 
                 <div class="package-options-panel">
                   <div class="pkg-group">
-                    <h4>1. Màu Hộp Bánh:</h4>
+                    <h4>1. Màu Giấy Gói / Hộp:</h4>
                     <div id="pkg-box-colors" class="swatch-grid"></div>
                   </div>
                   <div class="pkg-group">
-                    <h4>2. Màu Ruy Băng:</h4>
+                    <h4>2. Màu Dây Ruy Băng:</h4>
                     <div id="pkg-ribbon-colors" class="swatch-grid"></div>
                   </div>
                   <div class="pkg-group">
@@ -493,7 +522,7 @@
                     <div id="pkg-cards" class="chip-row"></div>
                   </div>
                   <div class="pkg-group">
-                    <h4>4. Sticker Trang Trí Hộp:</h4>
+                    <h4>4. Sticker (Kéo thả trên hộp):</h4>
                     <div id="pkg-stickers" class="chip-row"></div>
                   </div>
                 </div>
@@ -554,7 +583,8 @@
       </div>
       <div id="md-endday-body" class="modal-body"></div>
       <div class="modal-foot">
-        <button id="btn-next-day" class="btn btn-primary btn-lg">☀️ Bắt Đầu Ngày Mới!</button>
+        <button id="btn-next-day-recipes" class="btn btn-lavender btn-md">📖 Học Công Thức Mới</button>
+        <button id="btn-next-day" class="btn btn-primary btn-lg">🧺 Soạn Nguyên Liệu Ngày Mới</button>
       </div>
     </div>
 
@@ -607,7 +637,9 @@
   <script defer src="js/customerManager.js"></script>
   <script defer src="js/bakingManager.js"></script>
   <script defer src="js/mixingCanvas.js"></script>
+  <script defer src="js/ovenCanvas.js"></script>
   <script defer src="js/decorationManager.js"></script>
+  <script defer src="js/packageStage.js"></script>
   <script defer src="js/scoringManager.js"></script>
   <script defer src="game.js"></script>
 </body>
