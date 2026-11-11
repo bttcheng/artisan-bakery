@@ -2079,6 +2079,7 @@ window.GameManager = class GameManager {
         return c.group === this.recipeCategory;
       });
 
+      const ico = (n, sz = 13) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
       const colEntries = Object.values(this.state.collection || {});
       container.innerHTML = list.map(c => {
         const unlocked = c.unlockLevel <= this.state.level;
@@ -2091,28 +2092,30 @@ window.GameManager = class GameManager {
           return `<span class="recipe-ing-chip ${stock <= 0 ? 'missing' : ''}">${ing ? ing.name : id} (${stock})</span>`;
         }).join('');
         return `
-          <div class="info-card ${unlocked ? '' : 'locked'}">
+          <div class="info-card visual-card clickable-col-card ${unlocked ? '' : 'locked'}" data-cake-id="${c.id}" title="${c.description}">
             <div class="info-card-top">
-              <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" class="cake-asset-img cake-lineart-img" style="width:82px;height:82px;" alt="${c.name}" />
-              <div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
+              <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" class="cake-asset-img cake-lineart-img" style="width:76px;height:76px;" alt="${c.name}" />
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;">
                   <span class="decor-cat-badge">${c.groupName}</span>
-                  <span class="unlock-status-pill ${unlocked ? 'open' : 'closed'}">${unlocked ? '✅ Đã mở khóa' : `🔒 Cấp ${c.unlockLevel}`}</span>
+                  <span class="unlock-status-pill ${unlocked ? 'open' : 'closed'}">${unlocked ? 'Mở' : `Lv.${c.unlockLevel}`}</span>
                 </div>
                 <h4>${c.name}</h4>
-                <p>💰 ${c.basePrice} xu • ⏱️ Nướng ${c.bakeTime}s (${c.idealTemp}°C)</p>
-                ${totalBaked > 0 ? `<p style="font-size:0.76rem;color:#40916c;">🎂 Đã làm: <b>${totalBaked}</b> lần • Cao nhất: <b>${bestScore}/100</b></p>` : ''}
+                <div class="visual-stat-row">
+                  <span class="mini-stat-pill">${ico('coin')} ${c.basePrice}</span>
+                  <span class="mini-stat-pill">${ico('oven_flame')} ${c.idealTemp}°C</span>
+                  <span class="mini-stat-pill">${ico('clock')} ${c.bakeTime}s</span>
+                  ${totalBaked > 0 ? `<span class="mini-stat-pill ok">${ico('star_level')} ${bestScore} (×${totalBaked})</span>` : ''}
+                </div>
               </div>
             </div>
-            <p>${c.description}</p>
-            <div>
-              <small style="font-weight:800;">Công thức nguyên liệu (+ hương vị tùy chọn):</small>
-              <div class="recipe-ing-chips">${ingChips}</div>
-            </div>
-            <p style="font-size:0.76rem;"><b>Khuôn:</b> ${c.moldName}</p>
+            <div class="recipe-ing-chips">${ingChips}</div>
           </div>
         `;
       }).join('');
+      container.querySelectorAll('.clickable-col-card').forEach(el => {
+        el.addEventListener('click', () => this.openCakeDetailModal(el.dataset.cakeId));
+      });
     } else if (this.activeSubTab === 'styles') {
       container.innerHTML = window.SDData.DECOR_STYLES.map(st => {
         const preview = this.orders.buildTargetPreview(st);
@@ -2186,33 +2189,35 @@ window.GameManager = class GameManager {
 
     const discPct = this.economy.getIngredientDiscountPct();
     const grid = document.getElementById('inventory-grid');
+    const ico = (n, sz = 13) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
     grid.innerHTML = window.SDData.INGREDIENTS.map(ing => {
       const unlocked = this.economy.isIngredientUnlocked(ing);
       const stock = this.economy.getStock(ing.id);
       const unitPrice = this.economy.getIngredientPrice(ing.id);
       const badge = stock === 0
-        ? `<span class="stock-badge empty">Hết hàng!</span>`
+        ? `<span class="stock-badge empty">Hết</span>`
         : stock <= 3
-          ? `<span class="stock-badge warn">Sắp hết!</span>`
-          : `<span class="stock-badge ok">Sẵn sàng</span>`;
+          ? `<span class="stock-badge warn">×${stock}</span>`
+          : `<span class="stock-badge ok">×${stock}</span>`;
 
       return `
-        <div class="info-card ${unlocked ? '' : 'locked'}">
+        <div class="info-card visual-card ${unlocked ? '' : 'locked'}" title="${ing.name} (${ing.unit})">
           <div class="info-card-top">
-            ${window.SDRenderer.renderIngredient(ing.id, 52)}
-            <div>
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            ${window.SDRenderer.renderIngredient(ing.id, 54)}
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:4px;">
                 <h4>${ing.name}</h4>
-                ${unlocked ? badge : ''}
+                ${unlocked ? badge : `<span class="unlock-status-pill closed">Lv.${ing.unlockLevel}</span>`}
               </div>
-              <p>Đang có: <b>${stock} ${ing.unit}</b></p>
-              <p>${unlocked ? `Giá: <b>${unitPrice} xu</b> / ${ing.unit}${discPct > 0 ? ` <small>(-${discPct}%)</small>` : ''}` : `🔒 Mở ở Cấp ${ing.unlockLevel}`}</p>
+              <div class="visual-stat-row">
+                ${unlocked ? `<span class="mini-stat-pill">${ico('coin')} ${unitPrice}${discPct > 0 ? ` (-${discPct}%)` : ''}</span>` : ''}
+              </div>
             </div>
           </div>
           ${unlocked ? `
             <div style="display:flex;gap:6px;">
-              <button class="btn btn-mint btn-xs btn-buy-ing" data-ing="${ing.id}" data-qty="1">Mua 1 (${unitPrice} xu)</button>
-              <button class="btn btn-primary btn-xs btn-buy-ing" data-ing="${ing.id}" data-qty="5">Mua 5 (${unitPrice * 5} xu)</button>
+              <button class="btn btn-mint btn-xs btn-buy-ing" style="flex:1;" data-ing="${ing.id}" data-qty="1">+1 (${unitPrice})</button>
+              <button class="btn btn-primary btn-xs btn-buy-ing" style="flex:1;" data-ing="${ing.id}" data-qty="5">+5 (${unitPrice * 5})</button>
             </div>
           ` : ''}
         </div>
@@ -2234,20 +2239,29 @@ window.GameManager = class GameManager {
 
   renderDecorTab() {
     const grid = document.getElementById('decor-shop-grid');
+    const ico = (n, sz = 13) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
+    const art = (id) => (window.SDIcons ? window.SDIcons.shopArt(id, 64) : '');
     grid.innerHTML = window.SDData.SHOP_DECORS.map(d => {
       const owned = this.upgrades.hasDecor(d.id);
       const equipped = this.upgrades.isDecorEquipped(d.id);
       return `
-        <div class="info-card">
-          <span class="decor-cat-badge">${d.catName}</span>
+        <div class="info-card visual-shop-card ${equipped ? 'equipped-card' : ''}" title="${d.desc}">
+          <div class="shop-card-visual">
+            ${art(d.id)}
+            <span class="decor-cat-badge">${d.catName}</span>
+          </div>
           <h4>${d.name}</h4>
-          <p>${d.desc}</p>
-          <p><b>Hiệu quả khi trưng bày:</b> +${d.tipBonus} xu tip • +${d.patienceBonus}s kiên nhẫn</p>
+          <div class="visual-stat-row">
+            <span class="mini-stat-pill">${ico('coin')} +${d.tipBonus} tip</span>
+            <span class="mini-stat-pill">${ico('clock')} +${d.patienceBonus}s</span>
+          </div>
           ${owned
-            ? `<button class="btn ${equipped ? 'btn-mint' : 'btn-lavender'} btn-sm btn-equip-decor" data-decor="${d.id}">
-                ${equipped ? '✅ Đang Trưng Bày (Nhấn để cất)' : '✨ Sử Dụng Trang Trí Này'}
+            ? `<button class="btn ${equipped ? 'btn-mint' : 'btn-lavender'} btn-sm btn-equip-decor" data-decor="${d.id}" title="${equipped ? 'Nhấn để cất vật phẩm' : 'Nhấn để trưng bày'}">
+                ${equipped ? `${ico('check_accept', 14)} Đang Dùng` : `${ico('nav_decor', 14)} Trưng Bày`}
                </button>`
-            : `<button class="btn btn-primary btn-sm btn-buy-decor" data-decor="${d.id}">🛍️ Mua (${d.price} xu)</button>`
+            : `<button class="btn btn-primary btn-sm btn-buy-decor" data-decor="${d.id}" title="Mua ${d.name}">
+                ${ico('coin', 15)} ${d.price} xu
+               </button>`
           }
         </div>
       `;
@@ -2280,17 +2294,37 @@ window.GameManager = class GameManager {
 
   renderUpgradesTab() {
     const grid = document.getElementById('upgrades-grid');
+    const ico = (n, sz = 14) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
+    const art = (id) => (window.SDIcons ? window.SDIcons.shopArt(id, 66) : '');
+    const statLabel = (uId, lvl) => {
+      if (uId === 'oven') return `${Math.round(lvl.speedMult * 100)}% tốc độ • ${lvl.perfectWindow}s chín`;
+      if (uId === 'mixer') return `${Math.round(lvl.speedMult * 100)}% nhanh • +${lvl.bonusQuality || 0} điểm`;
+      if (uId === 'deco_table') return `+${lvl.tipBonus || 0} xu tip`;
+      if (uId === 'display_shelf') return `+${lvl.patienceBonus || 0}s chờ`;
+      if (uId === 'counter_service') return `+${lvl.extraSlots || 0} chỗ • +${lvl.patienceBonus || 0}s`;
+      if (uId === 'ingredient_pantry') return `-${lvl.discountPct || 0}% giá kho`;
+      return '';
+    };
+
     grid.innerHTML = window.SDData.EQUIPMENT_UPGRADES.map(u => {
       const cur = this.upgrades.getUpgradeLevelData(u.id);
       const next = this.upgrades.getNextUpgradeLevelData(u.id);
+      const pips = u.levels.map(l => `<span class="lvl-pip ${l.level <= cur.level ? 'on' : ''}"></span>`).join('');
       return `
-        <div class="info-card">
-          <h4>${u.name} (Cấp ${cur.level}/${u.levels.length})</h4>
-          <p>Hiện tại: <b>${cur.name}</b></p>
-          <p>${u.desc}</p>
+        <div class="info-card visual-shop-card" title="${cur.name} — ${u.desc}">
+          <div class="shop-card-visual">
+            ${art(u.id)}
+            <div class="lvl-pips" title="Cấp ${cur.level}/${u.levels.length}">${pips}</div>
+          </div>
+          <h4>${u.name}</h4>
+          <div class="visual-stat-row">
+            <span class="mini-stat-pill">${ico('star_level', 12)} ${statLabel(u.id, cur)}</span>
+          </div>
           ${next
-            ? `<button class="btn btn-butter btn-sm btn-buy-upg" data-upg="${u.id}">⬆️ Nâng lên ${next.name} (${next.price} xu)</button>`
-            : `<button class="btn btn-soft btn-sm" disabled>🌟 Đã Đạt Cấp Tối Đa</button>`
+            ? `<button class="btn btn-butter btn-sm btn-buy-upg" data-upg="${u.id}" title="Nâng lên: ${next.name}">
+                ${ico('nav_upgrades', 15)} Lv.${next.level} • ${next.price} xu
+               </button>`
+            : `<button class="btn btn-mint btn-sm" disabled>${ico('check_accept', 14)} Tối Đa</button>`
           }
         </div>
       `;
@@ -2311,17 +2345,27 @@ window.GameManager = class GameManager {
   }
 
   renderAchievementsTab() {
+    const ico = (n, sz = 14) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
     const qGrid = document.getElementById('quests-grid');
     qGrid.innerHTML = this.state.dailyQuests.map(q => {
       const pct = Math.min(100, Math.round((q.progress / q.target) * 100));
       const ready = q.progress >= q.target && !q.claimed;
       return `
-        <div class="info-card">
-          <h4>${q.title}</h4>
+        <div class="info-card visual-card">
+          <div class="info-card-top">
+            ${ico('star_level', 30)}
+            <div style="flex:1;">
+              <h4>${q.title}</h4>
+              <div class="visual-stat-row">
+                <span class="mini-stat-pill">${ico('coin', 12)} +${q.rewardCoins}</span>
+                <span class="mini-stat-pill">+${q.rewardXp} EXP</span>
+                <span class="mini-stat-pill">${q.progress}/${q.target}</span>
+              </div>
+            </div>
+          </div>
           <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
-          <p>Tiến độ: <b>${q.progress}/${q.target}</b> • Thưởng: <b>${q.rewardCoins} xu &amp; ${q.rewardXp} EXP</b></p>
           <button class="btn ${ready ? 'btn-mint' : 'btn-soft'} btn-xs btn-claim-quest" data-qid="${q.id}" ${ready ? '' : 'disabled'}>
-            ${q.claimed ? '✅ Đã Nhận Thưởng' : ready ? '🎁 Nhận Thưởng Ngay' : '⏳ Chưa Hoàn Thành'}
+            ${q.claimed ? `${ico('check_accept', 13)} Đã Nhận` : ready ? `${ico('gift_box', 13)} Nhận Thưởng` : `${ico('clock', 13)} ${q.progress}/${q.target}`}
           </button>
         </div>
       `;
@@ -2347,11 +2391,18 @@ window.GameManager = class GameManager {
       const target = a.target || 1;
       const pct = Math.min(100, Math.round((curProg / target) * 100));
       return `
-        <div class="info-card ${unlocked ? '' : 'locked'}">
-          <h4>${unlocked ? '🏆' : '🔒'} ${a.title}</h4>
-          <p>${a.desc}</p>
+        <div class="info-card visual-card ${unlocked ? '' : 'locked'}" title="${a.desc}">
+          <div class="info-card-top">
+            ${ico('nav_achievements', 32)}
+            <div style="flex:1;">
+              <h4>${a.title}</h4>
+              <div class="visual-stat-row">
+                <span class="mini-stat-pill">${ico('coin', 12)} +${a.rewardCoins}</span>
+                <span class="mini-stat-pill ${unlocked ? 'ok' : ''}">${curProg}/${target}${unlocked ? ' ✓' : ''}</span>
+              </div>
+            </div>
+          </div>
           <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
-          <p>Tiến độ: <b>${curProg}/${target}</b> • Thưởng: <b>${a.rewardCoins} xu</b> ${unlocked ? '✅' : ''}</p>
         </div>
       `;
     }).join('');

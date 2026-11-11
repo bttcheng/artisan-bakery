@@ -158,6 +158,133 @@ window.SDIcons = (() => {
     `
   };
 
+  // Large 64x64 2D Cartoon Illustrations for Upgrades, Shop Decors & Achievements
+  const SHOP_ART = {
+    // --- Equipment Upgrades (6) ---
+    oven: `
+      <rect x="8" y="12" width="48" height="44" rx="8" fill="#FFD6E0" stroke="${S}" stroke-width="2.4"/>
+      <rect x="13" y="16" width="38" height="8" rx="4" fill="#FFFDF9" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="20" cy="20" r="2.2" fill="#FF4D6D"/><circle cx="32" cy="20" r="2.2" fill="#FFD166"/><circle cx="44" cy="20" r="2.2" fill="#74C69D"/>
+      <rect x="14" y="27" width="36" height="23" rx="5" fill="#FF9F1C" stroke="${S}" stroke-width="2"/>
+      <line x1="18" y1="30" x2="46" y2="30" stroke="#FFFDF9" stroke-width="2.4" stroke-linecap="round"/>
+      <ellipse cx="32" cy="43" rx="10" ry="5" fill="#FFE699" stroke="${S}" stroke-width="1.6"/>
+    `,
+    mixer: `
+      <path d="M16,42 L48,42 L44,54 Q32,57 20,54 Z" fill="#A8E6CF" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M16,20 C16,12 46,12 48,22 L48,28 L22,28 L22,42" fill="#FFB3C6" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+      <ellipse cx="32" cy="36" rx="5" ry="9" fill="none" stroke="${S}" stroke-width="2"/>
+      <circle cx="42" cy="20" r="3" fill="#FFFDF9" stroke="${S}" stroke-width="1.6"/>
+    `,
+    deco_table: `
+      <rect x="12" y="34" width="40" height="8" rx="4" fill="#FFE5EC" stroke="${S}" stroke-width="2.4"/>
+      <rect x="27" y="42" width="10" height="12" fill="#D8BBFF" stroke="${S}" stroke-width="2"/>
+      <rect x="20" y="52" width="24" height="4" rx="2" fill="#B185DB" stroke="${S}" stroke-width="1.8"/>
+      <path d="M24,34 L40,34 L38,24 L26,24 Z" fill="#FFB3C6" stroke="${S}" stroke-width="2"/>
+      <path d="M24,24 C24,16 40,16 40,24 Z" fill="#FFFDF9" stroke="${S}" stroke-width="2"/>
+      <circle cx="32" cy="14" r="3" fill="#FF4D6D" stroke="${S}" stroke-width="1.4"/>
+    `,
+    display_shelf: `
+      <rect x="10" y="14" width="44" height="42" rx="7" fill="#EAF9FF" stroke="${S}" stroke-width="2.4"/>
+      <line x1="12" y1="33" x2="52" y2="33" stroke="${S}" stroke-width="2.2"/>
+      <rect x="10" y="47" width="44" height="9" rx="3" fill="#FFB3C6" stroke="${S}" stroke-width="2"/>
+      <circle cx="23" cy="26" r="6" fill="#FF8FAB" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="40" cy="26" r="6" fill="#FFE699" stroke="${S}" stroke-width="1.8"/>
+      <rect x="20" y="37" width="24" height="10" rx="3" fill="#D8BBFF" stroke="${S}" stroke-width="1.8"/>
+    `,
+    counter_service: `
+      <path d="M8,22 L12,12 L52,12 L56,22 C50,26 44,26 40,22 C36,26 28,26 24,22 C20,26 14,26 8,22 Z" fill="#FF8FAB" stroke="${S}" stroke-width="2.2" stroke-linejoin="round"/>
+      <rect x="12" y="34" width="40" height="22" rx="4" fill="#FFF3D6" stroke="${S}" stroke-width="2.4"/>
+      <path d="M25,34 C25,27 39,27 39,34 Z" fill="#FFD166" stroke="${S}" stroke-width="2"/>
+      <circle cx="32" cy="27" r="2" fill="#F4A261"/>
+    `,
+    ingredient_pantry: `
+      <rect x="14" y="10" width="36" height="46" rx="7" fill="#D8F3DC" stroke="${S}" stroke-width="2.4"/>
+      <line x1="14" y1="32" x2="50" y2="32" stroke="${S}" stroke-width="2.2"/>
+      <line x1="42" y1="18" x2="42" y2="27" stroke="${S}" stroke-width="2.6" stroke-linecap="round"/>
+      <line x1="42" y1="38" x2="42" y2="48" stroke="${S}" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="26" cy="21" r="4" fill="#FF8FAB"/><circle cx="28" cy="43" r="4.5" fill="#FFD166"/>
+    `,
+
+    // --- Shop Decors (11) ---
+    fairy_lights: `
+      <path d="M6,18 Q32,36 58,18" fill="none" stroke="${S}" stroke-width="2.4"/>
+      <circle cx="15" cy="25" r="5" fill="#FFE699" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="32" cy="30" r="5.5" fill="#FFB3C6" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="49" cy="25" r="5" fill="#A8E6CF" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="23" cy="43" r="3" fill="#FFD166" opacity="0.7"/><circle cx="42" cy="43" r="3" fill="#FF8FAB" opacity="0.7"/>
+    `,
+    crystal_lights: `
+      <line x1="32" y1="8" x2="32" y2="22" stroke="${S}" stroke-width="2.4"/>
+      <path d="M14,24 Q32,16 50,24" fill="none" stroke="${S}" stroke-width="2.4"/>
+      <polygon points="18,24 23,36 18,45 13,36" fill="#D8BBFF" stroke="${S}" stroke-width="2"/>
+      <polygon points="32,20 38,35 32,48 26,35" fill="#FFE699" stroke="${S}" stroke-width="2"/>
+      <polygon points="46,24 51,36 46,45 41,36" fill="#FFB3C6" stroke="${S}" stroke-width="2"/>
+    `,
+    pastel_wallpaper: `
+      <rect x="12" y="10" width="40" height="44" rx="5" fill="#FFF8F0" stroke="${S}" stroke-width="2.4"/>
+      <rect x="17" y="12" width="7" height="40" fill="#FFD6E0"/>
+      <rect x="31" y="12" width="7" height="40" fill="#FFD6E0"/>
+      <rect x="44" y="12" width="6" height="40" fill="#FFD6E0"/>
+      <rect x="12" y="10" width="40" height="44" rx="5" fill="none" stroke="${S}" stroke-width="2.4"/>
+    `,
+    mint_wallpaper: `
+      <rect x="12" y="10" width="40" height="44" rx="5" fill="#E8FAF2" stroke="${S}" stroke-width="2.4"/>
+      <circle cx="23" cy="21" r="4" fill="#74C69D"/><circle cx="41" cy="21" r="4" fill="#FFFDF9"/>
+      <circle cx="32" cy="32" r="4" fill="#74C69D"/>
+      <circle cx="23" cy="43" r="4" fill="#FFFDF9"/><circle cx="41" cy="43" r="4" fill="#74C69D"/>
+    `,
+    flower_pots: `
+      <path d="M16,38 L48,38 L44,54 L20,54 Z" fill="#F4A261" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+      <line x1="24" y1="38" x2="22" y2="25" stroke="#52B788" stroke-width="2.8"/>
+      <line x1="32" y1="38" x2="32" y2="20" stroke="#52B788" stroke-width="2.8"/>
+      <line x1="40" y1="38" x2="42" y2="25" stroke="#52B788" stroke-width="2.8"/>
+      <circle cx="22" cy="22" r="6" fill="#FF8FAB" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="32" cy="17" r="6.5" fill="#FFD166" stroke="${S}" stroke-width="1.8"/>
+      <circle cx="42" cy="22" r="6" fill="#D8BBFF" stroke="${S}" stroke-width="1.8"/>
+    `,
+    monstera_plant: `
+      <path d="M20,38 L44,38 L41,54 L23,54 Z" fill="#FFFDF9" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M32,38 C20,26 16,14 27,12 C33,12 34,24 32,38 Z" fill="#74C69D" stroke="${S}" stroke-width="2"/>
+      <path d="M32,38 C44,26 48,14 37,12 C31,12 30,24 32,38 Z" fill="#52B788" stroke="${S}" stroke-width="2"/>
+    `,
+    cozy_seating: `
+      <rect x="14" y="20" width="36" height="22" rx="10" fill="#FFB3C6" stroke="${S}" stroke-width="2.4"/>
+      <rect x="10" y="34" width="44" height="12" rx="6" fill="#FF8FAB" stroke="${S}" stroke-width="2.4"/>
+      <line x1="18" y1="46" x2="18" y2="54" stroke="${S}" stroke-width="3" stroke-linecap="round"/>
+      <line x1="46" y1="46" x2="46" y2="54" stroke="${S}" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="32" cy="22" r="4" fill="#FFD166" stroke="${S}" stroke-width="1.8"/>
+    `,
+    wall_art: `
+      <rect x="12" y="12" width="40" height="40" rx="5" fill="#F4C95D" stroke="${S}" stroke-width="2.4"/>
+      <rect x="17" y="17" width="30" height="30" rx="3" fill="#FFFDF9" stroke="${S}" stroke-width="1.8"/>
+      <path d="M25,34 L39,34 L37,43 L27,43 Z" fill="#FFB3C6" stroke="${S}" stroke-width="1.6"/>
+      <path d="M24,34 C24,25 40,25 40,34 Z" fill="#FF8FAB" stroke="${S}" stroke-width="1.6"/>
+    `,
+    pastel_floor: `
+      <polygon points="32,12 56,28 32,46 8,28" fill="#FFE5EC" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+      <polygon points="32,12 44,20 32,29 20,20" fill="#FFFDF9" stroke="${S}" stroke-width="1.6"/>
+      <polygon points="32,29 44,37 32,46 20,37" fill="#FFFDF9" stroke="${S}" stroke-width="1.6"/>
+    `,
+    bakery_signboard: `
+      <path d="M20,18 L32,10 L44,18" fill="none" stroke="${S}" stroke-width="2.2"/>
+      <rect x="10" y="18" width="44" height="28" rx="7" fill="#FFE699" stroke="${S}" stroke-width="2.4"/>
+      <rect x="15" y="23" width="34" height="18" rx="4" fill="#FFFDF9" stroke="#D4A373" stroke-width="1.8"/>
+      <circle cx="24" cy="32" r="3" fill="#FF8FAB"/><circle cx="32" cy="32" r="3" fill="#74C69D"/><circle cx="40" cy="32" r="3" fill="#D8BBFF"/>
+    `,
+    ribbon_bunting: `
+      <path d="M6,18 Q32,32 58,18" fill="none" stroke="${S}" stroke-width="2.4"/>
+      <polygon points="10,20 22,24 14,35" fill="#FF8FAB" stroke="${S}" stroke-width="1.8"/>
+      <polygon points="26,25 38,25 32,38" fill="#FFD166" stroke="${S}" stroke-width="1.8"/>
+      <polygon points="42,24 54,20 50,35" fill="#A8E6CF" stroke="${S}" stroke-width="1.8"/>
+    `
+  };
+
+  function shopArt(id, size = 62) {
+    const body = SHOP_ART[id] || PATHS.nav_decor;
+    const vb = SHOP_ART[id] ? '0 0 64 64' : '0 0 32 32';
+    return `<svg viewBox="${vb}" width="${size}" height="${size}" class="sd-shop-art" aria-hidden="true">${body}</svg>`;
+  }
+
   function icon(name, size = 20, extraClass = '') {
     const body = PATHS[name] || PATHS.cupcake_logo;
     return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="sd-ico ${extraClass}" aria-hidden="true">${body}</svg>`;
@@ -172,5 +299,6 @@ window.SDIcons = (() => {
     });
   }
 
-  return { icon, hydrate, PATHS };
+  return { icon, shopArt, hydrate, PATHS, SHOP_ART };
 })();
+

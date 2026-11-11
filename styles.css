@@ -2278,6 +2278,88 @@ html, body {
   50% { transform: translate(-3px, 5px) rotate(-18deg); }
 }
 
+.visual-shop-card {
+  align-items: center;
+  text-align: center;
+  gap: 7px;
+  padding: 12px;
+}
+
+.shop-card-visual {
+  width: 100%;
+  background: var(--cream);
+  border-radius: 14px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  border: 1.5px solid #f4dbe3;
+}
+
+.sd-shop-art {
+  display: block;
+  flex-shrink: 0;
+}
+
+.visual-shop-card.equipped-card {
+  border-color: #74c69d;
+  background: linear-gradient(180deg, #fffdf9 0%, #f1fcf5 100%);
+}
+
+.visual-card {
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease;
+}
+.clickable-col-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--pink);
+}
+
+.visual-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.info-card-top .visual-stat-row {
+  justify-content: flex-start;
+}
+
+.mini-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: #fff5f8;
+  border: 1.5px solid #f5d0dc;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--cocoa);
+}
+.mini-stat-pill.ok {
+  background: #d8f3dc;
+  border-color: #95d5b2;
+  color: #1b4332;
+}
+
+.lvl-pips {
+  display: flex;
+  gap: 4px;
+}
+.lvl-pip {
+  width: 14px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ebd8df;
+}
+.lvl-pip.on {
+  background: #ff758f;
+}
+
 /* ============================================================================
    RESPONSIVE BREAKPOINTS (Compact Desktop, Tablet & Mobile Single-Screen)
    ============================================================================ */
