@@ -99,7 +99,8 @@ window.OrderManager = class OrderManager {
         const ribbon = this._pickRandom(window.SDData.RIBBON_COLORS);
         const cardPick = Math.random() < 0.55 ? this._pickRandom(window.SDData.BOX_CARDS.slice(1)) : window.SDData.BOX_CARDS[0];
         const stickerPick = Math.random() < 0.65 ? this._pickRandom(window.SDData.BOX_STICKERS.slice(1)) : window.SDData.BOX_STICKERS[0];
-        const quantity = (cake.id === 'cupcake' || cake.id === 'cookie' || cake.id === 'donut') && level >= 2 && Math.random() < 0.3 ? 2 : 1;
+        const canMulti = ['cookie', 'cupcake_muffin', 'donut'].includes(cake.group) || cake.id === 'macaron' || cake.id === 'cream_puff' || cake.id === 'cake_pop';
+        const quantity = canMulti && level >= 2 && Math.random() < 0.3 ? 2 : 1;
 
         const sig = `${cake.id}|${batter.id}|${frosting.id}|${topping.id}|${toppingCount}`;
         if (sig !== this.lastSignature || attempt > 6) {
@@ -110,7 +111,7 @@ window.OrderManager = class OrderManager {
             orderNumber: `#${idStr}`,
             customerId: customer.id,
             isSpecial: false,
-            styleName: `${cake.name} ${frosting.name}`,
+            styleName: `${cake.name} (${frosting.name})`,
             speech: greeting,
             cakeType: cake.id,
             batter: batter.id,
@@ -137,19 +138,48 @@ window.OrderManager = class OrderManager {
       orderData = candidate;
     }
 
+    orderData.accepted = false;
+    orderData.targetDuration = this.calculateTargetDuration(orderData);
+    orderData.execElapsed = 0;
+    orderData.execCompleted = false;
     orderData.targetPreview = this.buildTargetPreview(orderData);
     this.activeOrders.push(orderData);
     return orderData;
   }
 
+  calculateTargetDuration(order) {
+    const cake = this.recipes.getCakeType(order.cakeType);
+    let base = 65;
+    if (order.cakeType === 'tiered_cake') base = 105;
+    else if (cake && cake.group === 'cookie') base = 45;
+    else if (cake && (cake.group === 'cupcake_muffin' || cake.group === 'donut')) base = 60;
+    else if (cake && cake.group === 'pastry') base = cake.bakeTime >= 8 ? 80 : 70;
+    else if (cake && cake.group === 'dessert') base = order.cakeType === 'fruit_parfait' ? 80 : 62;
+    else if (cake && cake.group === 'cakes') base = 78;
+
+    const qtyBonus = Math.max(0, (order.quantity || 1) - 1) * 10;
+    const toppingBonus = (order.toppingCount || 0) * 5;
+    const accBonus = (order.accCount || 0) * 6 + (order.extraAccessory ? 8 : 0);
+    const pkgBonus = ((order.card && order.card !== 'none') ? 5 : 0)
+      + ((order.sticker && order.sticker !== 'none') ? 5 : 0)
+      + (order.isSpecial ? 10 : 0);
+    return Math.round(base + qtyBonus + toppingBonus + accBonus + pkgBonus);
+  }
+
   buildTargetPreview(order) {
     const toppings = [];
     const count = order.toppingCount || 0;
+    const cakeCfg = this.recipes.getCakeType(order.cakeType);
+    const shape = cakeCfg ? (cakeCfg.moldShape || order.cakeType) : order.cakeType;
     for (let i = 0; i < count; i++) {
       const spreadX = count === 1 ? 100 : 72 + (i * (56 / Math.max(1, count - 1)));
       const spreadY = order.cakeType === 'tiered_cake'
         ? (i % 2 === 0 ? 72 : 114)
-        : (order.cakeType === 'donut' ? (i % 2 === 0 ? 96 : 142) : 96 + (i % 2) * 10);
+        : shape === 'donut'
+          ? (i % 2 === 0 ? 96 : 142)
+          : shape === 'cake_pop' || shape === 'parfait'
+            ? 70 + (i % 2) * 12
+            : 96 + (i % 2) * 10;
       toppings.push({ type: order.topping, x: Math.round(spreadX), y: Math.round(spreadY) });
     }
 

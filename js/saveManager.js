@@ -26,7 +26,11 @@ window.SaveManager = class SaveManager {
         cacao: 4,
         strawberry: 8,
         blueberry: 4,
-        matcha: 4
+        matcha: 4,
+        caramel: 4,
+        cream_cheese: 4,
+        gelatin: 4,
+        ginger_spice: 4
       },
       upgrades: {
         oven: 1,

@@ -140,6 +140,18 @@ window.PackagingStageController = class PackagingStageController {
     const cake = this.decoration.cakeState;
     const box = window.SDData.BOX_COLORS.find(b => b.id === pkg.boxColor) || window.SDData.BOX_COLORS[0];
     const ribbon = window.SDData.RIBBON_COLORS.find(r => r.id === pkg.ribbonColor) || window.SDData.RIBBON_COLORS[0];
+    const cakeCfg = (window.SDData && window.SDData.CAKE_TYPES)
+      ? window.SDData.CAKE_TYPES.find(c => c.id === cake.cakeType)
+      : null;
+    const boxSize = (cakeCfg && cakeCfg.boxSize) || 'medium';
+    const sizeProfiles = {
+      compact: { sx: 0.84, sy: 0.82, label: 'Hộp Nhỏ Xinh' },
+      medium: { sx: 1.0, sy: 1.0, label: 'Hộp Tiêu Chuẩn' },
+      wide: { sx: 1.18, sy: 0.88, label: 'Hộp Chữ Nhật Dài' },
+      large: { sx: 1.12, sy: 1.08, label: 'Hộp Bánh Kem Lớn' },
+      tall: { sx: 1.02, sy: 1.20, label: 'Hộp Cao 2 Tầng' }
+    };
+    const boxProf = sizeProfiles[boxSize] || sizeProfiles.medium;
     const outline = '#3E2723';
 
     const paperFill = box.pattern ? 'url(#pkg-heart-pattern)' : box.hex;
@@ -147,15 +159,17 @@ window.PackagingStageController = class PackagingStageController {
 
     // Update top prompt text if present
     const hintEl = document.getElementById('pkg-step-hint');
-    if (hintEl) hintEl.textContent = stepInfo.hint;
+    if (hintEl) hintEl.textContent = `${stepInfo.hint} (${boxProf.label})`;
 
     // 1. Wrapping Paper & Folds Geometry
     let sceneSvg = '';
 
-    // Base table mat
+    // Base table mat + cake & box size badge
     sceneSvg += `
       <rect x="14" y="14" width="452" height="312" rx="22" fill="#FFF9F3" stroke="#F1CAD6" stroke-width="3"/>
       <ellipse cx="240" cy="284" rx="135" ry="18" fill="rgba(74,53,49,0.1)"/>
+      <rect x="26" y="24" width="198" height="24" rx="12" fill="#FFF0F5" stroke="#FF9BB3" stroke-width="1.8"/>
+      <text x="125" y="40" font-size="11" font-weight="bold" fill="#C94168" text-anchor="middle">${cakeCfg ? cakeCfg.name : 'Bánh Ngọt'} • ${boxProf.label}</text>
     `;
 
     if (!pkg.closed) {
@@ -317,7 +331,7 @@ window.PackagingStageController = class PackagingStageController {
       }
     } else {
       // FINISHED CLOSED KAWAII GIFT BOX (Matching Reference Image Style!)
-      sceneSvg += this._renderFinishedKawaiiGiftBox(box, paperFill, ribbon, pkg, outline);
+      sceneSvg += this._renderFinishedKawaiiGiftBox(box, paperFill, ribbon, pkg, outline, boxProf);
     }
 
     this.container.innerHTML = `
@@ -381,9 +395,11 @@ window.PackagingStageController = class PackagingStageController {
     return svg;
   }
 
-  _renderFinishedKawaiiGiftBox(box, paperFill, ribbon, pkg, outline) {
+  _renderFinishedKawaiiGiftBox(box, paperFill, ribbon, pkg, outline, boxProf = { sx: 1, sy: 1 }) {
     const sx = pkg.stickerPos ? pkg.stickerPos.x : 284;
     const sy = pkg.stickerPos ? pkg.stickerPos.y : 218;
+    const bsx = boxProf ? boxProf.sx : 1;
+    const bsy = boxProf ? boxProf.sy : 1;
     return `
       <g class="pkg-finished-pop">
         <!-- Twinkling Vector Sparkles Around Finished Gift -->
@@ -391,8 +407,8 @@ window.PackagingStageController = class PackagingStageController {
         <path d="M356,98 Q356,108 366,108 Q356,108 356,118 Q356,108 346,108 Q356,108 356,98 Z" fill="#FF8FAB"/>
         <path d="M366,225 Q366,233 374,233 Q366,233 366,241 Q366,233 358,233 Q366,233 366,225 Z" fill="#A8E6CF"/>
 
-        <!-- Tilted Kawaii Gift Box Body (Inspired by Reference!) -->
-        <g transform="translate(240, 185) rotate(-3) translate(-240, -185)">
+        <!-- Tilted Kawaii Gift Box Body (Tailored to Cake Box Size!) -->
+        <g transform="translate(240, 185) rotate(-3) scale(${bsx}, ${bsy}) translate(-240, -185)">
           <!-- Main Box Body -->
           <polygon points="154,132 326,132 316,274 164,274" fill="${paperFill}" stroke="${outline}" stroke-width="4" stroke-linejoin="round"/>
           <!-- Side 3D Shade -->

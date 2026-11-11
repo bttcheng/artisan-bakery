@@ -100,11 +100,45 @@ window.ScoringManager = class ScoringManager {
     total += qualPts;
     breakdown.push({ label: 'Chất lượng trộn & nướng', pts: qualPts, max: 12, ok: cakeState.bakeState === 'perfect' });
 
-    // 8. Completion Speed / Patience Remaining (8 pts)
-    const ratio = customerSlot ? (customerSlot.patience / customerSlot.maxPatience) : 0.7;
-    const timePts = ratio >= 0.55 ? 8 : ratio >= 0.3 ? 5 : 2;
+    // 8. Execution Speed vs Target Time (8 pts - independent from queue patience!)
+    const execElapsed = Math.max(0, Math.round(order.execElapsed || 0));
+    const targetDuration = Math.max(30, order.targetDuration || 65);
+    const overtime = Math.max(0, execElapsed - targetDuration);
+
+    let timePts = 8;
+    let tipMultSpeed = 1.0;
+    let repSpeedDelta = 1;
+    let speedLabel = `Đúng hẹn (${execElapsed}s / ${targetDuration}s)`;
+    let speedOk = true;
+
+    if (overtime === 0) {
+      timePts = 8;
+      tipMultSpeed = 1.0;
+      repSpeedDelta = 1; // Speed reputation reward
+      speedLabel = `Hoàn thành đúng hẹn (${execElapsed}s / ${targetDuration}s)`;
+      speedOk = true;
+    } else if (overtime < 60) {
+      timePts = 6;
+      tipMultSpeed = 0.65;
+      repSpeedDelta = 0;
+      speedLabel = `Trễ ${overtime}s (<60s) • Giảm nhẹ tip`;
+      speedOk = true;
+    } else if (overtime <= 120) {
+      timePts = 3;
+      tipMultSpeed = 0.35;
+      repSpeedDelta = -1;
+      speedLabel = `Trễ ${overtime}s (60–120s) • Giảm tip & danh tiếng`;
+      speedOk = false;
+    } else {
+      timePts = 0;
+      tipMultSpeed = 0;
+      repSpeedDelta = -1;
+      speedLabel = `Trễ ${overtime}s (>120s) • Vẫn giao thành công`;
+      speedOk = false;
+    }
+
     total += timePts;
-    breakdown.push({ label: 'Thời gian phục vụ', pts: timePts, max: 8, ok: ratio >= 0.3 });
+    breakdown.push({ label: speedLabel, pts: timePts, max: 8, ok: speedOk });
 
     const score = Math.max(0, Math.min(100, Math.round(total)));
 
@@ -127,14 +161,16 @@ window.ScoringManager = class ScoringManager {
     const basePay = Math.round(cakeCfg.basePrice * qtyMult * (0.45 + (score / 100) * 0.75) + (order.bonusCoins || 0) * (score >= 50 ? 1 : 0.3));
     const tipMult = customerSlot ? customerSlot.customer.tipMultiplier : 1;
     const decoTipBonus = this.upgrades.getTotalTipBonus();
-    const tip = score >= 85
-      ? Math.round((15 + decoTipBonus) * tipMult)
+    const rawTip = score >= 85
+      ? (15 + decoTipBonus) * tipMult
       : score >= 70
-        ? Math.round((7 + decoTipBonus * 0.5) * tipMult)
+        ? (7 + decoTipBonus * 0.5) * tipMult
         : 0;
+    const tip = Math.max(0, Math.round(rawTip * tipMultSpeed));
 
     const xpEarned = Math.round((cakeCfg.baseXp * qtyMult + (order.bonusXp || 0)) * (score >= 50 ? (0.6 + score / 200) : 0.3));
-    const repDelta = stars === 3 ? 3 : stars === 2 ? 2 : stars === 1 ? 1 : -1;
+    const baseRepDelta = stars === 3 ? 3 : stars === 2 ? 2 : stars === 1 ? 1 : -1;
+    const repDelta = stars >= 1 ? (baseRepDelta + repSpeedDelta) : Math.min(baseRepDelta, baseRepDelta + repSpeedDelta);
 
     return {
       score,
@@ -145,6 +181,13 @@ window.ScoringManager = class ScoringManager {
       totalCoins: basePay + tip,
       xpEarned,
       repDelta,
+      speedInfo: {
+        execElapsed,
+        targetDuration,
+        overtime,
+        tipMultSpeed,
+        speedLabel
+      },
       breakdown
     };
   }

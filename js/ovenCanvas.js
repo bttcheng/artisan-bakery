@@ -484,12 +484,15 @@ window.OvenCanvasController = class OvenCanvasController {
     ctx.stroke();
 
     const type = this.moldType;
+    const cakeCfg = (window.SDData && window.SDData.CAKE_TYPES)
+      ? window.SDData.CAKE_TYPES.find(c => c.id === type)
+      : null;
+    const shape = (cakeCfg && cakeCfg.moldShape) ? cakeCfg.moldShape : type;
 
-    if (type === 'cupcake') {
-      // 4 Cupcakes sitting in scalloped pastel liners!
+    if (shape === 'cupcake' || shape === 'muffin') {
+      const isMuffin = shape === 'muffin';
       [-90, -30, 30, 90].forEach(cx => {
-        // Paper liner
-        ctx.fillStyle = '#FFB3C6';
+        ctx.fillStyle = isMuffin ? '#E2ECE9' : '#FFB3C6';
         ctx.strokeStyle = '#4A3531';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -501,8 +504,7 @@ window.OvenCanvasController = class OvenCanvasController {
         ctx.fill();
         ctx.stroke();
 
-        // Liner flutes
-        ctx.strokeStyle = '#FF8FAB';
+        ctx.strokeStyle = isMuffin ? '#95D5B2' : '#FF8FAB';
         ctx.lineWidth = 1.5;
         [-10, 0, 10].forEach(fx => {
           ctx.beginPath();
@@ -512,9 +514,8 @@ window.OvenCanvasController = class OvenCanvasController {
         });
 
         if (this.batterPoured) {
-          // Raw flat batter -> Rises & domes high above liner rim!
-          const domeHeight = 5 + rise * 22;
-          const domeWidth = 20 + rise * 4;
+          const domeHeight = (isMuffin ? 9 : 5) + rise * (isMuffin ? 26 : 22);
+          const domeWidth = (isMuffin ? 23 : 20) + rise * 4;
           ctx.fillStyle = cakeColor;
           ctx.strokeStyle = '#4A3531';
           ctx.lineWidth = 2;
@@ -525,8 +526,14 @@ window.OvenCanvasController = class OvenCanvasController {
           ctx.fill();
           ctx.stroke();
 
-          // Golden baked crust sheen & fluffy crack when risen
-          if (brown > 0.4) {
+          if (isMuffin) {
+            ctx.fillStyle = '#4E54C8';
+            [[-8, -32], [6, -34], [0, -28 - domeHeight * 0.5]].forEach(([bx, by]) => {
+              ctx.beginPath();
+              ctx.arc(cx + bx, by, 2.4, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          } else if (brown > 0.4) {
             ctx.strokeStyle = crustColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -536,10 +543,9 @@ window.OvenCanvasController = class OvenCanvasController {
           }
         }
       });
-    } else if (type === 'donut') {
-      // 4 Donuts expanding & browning smoothly
+    } else if (shape === 'donut' || shape === 'donut_filled') {
+      const hasHole = shape === 'donut';
       [-90, -30, 30, 90].forEach(cx => {
-        // Mold ring shadow
         ctx.fillStyle = '#E9ECEF';
         ctx.strokeStyle = '#ADB5BD';
         ctx.lineWidth = 1.5;
@@ -550,7 +556,7 @@ window.OvenCanvasController = class OvenCanvasController {
 
         if (this.batterPoured) {
           const rx = 20 + rise * 6;
-          const ry = 10 + rise * 5.5;
+          const ry = 10 + rise * 6;
           const cy = -8 - rise * 4;
           ctx.fillStyle = cakeColor;
           ctx.strokeStyle = '#4A3531';
@@ -560,47 +566,88 @@ window.OvenCanvasController = class OvenCanvasController {
           ctx.fill();
           ctx.stroke();
 
-          // Golden top highlight ring
           ctx.strokeStyle = crustColor;
           ctx.lineWidth = 2.5;
           ctx.beginPath();
           ctx.ellipse(cx, cy - 2, rx * 0.72, ry * 0.6, 0, Math.PI * 1.1, Math.PI * 1.9);
           ctx.stroke();
 
-          // Center hole
-          ctx.fillStyle = '#FFF9EE';
-          ctx.strokeStyle = '#4A3531';
-          ctx.lineWidth = 1.8;
-          ctx.beginPath();
-          ctx.ellipse(cx, cy, 7 - rise * 0.8, 3.8, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
+          if (hasHole) {
+            ctx.fillStyle = '#FFF9EE';
+            ctx.strokeStyle = '#4A3531';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 7 - rise * 0.8, 3.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
         }
       });
-    } else if (type === 'cookie') {
-      // 6 Cookies spreading & crisping golden edges!
-      [[-86, -12], [-18, -14], [52, -12], [-52, 2], [18, 0], [86, 2]].forEach(([cx, cy]) => {
+    } else if (shape === 'cookie' || shape === 'cookie_heart' || shape === 'cookie_star' || shape === 'cookie_ginger') {
+      const slots = shape === 'cookie_ginger'
+        ? [[-72, -6], [0, -6], [72, -6]]
+        : [[-86, -12], [-18, -14], [52, -12], [-52, 2], [18, 0], [86, 2]];
+      slots.forEach(([cx, cy]) => {
         if (this.batterPoured) {
-          const rx = 13 + rise * 10; // Spreads wider!
-          const ry = 10 + rise * 2 - rise * 1.5; // Dough ball flattens slightly as it spreads
+          const rx = 13 + rise * 9;
+          const ry = 10 + rise * 2 - rise * 1.5;
           const yPos = cy - (1 - rise) * 6;
           ctx.fillStyle = cakeColor;
           ctx.strokeStyle = brown > 0.5 ? crustColor : '#4A3531';
           ctx.lineWidth = 2.2;
-          ctx.beginPath();
-          ctx.ellipse(cx, yPos, rx, ry, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
 
-          // Cute cookie crumb/chip dots
-          ctx.fillStyle = this._lerpHex(crustColor, '#4A2511', 0.5);
-          [[-5, -2], [4, 1], [-1, 3]].forEach(([dx, dy]) => {
+          if (shape === 'cookie_heart') {
+            const s = 0.75 + rise * 0.25;
+            ctx.save();
+            ctx.translate(cx, yPos);
+            ctx.scale(s, s * 0.7);
             ctx.beginPath();
-            ctx.arc(cx + dx, yPos + dy, 1.8, 0, Math.PI * 2);
+            ctx.moveTo(0, 12);
+            ctx.bezierCurveTo(-18, 0, -16, -14, -7, -14);
+            ctx.bezierCurveTo(-2, -14, 0, -9, 0, -6);
+            ctx.bezierCurveTo(0, -9, 2, -14, 7, -14);
+            ctx.bezierCurveTo(16, -14, 18, 0, 0, 12);
             ctx.fill();
-          });
+            ctx.stroke();
+            ctx.restore();
+          } else if (shape === 'cookie_star') {
+            const rad = 11 + rise * 5;
+            ctx.beginPath();
+            for (let k = 0; k < 10; k++) {
+              const a = (k * Math.PI) / 5 - Math.PI / 2;
+              const rr = k % 2 === 0 ? rad : rad * 0.48;
+              const px = cx + Math.cos(a) * rr;
+              const py = yPos + Math.sin(a) * rr * 0.72;
+              if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          } else if (shape === 'cookie_ginger') {
+            const s = 0.8 + rise * 0.2;
+            ctx.save();
+            ctx.translate(cx, yPos - 2);
+            ctx.scale(s, s * 0.75);
+            ctx.beginPath();
+            ctx.arc(0, -10, 7, 0, Math.PI * 2);
+            ctx.roundRect(-14, -3, 28, 7, 3);
+            ctx.roundRect(-7, -3, 14, 18, 4);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+          } else {
+            ctx.beginPath();
+            ctx.ellipse(cx, yPos, rx, ry, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = this._lerpHex(crustColor, '#4A2511', 0.5);
+            [[-5, -2], [4, 1], [-1, 3]].forEach(([dx, dy]) => {
+              ctx.beginPath();
+              ctx.arc(cx + dx, yPos + dy, 1.8, 0, Math.PI * 2);
+              ctx.fill();
+            });
+          }
         } else {
-          // Dashed cookie placement guides on parchment
           ctx.strokeStyle = '#E6CCA3';
           ctx.setLineDash([3, 3]);
           ctx.beginPath();
@@ -609,15 +656,14 @@ window.OvenCanvasController = class OvenCanvasController {
           ctx.setLineDash([]);
         }
       });
-    } else if (type === 'round_cake' || type === 'tiered_cake') {
-      const pans = type === 'tiered_cake' ? [[-52, 48], [56, 36]] : [[0, 66]];
+    } else if (shape === 'round_cake' || shape === 'tiered_cake' || shape === 'cheesecake' || shape === 'tiramisu') {
+      const pans = shape === 'tiered_cake' ? [[-52, 48], [56, 36]] : [[0, 66]];
       pans.forEach(([cx, r]) => {
-        // Metallic round cake tin
         ctx.fillStyle = '#CED4DA';
         ctx.strokeStyle = '#4A3531';
         ctx.lineWidth = 2.4;
         ctx.beginPath();
-        ctx.roundRect(cx - r, -30, r * 2, 32, 8);
+        ctx.roundRect(cx - r, -30, r * 2, 32, shape === 'tiramisu' ? 4 : 8);
         ctx.fill();
         ctx.stroke();
 
@@ -625,7 +671,11 @@ window.OvenCanvasController = class OvenCanvasController {
           const riseH = 6 + rise * 22;
           ctx.fillStyle = cakeColor;
           ctx.beginPath();
-          ctx.ellipse(cx, -28 - riseH * 0.45, r - 4, 11 + rise * 3, 0, 0, Math.PI * 2);
+          if (shape === 'tiramisu') {
+            ctx.roundRect(cx - r + 4, -36 - rise * 14, (r - 4) * 2, 18, 4);
+          } else {
+            ctx.ellipse(cx, -28 - riseH * 0.45, r - 4, 11 + rise * 3, 0, 0, Math.PI * 2);
+          }
           ctx.fill();
           ctx.stroke();
 
@@ -638,12 +688,82 @@ window.OvenCanvasController = class OvenCanvasController {
           }
         }
       });
+    } else if (shape === 'croissant' || shape === 'eclair') {
+      [-72, 0, 72].forEach(cx => {
+        ctx.fillStyle = '#E9ECEF';
+        ctx.strokeStyle = '#ADB5BD';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(cx - 28, -14, 56, 18, 8);
+        ctx.fill();
+        ctx.stroke();
+        if (this.batterPoured) {
+          const puff = rise * 10;
+          ctx.fillStyle = cakeColor;
+          ctx.strokeStyle = '#4A3531';
+          ctx.lineWidth = 2.2;
+          if (shape === 'croissant') {
+            ctx.beginPath();
+            ctx.moveTo(cx - 24, -4);
+            ctx.quadraticCurveTo(cx, -24 - puff, cx + 24, -4);
+            ctx.quadraticCurveTo(cx, -10 - puff * 0.4, cx - 24, -4);
+            ctx.fill();
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.roundRect(cx - 24, -14 - puff * 0.6, 48, 12 + puff * 0.6, 8);
+            ctx.fill();
+            ctx.stroke();
+          }
+        }
+      });
+    } else if (shape === 'pudding') {
+      [-74, 0, 74].forEach(cx => {
+        // Water bath ramekin cups
+        ctx.fillStyle = '#FFFDF9';
+        ctx.strokeStyle = '#4A3531';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(cx - 22, -24);
+        ctx.lineTo(cx + 22, -24);
+        ctx.lineTo(cx + 17, 2);
+        ctx.lineTo(cx - 17, 2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        if (this.batterPoured) {
+          ctx.fillStyle = cakeColor;
+          ctx.beginPath();
+          ctx.ellipse(cx, -23 - rise * 4, 19, 6 + rise * 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      });
+    } else if (shape === 'cream_puff' || shape === 'cake_pop') {
+      [-90, -30, 30, 90].forEach(cx => {
+        ctx.fillStyle = '#E9ECEF';
+        ctx.strokeStyle = '#ADB5BD';
+        ctx.beginPath();
+        ctx.ellipse(cx, -5, 22, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        if (this.batterPoured) {
+          const r = 13 + rise * 7;
+          ctx.fillStyle = cakeColor;
+          ctx.strokeStyle = '#4A3531';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.ellipse(cx, -10 - rise * 6, r, r * 0.78, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+      });
     } else {
-      // Macaron, Tart, Swiss Roll
-      const count = type === 'swiss_roll' ? 1 : type === 'tart' ? 2 : 4;
-      const spacing = type === 'swiss_roll' ? [0] : type === 'tart' ? [-56, 56] : [-90, -30, 30, 90];
+      // Macaron, Tart, Swiss roll, Parfait base
+      const count = shape === 'swiss_roll' ? 1 : (shape === 'tart' || shape === 'parfait') ? 2 : 4;
+      const spacing = shape === 'swiss_roll' ? [0] : (shape === 'tart' || shape === 'parfait') ? [-56, 56] : [-90, -30, 30, 90];
       spacing.slice(0, count).forEach(cx => {
-        const w = type === 'swiss_roll' ? 95 : type === 'tart' ? 42 : 22;
+        const w = shape === 'swiss_roll' ? 95 : shape === 'tart' ? 42 : 24;
         ctx.fillStyle = '#E9ECEF';
         ctx.strokeStyle = '#4A3531';
         ctx.lineWidth = 2;
@@ -759,19 +879,23 @@ window.SDOvenUI = (() => {
     canvas.height = 72;
     ctx.clearRect(0, 0, 96, 72);
 
+    const cakeCfg = (window.SDData && window.SDData.CAKE_TYPES)
+      ? window.SDData.CAKE_TYPES.find(c => c.id === cakeTypeId)
+      : null;
+    const shape = (cakeCfg && cakeCfg.moldShape) ? cakeCfg.moldShape : cakeTypeId;
+
     ctx.save();
     ctx.strokeStyle = '#4A3531';
     ctx.lineWidth = 2.2;
 
-    if (cakeTypeId === 'cupcake') {
-      // Metallic tray + 3 pastel paper liners
+    if (shape === 'cupcake' || shape === 'muffin') {
       ctx.fillStyle = '#DEE2E6';
       ctx.beginPath();
       ctx.roundRect(10, 26, 76, 30, 8);
       ctx.fill();
       ctx.stroke();
       [25, 48, 71].forEach((x, idx) => {
-        ctx.fillStyle = idx === 1 ? '#FFB3C6' : '#FFF0F5';
+        ctx.fillStyle = shape === 'muffin' ? '#D8F3DC' : (idx === 1 ? '#FFB3C6' : '#FFF0F5');
         ctx.beginPath();
         ctx.moveTo(x - 10, 22);
         ctx.lineTo(x + 10, 22);
@@ -781,7 +905,7 @@ window.SDOvenUI = (() => {
         ctx.fill();
         ctx.stroke();
       });
-    } else if (cakeTypeId === 'donut') {
+    } else if (shape === 'donut' || shape === 'donut_filled') {
       ctx.fillStyle = '#CED4DA';
       ctx.beginPath();
       ctx.roundRect(10, 14, 76, 44, 10);
@@ -793,14 +917,16 @@ window.SDOvenUI = (() => {
         ctx.arc(x, y, 13, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = '#ADB5BD';
-        ctx.beginPath();
-        ctx.arc(x, y, 4.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+        if (shape === 'donut') {
+          ctx.fillStyle = '#ADB5BD';
+          ctx.beginPath();
+          ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        }
       });
-    } else if (cakeTypeId === 'round_cake' || cakeTypeId === 'tiered_cake') {
-      const pans = cakeTypeId === 'tiered_cake' ? [[34, 22], [66, 16]] : [[48, 26]];
+    } else if (shape === 'round_cake' || shape === 'tiered_cake' || shape === 'cheesecake') {
+      const pans = shape === 'tiered_cake' ? [[34, 22], [66, 16]] : [[48, 26]];
       pans.forEach(([x, r]) => {
         ctx.fillStyle = '#CED4DA';
         ctx.beginPath();
@@ -813,8 +939,7 @@ window.SDOvenUI = (() => {
         ctx.fill();
         ctx.stroke();
       });
-    } else if (cakeTypeId === 'cookie') {
-      // Baking sheet + parchment + cookie spots
+    } else if (shape === 'cookie' || shape === 'cookie_heart' || shape === 'cookie_star' || shape === 'cookie_ginger') {
       ctx.fillStyle = '#CED4DA';
       ctx.beginPath();
       ctx.roundRect(10, 14, 76, 44, 6);
@@ -822,15 +947,27 @@ window.SDOvenUI = (() => {
       ctx.stroke();
       ctx.fillStyle = '#FFF8EB';
       ctx.fillRect(16, 19, 64, 34);
-      [[30, 30], [48, 30], [66, 30], [38, 43], [58, 43]].forEach(([x, y]) => {
-        ctx.fillStyle = '#F3C677';
+      [[32, 31], [62, 31], [47, 41]].forEach(([x, y]) => {
+        ctx.fillStyle = shape === 'cookie_heart' ? '#FFB3C6' : shape === 'cookie_star' ? '#FFE699' : '#F3C677';
         ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+    } else if (shape === 'pudding' || shape === 'parfait') {
+      ctx.fillStyle = '#E5D4FF';
+      ctx.beginPath();
+      ctx.roundRect(12, 18, 72, 36, 8);
+      ctx.fill();
+      ctx.stroke();
+      [30, 48, 66].forEach(x => {
+        ctx.fillStyle = '#FFFDF9';
+        ctx.beginPath();
+        ctx.arc(x, 36, 7.5, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
       });
     } else {
-      // Macaron / Tart / Swiss roll pan
       ctx.fillStyle = '#D8F3DC';
       ctx.beginPath();
       ctx.roundRect(12, 16, 72, 40, 8);

@@ -27,6 +27,8 @@ window.GameManager = class GameManager {
     this.activeSubTab = 'recipes';
     this.ordersView = 'active';
     this.recipeCategory = 'all';
+    this.displayGroupFilter = 'all';
+    this.prepGroupFilter = 'all';
     this.isDayActive = false;
     this.isPrepPhase = false;
     this.paused = false;
@@ -84,6 +86,9 @@ window.GameManager = class GameManager {
           cakeState: JSON.parse(JSON.stringify(this.decoration.cakeState)),
           packaging: JSON.parse(JSON.stringify(this.decoration.packaging))
         };
+        if (this.activeOrderId) {
+          this.customers.markOrderReadyForPickup(this.activeOrderId);
+        }
       }
       this.renderPackageStage();
     };
@@ -346,8 +351,24 @@ window.GameManager = class GameManager {
       });
     });
 
+    const acceptOnlyBtn = document.getElementById('btn-accept-only-order');
+    if (acceptOnlyBtn) {
+      acceptOnlyBtn.addEventListener('click', () => {
+        if (!this.inspectedOrderId) return;
+        const acceptedSlot = this.customers.acceptOrder(this.inspectedOrderId);
+        this.closeAllModals();
+        if (acceptedSlot) {
+          this.audio.playSuccess();
+          this.showToast(`✅ Đã tiếp nhận Đơn ${acceptedSlot.order.orderNumber}! ${acceptedSlot.customer.name} đã ngồi bàn chờ.`, 'success');
+        }
+        this.renderBakeryCustomers();
+        this.renderOrdersTab();
+      });
+    }
+
     document.getElementById('btn-accept-bake-order').addEventListener('click', () => {
       if (!this.inspectedOrderId) return;
+      this.customers.acceptOrder(this.inspectedOrderId);
       this.closeAllModals();
       this.openWorkshopForOrder(this.inspectedOrderId);
     });
@@ -501,39 +522,70 @@ window.GameManager = class GameManager {
 
   renderDisplayCakes() {
     const row = document.getElementById('display-cakes-row');
-    const colKeys = Object.keys(this.state.collection);
-    if (colKeys.length > 0) {
-      const items = colKeys.slice(0, 6).map(k => {
-        const snap = this.state.collection[k].cakeSnapshot;
-        return `<div class="display-cake-slot">${window.SDRenderer.renderCake(snap, 72)}</div>`;
-      });
-      // Fill remaining slots with showcase 2D cake assets
-      const showcaseAssets = [
-        'assets/cakes/cupcake.svg',
-        'assets/cakes/donut.svg',
-        'assets/cakes/round_cake.svg',
-        'assets/cakes/cookie.svg',
-        'assets/cakes/chocolate_cake.svg',
-        'assets/cakes/strawberry_cake.svg'
-      ];
-      while (items.length < 6) {
-        const src = showcaseAssets[items.length];
-        items.push(`<div class="display-cake-slot"><img src="${src}" class="cake-asset-img" style="width:68px;height:68px;" alt="Bánh trưng bày" /></div>`);
-      }
-      row.innerHTML = items.join('');
-    } else {
-      const showcaseAssets = [
-        { src: 'assets/cakes/cupcake.svg', alt: 'Cupcake' },
-        { src: 'assets/cakes/donut.svg', alt: 'Donut' },
-        { src: 'assets/cakes/round_cake.svg', alt: 'Bánh kem tròn' },
-        { src: 'assets/cakes/cookie.svg', alt: 'Bánh quy' },
-        { src: 'assets/cakes/chocolate_cake.svg', alt: 'Bánh chocolate' },
-        { src: 'assets/cakes/strawberry_cake.svg', alt: 'Bánh dâu' }
-      ];
-      row.innerHTML = showcaseAssets.map(a =>
-        `<div class="display-cake-slot"><img src="${a.src}" class="cake-asset-img" style="width:68px;height:68px;" alt="${a.alt}" /></div>`
-      ).join('');
+    if (!row) return;
+    const grpBtn = document.getElementById('btn-display-group');
+    const groups = [{ id: 'all', name: 'Tất cả' }, ...window.SDData.CAKE_GROUPS];
+    const curGrpObj = groups.find(g => g.id === this.displayGroupFilter) || groups[0];
+    if (grpBtn) {
+      grpBtn.textContent = `${curGrpObj.name} ▾`;
+      grpBtn.onclick = () => {
+        const nextIdx = (groups.findIndex(g => g.id === this.displayGroupFilter) + 1) % groups.length;
+        this.displayGroupFilter = groups[nextIdx].id;
+        this.audio.playClick();
+        this.renderDisplayCakes();
+      };
     }
+
+    const pool = window.SDData.CAKE_TYPES.filter(c => {
+      const grpMatch = this.displayGroupFilter === 'all' || c.group === this.displayGroupFilter;
+      return grpMatch && c.unlockLevel <= this.state.level;
+    });
+    const fallbackPool = window.SDData.CAKE_TYPES.filter(c => this.displayGroupFilter === 'all' || c.group === this.displayGroupFilter);
+    const list = (pool.length > 0 ? pool : fallbackPool).slice(0, 6);
+
+    row.innerHTML = list.map(c => {
+      const unlocked = c.unlockLevel <= this.state.level;
+      return `
+        <div class="display-cake-slot clickable-display-cake ${unlocked ? '' : 'locked'}" data-cake-id="${c.id}" title="${c.name} – Nhấn để xem chi tiết">
+          <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" class="cake-asset-img" style="width:54px;height:54px;" alt="${c.name}" />
+          <span class="display-cake-name">${c.name}</span>
+        </div>
+      `;
+    }).join('');
+
+    row.querySelectorAll('.clickable-display-cake').forEach(slotEl => {
+      slotEl.addEventListener('click', () => this.openCakeDetailModal(slotEl.dataset.cakeId));
+    });
+  }
+
+  openCakeDetailModal(cakeId) {
+    const cake = this.recipes.getCakeType(cakeId);
+    if (!cake) return;
+    this.audio.playClick();
+    this.inspectedOrderId = null;
+    const unlocked = cake.unlockLevel <= this.state.level;
+    const ingNames = cake.baseIngredients
+      .map(id => window.SDData.INGREDIENTS.find(i => i.id === id)?.name || id)
+      .join(', ');
+    document.getElementById('md-order-title').textContent = `🍰 ${cake.name} (${cake.groupName})`;
+    document.getElementById('md-order-body').innerHTML = `
+      <div class="ref-preview-box" style="padding:10px;">
+        <img src="${window.SDRenderer.getCakeAssetPath(cake.id)}" alt="${cake.name}" style="width:128px;height:128px;object-fit:contain;" />
+      </div>
+      <ul class="ref-checklist">
+        <li><b>Nhóm bánh:</b> ${cake.groupName}</li>
+        <li><b>Trạng thái:</b> ${unlocked ? '✅ Đã mở khóa' : `🔒 Mở khóa ở Cấp ${cake.unlockLevel}`}</li>
+        <li><b>Giá bán cơ bản:</b> ${cake.basePrice} xu • <b>Nhiệt độ:</b> ${cake.idealTemp}°C (${cake.bakeTime}s)</li>
+        <li><b>Khuôn &amp; Hộp:</b> ${cake.moldName}</li>
+        <li><b>Nguyên liệu công thức:</b> ${ingNames}</li>
+        <li><b>Mô tả:</b> ${cake.description}</li>
+      </ul>
+    `;
+    const acceptOnlyBtn = document.getElementById('btn-accept-only-order');
+    if (acceptOnlyBtn) acceptOnlyBtn.classList.add('hidden');
+    const bakeBtn = document.getElementById('btn-accept-bake-order');
+    if (bakeBtn) bakeBtn.classList.add('hidden');
+    this.openModal('modal-order-detail');
   }
 
   bindBakeryActions() {
@@ -586,6 +638,38 @@ window.GameManager = class GameManager {
       banner.classList.add('hidden');
     }
 
+    const outsidePill = document.getElementById('outside-queue-pill');
+    if (outsidePill) {
+      outsidePill.classList.toggle('hidden', !this.customers.outsideWaiting);
+    }
+
+    const seatingEl = document.getElementById('cozy-seating-bar');
+    if (seatingEl) {
+      const seatedList = this.customers.slots.filter(s => s.accepted && s.status === 'seated');
+      const readyList = this.customers.slots.filter(s => s.status === 'ready_pickup');
+      const eqSeating = this.state.equippedDecors?.seating === 'cozy_seating';
+      const actionMap = {
+        check_watch: 'xem đồng hồ',
+        look_counter: 'nhìn về quầy',
+        expectant_smile: 'mỉm cười mong đợi'
+      };
+      if (seatedList.length > 0 || readyList.length > 0) {
+        const parts = [];
+        if (seatedList.length > 0) {
+          const names = seatedList.map(s => `${s.customer.name} (${actionMap[s.waitAction] || 'đang chờ'})`).join(', ');
+          parts.push(`🪑 Bàn chờ: ${names}`);
+        }
+        if (readyList.length > 0) {
+          parts.push(`✨ Đang nhận ở quầy: ${readyList.map(s => s.customer.name).join(', ')}`);
+        }
+        seatingEl.innerHTML = `<span>${parts.join(' • ')}</span>`;
+      } else {
+        seatingEl.innerHTML = eqSeating
+          ? '<span>🛋️ Bộ bàn ghế nơ hồng êm ái (+10s kiên nhẫn &amp; +6 xu tip)</span>'
+          : '<span>🪑 Ghế chờ tiêu chuẩn (Sẵn sàng đón khách ngồi chờ)</span>';
+      }
+    }
+
     if (this.customers.slots.length === 0) {
       if (this.isPrepPhase) {
         grid.innerHTML = `
@@ -608,19 +692,80 @@ window.GameManager = class GameManager {
     }
 
     grid.innerHTML = this.customers.slots.map(slot => {
-      const { customer, order, patience, maxPatience, mood, status, speech, waving } = slot;
-      const pct = Math.max(0, Math.min(100, Math.round((patience / maxPatience) * 100)));
-      const barClass = pct > 60 ? 'patience-green' : pct > 30 ? 'patience-yellow' : 'patience-red';
+      const { customer, order, patience, maxPatience, accepted, mood, status, waitAction, speech, waving } = slot;
       const cakeInfo = this.recipes.getCakeType(order.cakeType);
       const frostInfo = window.SDData.FROSTING_COLORS.find(f => f.id === order.frostingColor);
       const topInfo = window.SDData.TOPPINGS.find(t => t.id === order.topping);
 
+      const waitActionLabels = {
+        check_watch: '⌚ Đang xem đồng hồ...',
+        look_counter: '👀 Đang nhìn về quầy...',
+        expectant_smile: '😊 Đang mỉm cười mong đợi...'
+      };
+
+      const isSeated = accepted && status === 'seated';
+      const isReadyPickup = status === 'ready_pickup';
+
+      let statusChip = '<span class="cust-state-chip unaccepted">🛎️ Chờ tiếp nhận đơn</span>';
+      if (isSeated) {
+        statusChip = `<span class="cust-state-chip seated">🪑 Ngồi bàn chờ • ${waitActionLabels[waitAction] || 'Đang đợi bánh'}</span>`;
+      } else if (isReadyPickup) {
+        statusChip = '<span class="cust-state-chip ready">✨ Đã đứng dậy tới quầy nhận bánh!</span>';
+      }
+
+      let timerRowHTML = '';
+      if (accepted) {
+        const execElapsed = Math.max(0, Math.floor(order.execElapsed || 0));
+        const targetDur = Math.max(30, order.targetDuration || 65);
+        const overtime = Math.max(0, execElapsed - targetDur);
+        const execPct = Math.min(100, Math.round((execElapsed / targetDur) * 100));
+        let speedBadge = 'Đúng tiến độ (Đủ tip)';
+        let barColor = 'patience-green';
+        if (overtime > 120) {
+          speedBadge = `Trễ >120s • Vẫn giao được`;
+          barColor = 'patience-red';
+        } else if (overtime >= 60) {
+          speedBadge = `Trễ ${overtime}s • Giảm tip`;
+          barColor = 'patience-yellow';
+        } else if (overtime > 0) {
+          speedBadge = `Trễ ${overtime}s (<60s)`;
+          barColor = 'patience-yellow';
+        }
+        timerRowHTML = `
+          <div class="patience-wrap exec-timer-wrap" title="Thời gian thực hiện không đuổi khách — hoàn thành đúng mục tiêu để nhận đủ tip & thưởng danh tiếng">
+            <span>🍰 ${execElapsed}s / ${targetDur}s</span>
+            <div class="patience-bar"><div class="patience-fill ${barColor}" style="width:${execPct}%"></div></div>
+            <small class="speed-hint-text">${isReadyPickup ? 'Hoàn tất!' : speedBadge}</small>
+          </div>
+        `;
+      } else {
+        const pct = Math.max(0, Math.min(100, Math.round((patience / maxPatience) * 100)));
+        const barClass = pct > 50 ? 'patience-green' : pct > 20 ? 'patience-yellow' : 'patience-red';
+        timerRowHTML = `
+          <div class="patience-wrap" title="Thời gian chờ tiếp nhận đơn (180–240s). Dừng ngay khi bạn nhận đơn!">
+            <span>⏳ Chờ nhận: ${Math.ceil(patience)}s</span>
+            <div class="patience-bar"><div class="patience-fill ${barClass}" style="width:${pct}%"></div></div>
+          </div>
+        `;
+      }
+
+      const charHtml = window.SDRenderer.renderCharacter(customer, mood, {
+        width: 88,
+        height: 108,
+        wave: waving || isReadyPickup,
+        seated: isSeated,
+        waitAction: isSeated ? waitAction : ''
+      });
+
+      const hasReadyForThis = this.readyPackage && this.readyPackage.orderId === order.orderId;
+
       return `
-        <div class="customer-card ${status} ${order.isSpecial ? 'special-order' : ''}" data-order-id="${order.orderId}">
+        <div class="customer-card ${status} ${accepted ? 'accepted-order' : ''} ${order.isSpecial ? 'special-order' : ''}" data-order-id="${order.orderId}">
+          ${statusChip}
           <div class="speech-bubble">${speech}</div>
           <div class="customer-main-row">
             <div class="customer-avatar-col">
-              ${window.SDRenderer.renderCharacter(customer, mood, { width: 88, height: 108, wave: waving })}
+              ${charHtml}
               <div class="customer-name-tag">${customer.name}</div>
             </div>
             <div class="order-mini-preview">
@@ -635,15 +780,13 @@ window.GameManager = class GameManager {
               </div>
             </div>
           </div>
-          <div class="patience-wrap">
-            <span>⏱️ ${Math.ceil(patience)}s</span>
-            <div class="patience-bar"><div class="patience-fill ${barClass}" style="width:${pct}%"></div></div>
-          </div>
+          ${timerRowHTML}
           <div class="customer-actions">
             <button class="btn btn-soft btn-xs btn-inspect-order" data-order-id="${order.orderId}">🔍 Xem Đơn</button>
+            ${!accepted ? `<button class="btn btn-mint btn-xs btn-accept-card-order" data-order-id="${order.orderId}">✅ Nhận</button>` : ''}
             ${this.readyPackage
-              ? `<button class="btn ${this.readyPackage.orderId === order.orderId ? 'btn-mint' : 'btn-danger'} btn-xs btn-try-deliver" data-order-id="${order.orderId}">🎁 Giao Bánh</button>`
-              : `<button class="btn btn-primary btn-xs btn-bake-order" data-order-id="${order.orderId}">👩‍🍳 Làm Bánh</button>`
+              ? `<button class="btn ${hasReadyForThis ? 'btn-mint' : 'btn-danger'} btn-xs btn-try-deliver" data-order-id="${order.orderId}">🎁 Giao Bánh</button>`
+              : `<button class="btn btn-primary btn-xs btn-bake-order" data-order-id="${order.orderId}">${accepted ? '👩‍🍳 Tiếp Tục' : '👩‍🍳 Làm Bánh'}</button>`
             }
           </div>
         </div>
@@ -652,6 +795,17 @@ window.GameManager = class GameManager {
 
     grid.querySelectorAll('.btn-inspect-order').forEach(btn => {
       btn.addEventListener('click', () => this.openOrderDetailModal(btn.dataset.orderId));
+    });
+    grid.querySelectorAll('.btn-accept-card-order').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const s = this.customers.acceptOrder(btn.dataset.orderId);
+        if (s) {
+          this.audio.playSuccess();
+          this.showToast(`✅ Đã tiếp nhận Đơn ${s.order.orderNumber}! ${s.customer.name} đã vào bàn chờ.`, 'success');
+          this.renderBakeryCustomers();
+          this.renderOrdersTab();
+        }
+      });
     });
     grid.querySelectorAll('.btn-bake-order').forEach(btn => {
       btn.addEventListener('click', () => this.openWorkshopForOrder(btn.dataset.orderId));
@@ -670,6 +824,13 @@ window.GameManager = class GameManager {
     const body = document.getElementById('md-order-body');
     document.getElementById('md-order-title').textContent = `Đơn Hàng ${order.orderNumber} – ${customer ? customer.name : ''}`;
     body.innerHTML = this.buildOrderSpecHTML(order);
+    const acceptOnlyBtn = document.getElementById('btn-accept-only-order');
+    if (acceptOnlyBtn) acceptOnlyBtn.classList.toggle('hidden', Boolean(order.accepted));
+    const bakeBtn = document.getElementById('btn-accept-bake-order');
+    if (bakeBtn) {
+      bakeBtn.classList.remove('hidden');
+      bakeBtn.textContent = order.accepted ? '👩‍🍳 Tiếp Tục Làm Bánh!' : '👩‍🍳 Nhận Đơn & Làm Bánh!';
+    }
     this.openModal('modal-order-detail');
   }
 
@@ -685,6 +846,7 @@ window.GameManager = class GameManager {
     const ribbon = window.SDData.RIBBON_COLORS.find(r => r.id === order.ribbonColor);
     const card = order.card && order.card !== 'none' ? window.SDData.BOX_CARDS.find(c => c.id === order.card) : null;
     const sticker = order.sticker && order.sticker !== 'none' ? window.SDData.BOX_STICKERS.find(st => st.id === order.sticker) : null;
+    const targetDur = order.targetDuration || 65;
 
     return `
       <div class="ref-preview-box">${window.SDRenderer.renderCake(order.targetPreview, 155)}</div>
@@ -695,6 +857,7 @@ window.GameManager = class GameManager {
         <li><b>Topping:</b> ${order.toppingCount} × ${top ? top.name : 'Không'}</li>
         <li><b>Phụ kiện:</b> ${acc ? `${order.accCount} × ${acc.name}` : 'Không'}${extraAcc ? ` + ${extraAcc.name}` : ''}</li>
         <li><b>Đóng gói:</b> ${box ? box.name : ''} + ${ribbon ? ribbon.name : ''}${card ? ` + ${card.name}` : ''}${sticker ? ` + ${sticker.name}` : ''}</li>
+        <li><b>⏱️ Mục tiêu hoàn thành:</b> ${targetDur}s (Chỉ tính thưởng tốc độ)</li>
       </ul>
     `;
   }
@@ -708,6 +871,9 @@ window.GameManager = class GameManager {
       this.showToast('Đơn hàng không còn tồn tại!', 'error');
       return;
     }
+
+    // Stop customer wait countdown and seat them as soon as player confirms/starts making the order!
+    this.customers.acceptOrder(orderId);
 
     // Resume if already working on this exact order
     if (this.activeOrderId !== orderId || !this.baking.session) {
@@ -725,6 +891,7 @@ window.GameManager = class GameManager {
       this.activeOrderId = orderId;
       this.readyPackage = null;
       this.baking.startSession(order);
+      this.prepGroupFilter = (this.recipes.getCakeType(order.cakeType) || {}).group || 'all';
       this.workshopStep = 'prep';
       if (this.mixingCanvas) this.mixingCanvas.reset();
       if (this.ovenCanvas) this.ovenCanvas.reset();
@@ -733,17 +900,54 @@ window.GameManager = class GameManager {
     this.audio.playClick();
     document.getElementById('view-workshop').classList.remove('hidden');
     document.getElementById('ws-order-badge').textContent = `Đơn ${order.orderNumber}`;
-    document.getElementById('workshop-order-ref').innerHTML = `
-      <h4 style="margin:0;color:#d6456b;">📋 Yêu Cầu Của Khách</h4>
-      ${this.buildOrderSpecHTML(order)}
+    const orderRef = document.getElementById('workshop-order-ref');
+    orderRef.classList.toggle('mobile-collapsed', window.innerWidth <= 900);
+    orderRef.innerHTML = `
+      <div class="order-ref-header" id="btn-toggle-order-ref" role="button" tabindex="0">
+        <h4>📋 Yêu Cầu Của Khách</h4>
+        <span class="order-ref-toggle-hint"></span>
+      </div>
+      <div class="order-ref-body">
+        ${this.buildOrderSpecHTML(order)}
+      </div>
     `;
+    const toggleBtn = document.getElementById('btn-toggle-order-ref');
+    if (toggleBtn) {
+      toggleBtn.onclick = () => orderRef.classList.toggle('mobile-collapsed');
+    }
 
     this.setWorkshopStep(this.workshopStep);
+    this.updateWorkshopTimerUI();
     if (this.workshopStep === 'prep') this.renderPrepStage();
     else if (this.workshopStep === 'bake') this.renderOvenStage();
     else if (this.workshopStep === 'decorate') this.renderDecorateStage();
     else if (this.workshopStep === 'package') this.renderPackageStage();
     this.renderOrdersTab();
+  }
+
+  updateWorkshopTimerUI() {
+    const badge = document.getElementById('ws-timer-badge');
+    if (!badge || !this.activeOrderId) return;
+    const order = this.orders.getOrder(this.activeOrderId);
+    if (!order) return;
+    const elapsed = Math.max(0, Math.floor(order.execElapsed || 0));
+    const target = Math.max(30, order.targetDuration || 65);
+    const overtime = Math.max(0, elapsed - target);
+
+    badge.classList.remove('on-time', 'slightly-late', 'very-late');
+    if (order.execCompleted) {
+      badge.classList.add(overtime <= 60 ? 'on-time' : 'slightly-late');
+      badge.textContent = `✅ Hoàn tất: ${elapsed}s / ${target}s`;
+    } else if (overtime === 0) {
+      badge.classList.add('on-time');
+      badge.textContent = `⏱️ Đang làm: ${elapsed}s / Mục tiêu ${target}s`;
+    } else if (overtime < 60) {
+      badge.classList.add('slightly-late');
+      badge.textContent = `⏰ Đang làm: ${elapsed}s (+${overtime}s / ${target}s)`;
+    } else {
+      badge.classList.add('very-late');
+      badge.textContent = `🐢 Trễ +${overtime}s (${elapsed}s) • Vẫn giao được`;
+    }
   }
 
   closeWorkshop() {
@@ -962,12 +1166,40 @@ window.GameManager = class GameManager {
     const s = this.baking.session;
     if (!s) return;
 
-    // Cake Type chips
+    // Cake Type group tabs + chips (each showing its distinct 2D line art icon!)
+    const unlockedCakes = this.recipes.getUnlockedCakeTypes();
+    const prepGroups = [{ id: 'all', name: 'Tất cả' }, ...window.SDData.CAKE_GROUPS];
+    const targetCakeObj = s.targetOrder ? this.recipes.getCakeType(s.targetOrder.cakeType) : null;
+    if (!this.prepGroupFilter || !prepGroups.some(g => g.id === this.prepGroupFilter)) {
+      this.prepGroupFilter = targetCakeObj ? targetCakeObj.group : 'all';
+    }
+
+    const filteredCakes = unlockedCakes.filter(c =>
+      this.prepGroupFilter === 'all' || c.group === this.prepGroupFilter || c.id === s.selectedCakeType
+    );
+
     const cakeRow = document.getElementById('prep-cake-types');
-    cakeRow.innerHTML = this.recipes.getUnlockedCakeTypes().map(c =>
-      `<button class="chip-btn ${s.selectedCakeType === c.id ? 'active' : ''}" data-cake="${c.id}">${c.name}</button>`
-    ).join('');
-    cakeRow.querySelectorAll('.chip-btn').forEach(btn => {
+    cakeRow.innerHTML = `
+      <div class="prep-group-pills">
+        ${prepGroups.map(g => `<button class="chip-btn chip-xs ${this.prepGroupFilter === g.id ? 'active' : ''}" data-pgroup="${g.id}">${g.name}</button>`).join('')}
+      </div>
+      <div class="prep-cake-chips">
+        ${filteredCakes.map(c =>
+          `<button class="chip-btn cake-chip-btn ${s.selectedCakeType === c.id ? 'active' : ''}" data-cake="${c.id}">
+            <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" alt="" class="chip-cake-icon" />
+            <span>${c.name}</span>
+          </button>`
+        ).join('')}
+      </div>
+    `;
+    cakeRow.querySelectorAll('[data-pgroup]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.prepGroupFilter = btn.dataset.pgroup;
+        this.audio.playClick();
+        this.renderPrepStage();
+      });
+    });
+    cakeRow.querySelectorAll('.cake-chip-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.baking.selectCakeType(btn.dataset.cake);
         this.renderPrepStage();
@@ -1065,7 +1297,24 @@ window.GameManager = class GameManager {
     if (!s) return;
 
     const moldList = document.getElementById('oven-mold-list');
-    moldList.innerHTML = this.recipes.getUnlockedCakeTypes().map(c => `
+    const allUnlocked = this.recipes.getUnlockedCakeTypes();
+    const curCake = this.recipes.getCakeType(s.selectedCakeType || 'cupcake');
+    const sameGroup = allUnlocked.filter(c => c.group === curCake.group);
+    const otherGroup = allUnlocked.filter(c => c.group !== curCake.group);
+    const moldOptions = [];
+    const seenIds = new Set();
+    const pushOpt = (c) => {
+      if (c && !seenIds.has(c.id)) {
+        seenIds.add(c.id);
+        moldOptions.push(c);
+      }
+    };
+    pushOpt(curCake);
+    if (s.selectedMold) pushOpt(this.recipes.getCakeType(s.selectedMold));
+    sameGroup.forEach(c => { if (moldOptions.length < 4) pushOpt(c); });
+    otherGroup.forEach(c => { if (moldOptions.length < 6) pushOpt(c); });
+
+    moldList.innerHTML = moldOptions.map(c => `
       <button class="mold-card ${s.selectedMold === c.id ? 'active' : ''}" data-mold="${c.id}" title="${c.moldName}">
         <canvas data-mold-icon="${c.id}" width="96" height="72"></canvas>
         <span>${c.name}</span>
@@ -1558,8 +1807,15 @@ window.GameManager = class GameManager {
     const result = this.scoring.evaluate(order, this.readyPackage.cakeState, this.readyPackage.packaging, slot);
 
     // Apply Rewards & Stats
+    const prevLevel = this.state.level;
     this.economy.addCoins(result.totalCoins, true);
     const xpRes = this.economy.addXp(result.xpEarned);
+    const newlyUnlockedCakes = xpRes.leveledUp
+      ? window.SDData.CAKE_TYPES.filter(c => c.unlockLevel > prevLevel && c.unlockLevel <= xpRes.newLevel)
+      : [];
+    if (newlyUnlockedCakes.length > 0) {
+      this.showToast(`🎉 Lên cấp ${xpRes.newLevel}! Mở khóa ${newlyUnlockedCakes.length} loại bánh mới!`, 'success');
+    }
     this.economy.addReputation(result.repDelta);
 
     this.state.stats.totalOrders += 1;
@@ -1615,6 +1871,7 @@ window.GameManager = class GameManager {
     // Show Delivery Evaluation Modal
     const custMood = result.score >= 70 ? 'delighted' : result.score >= 50 ? 'normal' : 'disappointed';
     const starText = result.stars > 0 ? '⭐'.repeat(result.stars) : '💔';
+    const sp = result.speedInfo;
     const body = document.getElementById('md-delivery-body');
     body.innerHTML = `
       <div class="grade-banner">${result.grade} ${starText} (${result.score}/100)</div>
@@ -1623,12 +1880,14 @@ window.GameManager = class GameManager {
         ${window.SDRenderer.renderCharacter(slot.customer, custMood, { width: 100, height: 120, wave: result.score >= 70 })}
       </div>
       <div class="speech-bubble" style="text-align:center;">"${slot.speech}"</div>
-      <div style="display:flex;justify-content:space-around;background:#fff8eb;padding:10px;border-radius:12px;font-weight:800;">
+      <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:6px;background:#fff8eb;padding:10px;border-radius:12px;font-weight:800;">
         <span>🪙 Tiền bánh: +${result.basePay} xu</span>
         <span>💖 Tip: +${result.tip} xu</span>
         <span>✨ EXP: +${result.xpEarned}</span>
+        ${sp ? `<span>⏱️ ${sp.execElapsed}s / ${sp.targetDuration}s (${sp.overtime === 0 ? 'Đúng hẹn' : `Trễ ${sp.overtime}s`})</span>` : ''}
       </div>
       ${xpRes.leveledUp ? `<div class="toast success" style="position:static;transform:none;text-align:center;">🎉 CHÚC MỪNG LÊN CẤP ${xpRes.newLevel}: ${this.economy.getLevelInfo(xpRes.newLevel).title}!</div>` : ''}
+      ${newlyUnlockedCakes.length > 0 ? `<div class="unlock-cakes-banner">✨ <b>Bánh mới vừa mở khóa:</b> ${newlyUnlockedCakes.map(c => `<span class="unlock-cake-chip"><img src="${window.SDRenderer.getCakeAssetPath(c.id)}" alt="" /> ${c.name}</span>`).join(' ')}</div>` : ''}
       ${newAchs.map(a => `<div class="toast success" style="position:static;transform:none;text-align:center;">🏆 Mở khóa thành tích: ${a.title} (+${a.rewardCoins} xu)</div>`).join('')}
       <div class="breakdown-list">
         ${result.breakdown.map(b => `
@@ -1664,12 +1923,15 @@ window.GameManager = class GameManager {
   // --------------------------------------------------------------------------
   _getOrderStatus(order) {
     if (this.readyPackage && this.readyPackage.orderId === order.orderId) {
-      return { key: 'ready', label: 'Hoàn thành (Chờ giao)' };
+      return { key: 'ready', label: 'Hoàn thành (Khách chờ ở quầy)' };
     }
     if (this.activeOrderId === order.orderId && this.baking.session) {
       return { key: 'baking', label: 'Đang làm' };
     }
-    return { key: 'waiting', label: 'Chờ thực hiện' };
+    if (order.accepted) {
+      return { key: 'baking', label: 'Đã tiếp nhận (Khách ngồi chờ)' };
+    }
+    return { key: 'waiting', label: 'Chờ tiếp nhận đơn' };
   }
 
   renderOrdersTab() {
@@ -1717,6 +1979,10 @@ window.GameManager = class GameManager {
       const box = window.SDData.BOX_COLORS.find(b => b.id === order.boxColor);
       const st = this._getOrderStatus(order);
 
+      const timerInfoText = order.accepted
+        ? `🍰 Thực hiện: <b>${Math.max(0, Math.floor(order.execElapsed || 0))}s / ${order.targetDuration || 65}s</b>`
+        : `⏳ Chờ nhận: <b>${slot ? Math.ceil(slot.patience) : 0}s</b>`;
+
       return `
         <div class="info-card ${order.isSpecial ? 'special-order' : ''}">
           <div class="info-card-top">
@@ -1724,7 +1990,7 @@ window.GameManager = class GameManager {
             <div>
               <span class="status-pill ${st.key}">${st.label}</span>
               <h4><img src="${window.SDRenderer.getCakeAssetPath(order.cakeType, order.batter, order.frostingColor)}" class="order-cake-badge" alt="" /> ${order.isSpecial ? order.specialBadge : `Đơn ${order.orderNumber}`}</h4>
-              <p>Khách: <b>${cust ? cust.name : ''}</b> • ⏱️ ${slot ? Math.ceil(slot.patience) : 0}s</p>
+              <p>Khách: <b>${cust ? cust.name : ''}</b> • ${timerInfoText}</p>
             </div>
           </div>
           <p><b>Bánh:</b> ${cake.name} ×${order.quantity} • <b>Cốt:</b> ${batter.name}</p>
@@ -1758,15 +2024,17 @@ window.GameManager = class GameManager {
     if (catBar) catBar.classList.toggle('hidden', this.activeSubTab !== 'recipes');
 
     if (this.activeSubTab === 'recipes') {
-      const mainCats = ['cupcake', 'donut', 'round_cake', 'cookie'];
       const list = window.SDData.CAKE_TYPES.filter(c => {
         if (this.recipeCategory === 'all') return true;
-        if (this.recipeCategory === 'other') return !mainCats.includes(c.id);
-        return c.id === this.recipeCategory;
+        return c.group === this.recipeCategory;
       });
 
+      const colEntries = Object.values(this.state.collection || {});
       container.innerHTML = list.map(c => {
         const unlocked = c.unlockLevel <= this.state.level;
+        const bakedEntries = colEntries.filter(x => x.cakeType === c.id);
+        const totalBaked = bakedEntries.reduce((acc, x) => acc + (x.count || 0), 0);
+        const bestScore = bakedEntries.reduce((acc, x) => Math.max(acc, x.bestScore || 0), 0);
         const ingChips = c.baseIngredients.map(id => {
           const ing = window.SDData.INGREDIENTS.find(i => i.id === id);
           const stock = this.economy.getStock(id);
@@ -1775,18 +2043,23 @@ window.GameManager = class GameManager {
         return `
           <div class="info-card ${unlocked ? '' : 'locked'}">
             <div class="info-card-top">
-              <img src="${window.SDRenderer.getCakeAssetPath(c.id, 'vanilla', 'pink')}" class="cake-asset-img" style="width:82px;height:82px;" alt="${c.name}" />
+              <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" class="cake-asset-img cake-lineart-img" style="width:82px;height:82px;" alt="${c.name}" />
               <div>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
+                  <span class="decor-cat-badge">${c.groupName}</span>
+                  <span class="unlock-status-pill ${unlocked ? 'open' : 'closed'}">${unlocked ? '✅ Đã mở khóa' : `🔒 Cấp ${c.unlockLevel}`}</span>
+                </div>
                 <h4>${c.name}</h4>
-                <p>${unlocked ? `💰 ${c.basePrice} xu • ⏱️ Nướng ${c.bakeTime}s (${c.idealTemp}°C)` : `🔒 Mở khóa ở Cấp ${c.unlockLevel}`}</p>
+                <p>💰 ${c.basePrice} xu • ⏱️ Nướng ${c.bakeTime}s (${c.idealTemp}°C)</p>
+                ${totalBaked > 0 ? `<p style="font-size:0.76rem;color:#40916c;">🎂 Đã làm: <b>${totalBaked}</b> lần • Cao nhất: <b>${bestScore}/100</b></p>` : ''}
               </div>
             </div>
             <p>${c.description}</p>
             <div>
-              <small style="font-weight:800;">Nguyên liệu nền (+ hương vị tùy chọn):</small>
+              <small style="font-weight:800;">Công thức nguyên liệu (+ hương vị tùy chọn):</small>
               <div class="recipe-ing-chips">${ingChips}</div>
             </div>
-            <p style="font-size:0.76rem;"><b>Quy trình:</b> Trộn bột → Đổ ${c.moldName} → Nướng ${c.idealTemp}°C → Trang trí &amp; Đóng gói.</p>
+            <p style="font-size:0.76rem;"><b>Khuôn:</b> ${c.moldName}</p>
           </div>
         `;
       }).join('');
@@ -2111,10 +2384,24 @@ window.GameManager = class GameManager {
       const dt = Math.min(0.1, (now - this._lastTime) / 1000);
       this._lastTime = now;
 
-      if (this.currentScreen === 'main' && this.isDayActive && !this.paused) {
-        const isWorkshopOpen = !document.getElementById('view-workshop').classList.contains('hidden');
-        this.dayElapsed += dt;
-        this.customers.update(dt, this.isDayActive, this.activeOrderId, isWorkshopOpen);
+      const modalEl = document.getElementById('modal-backdrop');
+      const isModalOpen = modalEl ? !modalEl.classList.contains('hidden') : false;
+      const wsEl = document.getElementById('view-workshop');
+      const isWorkshopOpen = wsEl ? !wsEl.classList.contains('hidden') : false;
+      const isReferenceTab = !isWorkshopOpen && ['inventory', 'collection', 'decor', 'upgrades', 'achievements'].includes(this.activeTab);
+      const isGameplayActive = this.currentScreen === 'main' && this.isDayActive && !this.isPrepPhase && !this.paused && !isModalOpen && !document.hidden;
+
+      if (isGameplayActive) {
+        if (!isReferenceTab) {
+          this.dayElapsed += dt;
+        }
+        this.customers.update(dt, {
+          isDayActive: this.isDayActive,
+          activeOrderIdBeingBaked: this.activeOrderId,
+          isWorkshopOpen,
+          freezeWaitTimers: isReferenceTab || isWorkshopOpen,
+          freezeExecTimers: isReferenceTab
+        });
 
         if (this.baking.updateOven(dt)) {
           this.updateOvenDynamicUI();
@@ -2131,7 +2418,9 @@ window.GameManager = class GameManager {
         if (this._uiTick >= 0.4) {
           this._uiTick = 0;
           this.updateHUD();
-          if (this.activeTab === 'bakery' && document.getElementById('view-workshop').classList.contains('hidden')) {
+          if (isWorkshopOpen) {
+            this.updateWorkshopTimerUI();
+          } else if (this.activeTab === 'bakery') {
             this.renderBakeryCustomers();
           } else if (this.activeTab === 'orders' && this.ordersView === 'active') {
             this.renderOrdersTab();

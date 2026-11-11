@@ -65,7 +65,7 @@
         <div class="tut-step">
           <div class="tut-num">1</div>
           <h3>Tiếp Nhận Đơn Hàng</h3>
-          <p>Khách bước vào cửa và gọi món kèm hình ảnh bánh mẫu. Chú ý thanh kiên nhẫn màu Xanh → Vàng → Đỏ!</p>
+          <p>Khách có thời gian chờ nhận đơn (180–240s). Nhấn <b>Xem Đơn</b> hoặc <b>Làm Bánh</b> để tiếp nhận — khách sẽ ngồi bàn chờ thoải mái!</p>
         </div>
         <div class="tut-step">
           <div class="tut-num">2</div>
@@ -197,14 +197,17 @@
           <div class="bakery-middle">
             <!-- Display Case -->
             <div class="zone-display" id="scene-display">
-              <div class="display-title">🧁 Tủ Trưng Bày</div>
+              <div class="display-header-row">
+                <div class="display-title">🧁 Tủ Trưng Bày</div>
+                <button id="btn-display-group" class="btn-display-group" title="Đổi nhóm bánh trưng bày">Tất cả ▾</button>
+              </div>
               <div class="display-cakes" id="display-cakes-row"></div>
             </div>
 
             <!-- Customer Counter & 4 Slots -->
             <div class="zone-customers">
               <div class="counter-header">
-                <span>🛎️ Quầy Tiếp Nhận Khách Hàng (Tối đa <b id="max-cust-label">2</b> khách)</span>
+                <span>🛎️ Quầy Tiếp Nhận &amp; Bàn Chờ (Tối đa <b id="max-cust-label">2</b> khách) <span id="outside-queue-pill" class="outside-queue-pill hidden">🚪 Đang có khách chờ ngoài cửa</span></span>
                 <button id="btn-call-customer" class="btn btn-soft btn-xs">🔔 Đón Khách Ngay</button>
               </div>
               <div id="customer-slots-grid" class="customer-slots-grid"></div>
@@ -241,22 +244,23 @@
         <div class="panel-inner">
           <div class="panel-header row-between">
             <div>
-              <h2>📖 Công Thức &amp; Bộ Sưu Tập Bánh</h2>
-              <p>Khám phá công thức mở khóa theo cấp độ và chiêm ngưỡng album bánh bạn đã làm.</p>
+              <h2>📖 Bộ Sưu Tập Bánh Sweet Dreams</h2>
+              <p>Khám phá 38 loại bánh theo 6 nhóm, công thức tương ứng, cấp độ mở khóa và lịch sử bánh bạn đã làm.</p>
             </div>
             <div class="subtab-pills">
-              <button class="subtab-btn active" data-subtab="recipes">🍰 Công Thức</button>
-              <button class="subtab-btn" data-subtab="styles">🎨 16 Kiểu Trang Trí</button>
-              <button class="subtab-btn" data-subtab="album">📸 Album Đã Làm</button>
+              <button class="subtab-btn active" data-subtab="recipes">🍰 38 Loại Bánh</button>
+              <button class="subtab-btn" data-subtab="styles">🎨 Kiểu Trang Trí</button>
+              <button class="subtab-btn" data-subtab="album">📸 Bánh Đã Làm</button>
             </div>
           </div>
           <div id="recipe-category-bar" class="chip-row" style="margin-bottom:12px;">
-            <button class="chip-btn active" data-rcat="all">Tất cả</button>
-            <button class="chip-btn" data-rcat="cupcake">Cupcake</button>
-            <button class="chip-btn" data-rcat="donut">Donut</button>
-            <button class="chip-btn" data-rcat="round_cake">Bánh kem tròn</button>
-            <button class="chip-btn" data-rcat="cookie">Bánh quy</button>
-            <button class="chip-btn" data-rcat="other">Bánh đặc biệt khác</button>
+            <button class="chip-btn active" data-rcat="all">Tất cả (38)</button>
+            <button class="chip-btn" data-rcat="cakes">Bánh kem (8)</button>
+            <button class="chip-btn" data-rcat="cupcake_muffin">Cupcake &amp; Muffin (6)</button>
+            <button class="chip-btn" data-rcat="donut">Donut (6)</button>
+            <button class="chip-btn" data-rcat="cookie">Bánh quy (6)</button>
+            <button class="chip-btn" data-rcat="pastry">Bánh ngọt (6)</button>
+            <button class="chip-btn" data-rcat="dessert">Món tráng miệng (6)</button>
           </div>
           <div id="collection-content" class="cards-grid"></div>
         </div>
@@ -326,7 +330,10 @@
             <div class="step-item" data-step="decorate">3. Trang trí</div>
             <div class="step-item" data-step="package">4. Đóng gói</div>
           </div>
-          <div class="workshop-order-badge" id="ws-order-badge">Đơn #001</div>
+          <div class="workshop-topbar-right">
+            <div class="workshop-timer-badge" id="ws-timer-badge">⏱️ 0s / Mục tiêu 60s</div>
+            <div class="workshop-order-badge" id="ws-order-badge">Đơn #001</div>
+          </div>
         </div>
 
         <div class="workshop-body">
@@ -540,7 +547,7 @@
     <nav class="bottom-nav" id="bottom-nav">
       <button class="nav-btn active" data-tab="bakery"><span>🏠</span><small>Tiệm bánh</small></button>
       <button class="nav-btn" data-tab="orders"><span>📋</span><small>Đơn hàng</small><i class="nav-badge" id="badge-orders">0</i></button>
-      <button class="nav-btn" data-tab="collection"><span>📖</span><small>Công thức</small></button>
+      <button class="nav-btn" data-tab="collection"><span>📖</span><small>Bộ sưu tập</small></button>
       <button class="nav-btn" data-tab="inventory"><span>🧺</span><small>Kho hàng</small></button>
       <button class="nav-btn" data-tab="decor"><span>🎀</span><small>Trang trí tiệm</small></button>
       <button class="nav-btn" data-tab="upgrades"><span>🛠️</span><small>Nâng cấp</small></button>
@@ -561,6 +568,7 @@
       <div id="md-order-body" class="modal-body"></div>
       <div class="modal-foot">
         <button class="btn btn-soft modal-close-btn">Đóng</button>
+        <button id="btn-accept-only-order" class="btn btn-mint">✅ Tiếp Nhận Đơn</button>
         <button id="btn-accept-bake-order" class="btn btn-primary">👩‍🍳 Vào Bếp Làm Ngay!</button>
       </div>
     </div>

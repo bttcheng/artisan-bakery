@@ -1,43 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
-  <!-- Soft Drop Shadow -->
-  <ellipse cx="110" cy="186" rx="84" ry="15" fill="#4A3531" opacity="0.14"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" stroke="#3E2723" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
 
-  <!-- Pastel Ceramic Cake Plate -->
-  <ellipse cx="110" cy="170" rx="86" ry="20" fill="#FFFDF9" stroke="#3E2723" stroke-width="4.5"/>
-  <ellipse cx="110" cy="168" rx="70" ry="12" fill="#FFF0E5"/>
-
-  <!-- Layered Round Sponge Cake Body -->
-  <path d="M40,94 L180,94 L180,162 C180,174 148,182 110,182 C72,182 40,174 40,162 Z"
-        fill="#FFE3A8" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
-  <!-- Cream Middle Filling Layer -->
-  <path d="M40,128 Q110,138 180,128 L180,140 Q110,150 40,140 Z" fill="#FFB3C6" stroke="#3E2723" stroke-width="3.5"/>
-  <!-- Side Sponge Shading -->
-  <path d="M150,94 L180,94 L180,162 C180,169 166,174 150,177 Z" fill="#F2C97D" opacity="0.45"/>
-
-  <!-- Wavy Dripping Cream Frosting Top -->
-  <path d="M38,94 C38,76 70,66 110,66 C150,66 182,76 182,94 L182,110 C174,122 162,120 156,109 C148,96 140,124 126,124 C114,124 108,104 98,108 C88,112 82,126 68,120 C56,115 54,104 46,110 C40,114 38,106 38,94 Z"
-        fill="#FFFDF9" stroke="#3E2723" stroke-width="4.5" stroke-linejoin="round"/>
-  <!-- Top Cake Oval Rim Line -->
-  <ellipse cx="110" cy="91" rx="70" ry="17" fill="#FFF5F8" stroke="#3E2723" stroke-width="3.2"/>
-
-  <!-- Whipped Cream Rosettes Behind Berries -->
-  <circle cx="80" cy="76" r="14" fill="#FFD6E4" stroke="#3E2723" stroke-width="3.8"/>
-  <circle cx="140" cy="76" r="14" fill="#FFD6E4" stroke="#3E2723" stroke-width="3.8"/>
-
-  <!-- Plump Blueberries -->
-  <circle cx="136" cy="78" r="12" fill="#7286D3" stroke="#3E2723" stroke-width="3.8"/>
-  <circle cx="132" cy="74" r="3" fill="#FFF" opacity="0.8"/>
-  <circle cx="82" cy="80" r="10" fill="#8EA7E9" stroke="#3E2723" stroke-width="3.5"/>
-  <circle cx="79" cy="77" r="2.5" fill="#FFF" opacity="0.8"/>
-
-  <!-- Hero Cute Strawberry on Top -->
-  <path d="M98,42 L110,49 L122,42 L116,32 L110,37 L104,32 Z" fill="#74C69D" stroke="#3E2723" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M110,42 C128,42 132,64 110,85 C88,64 92,42 110,42 Z" fill="#FF4D6D" stroke="#3E2723" stroke-width="4.2" stroke-linejoin="round"/>
-  <ellipse cx="101" cy="54" rx="3.2" ry="5" transform="rotate(-15 101 54)" fill="#FF8FAB" opacity="0.7"/>
-  <circle cx="104" cy="57" r="1.6" fill="#FFF5F8"/>
-  <circle cx="115" cy="56" r="1.6" fill="#FFF5F8"/>
-  <circle cx="110" cy="66" r="1.6" fill="#FFF5F8"/>
-  <circle cx="105" cy="72" r="1.5" fill="#FFF5F8"/>
-  <circle cx="115" cy="71" r="1.5" fill="#FFF5F8"/>
+  <ellipse cx="60" cy="98" rx="46" ry="8" fill="#FFFDF9"/>
+  <path d="M22,52 L22,90 C22,96 98,96 98,90 L98,52 Z" fill="#FFE6A7"/>
+  <path d="M22,70 Q60,77 98,70 L98,77 Q60,84 22,77 Z" fill="#FFB3C6"/>
+  <ellipse cx="60" cy="52" rx="38" ry="11" fill="#FFFDF9"/>
+  <circle cx="34" cy="48" r="5" fill="#FFE5EC"/>
+  <circle cx="47" cy="46" r="5" fill="#FFD166"/>
+  <circle cx="60" cy="45" r="5.5" fill="#FFB3C6"/>
+  <circle cx="73" cy="46" r="5" fill="#FFD166"/>
+  <circle cx="86" cy="48" r="5" fill="#FFE5EC"/>
 </svg>
-

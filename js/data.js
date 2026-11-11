@@ -15,7 +15,20 @@ window.SDData = (() => {
     { id: 'cacao', name: 'Bột cacao', price: 10, unit: 'hũ', unlockLevel: 2, category: 'flavor', color: '#8B5A2B', accent: '#5C3A21' },
     { id: 'strawberry', name: 'Dâu tây', price: 12, unit: 'trái', unlockLevel: 1, category: 'fruit', color: '#FF6B8B', accent: '#6BCB77' },
     { id: 'blueberry', name: 'Việt quất', price: 14, unit: 'trái', unlockLevel: 3, category: 'fruit', color: '#5E60CE', accent: '#3A0CA3' },
-    { id: 'matcha', name: 'Bột trà xanh', price: 15, unit: 'hũ', unlockLevel: 4, category: 'flavor', color: '#74C69D', accent: '#40916C' }
+    { id: 'matcha', name: 'Bột trà xanh', price: 15, unit: 'hũ', unlockLevel: 4, category: 'flavor', color: '#74C69D', accent: '#40916C' },
+    { id: 'caramel', name: 'Sốt Caramel', price: 13, unit: 'lọ', unlockLevel: 2, category: 'special', color: '#D97706', accent: '#92400E' },
+    { id: 'cream_cheese', name: 'Kem Phô Mai', price: 16, unit: 'hộp', unlockLevel: 4, category: 'special', color: '#FFF8E7', accent: '#F4C95D' },
+    { id: 'gelatin', name: 'Gelatin Trái Cây', price: 14, unit: 'gói', unlockLevel: 4, category: 'special', color: '#FF9EBB', accent: '#72EFDD' },
+    { id: 'ginger_spice', name: 'Bột Quế Gừng', price: 15, unit: 'lọ', unlockLevel: 5, category: 'special', color: '#B45309', accent: '#78350F' }
+  ];
+
+  const CAKE_GROUPS = [
+    { id: 'cakes', name: 'Bánh kem' },
+    { id: 'cupcake_muffin', name: 'Cupcake và Muffin' },
+    { id: 'donut', name: 'Donut' },
+    { id: 'cookie', name: 'Bánh quy' },
+    { id: 'pastry', name: 'Bánh ngọt' },
+    { id: 'dessert', name: 'Món tráng miệng' }
   ];
 
   const BATTERS = [
@@ -28,101 +41,282 @@ window.SDData = (() => {
   ];
 
   const CAKE_TYPES = [
+    // --- NHÓM 1: BÁNH KEM (8) ---
     {
-      id: 'cupcake',
-      name: 'Cupcake',
-      unlockLevel: 1,
-      basePrice: 55,
-      baseXp: 25,
-      idealTemp: 180,
-      bakeTime: 7,
-      moldName: 'Khuôn Cupcake Giấy',
-      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
-      description: 'Bánh bông lan nhỏ xinh với phần kem bắt xoắn bồng bềnh.'
+      id: 'strawberry_cream_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem dâu tây',
+      unlockLevel: 1, basePrice: 88, baseXp: 40, idealTemp: 170, bakeTime: 9,
+      moldName: 'Khuôn Tròn Bánh Dâu', moldShape: 'round_cake', boxSize: 'large',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'strawberry'],
+      description: 'Cốt bánh bông lan mịn kết hợp kem tươi và dâu tây mọng nước.'
     },
     {
-      id: 'donut',
-      name: 'Donut',
-      unlockLevel: 1,
-      basePrice: 50,
-      baseXp: 22,
-      idealTemp: 190,
-      bakeTime: 6,
-      moldName: 'Khuôn Vòng Donut',
-      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
-      description: 'Bánh vòng mềm xốp phủ lớp kem bóng mượt và hạt cốm.'
+      id: 'chocolate_cream_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem chocolate',
+      unlockLevel: 1, basePrice: 92, baseXp: 42, idealTemp: 175, bakeTime: 9,
+      moldName: 'Khuôn Tròn Socola', moldShape: 'round_cake', boxSize: 'large',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'chocolate'],
+      description: 'Bánh kem phủ ganache chocolate bóng mượt đậm vị ca cao.'
     },
     {
-      id: 'round_cake',
-      name: 'Bánh Kem Tròn',
-      unlockLevel: 1,
-      basePrice: 85,
-      baseXp: 38,
-      idealTemp: 170,
-      bakeTime: 9,
-      moldName: 'Khuôn Tròn Cổ Điển',
+      id: 'round_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem vanilla',
+      unlockLevel: 1, basePrice: 85, baseXp: 38, idealTemp: 170, bakeTime: 9,
+      moldName: 'Khuôn Tròn Cổ Điển', moldShape: 'round_cake', boxSize: 'large',
       baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
-      description: 'Bánh kem mềm mịn thích hợp cho mọi buổi tiệc ngọt.'
+      description: 'Bánh kem vanilla cổ điển mềm mịn thích hợp cho mọi buổi tiệc ngọt.'
     },
     {
-      id: 'cookie',
-      name: 'Bánh Quy',
-      unlockLevel: 1,
-      basePrice: 45,
-      baseXp: 20,
-      idealTemp: 180,
-      bakeTime: 5.5,
-      moldName: 'Khay Nướng Bánh Quy',
+      id: 'matcha_cream_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem matcha',
+      unlockLevel: 4, basePrice: 108, baseXp: 50, idealTemp: 170, bakeTime: 9,
+      moldName: 'Khuôn Tròn Matcha', moldShape: 'round_cake', boxSize: 'large',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'matcha'],
+      description: 'Hương trà xanh Nhật Bản thanh mát hòa quyện cùng lớp kem sữa dịu.'
+    },
+    {
+      id: 'tiered_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem nhiều tầng',
+      unlockLevel: 4, basePrice: 165, baseXp: 80, idealTemp: 170, bakeTime: 10,
+      moldName: 'Khuôn Tiệc Nhiều Tầng', moldShape: 'tiered_cake', boxSize: 'tall',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Tuyệt phẩm bánh nhiều tầng lộng lẫy cho sinh nhật, kỷ niệm và lễ cưới.'
+    },
+    {
+      id: 'fruit_cream_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem trái cây',
+      unlockLevel: 5, basePrice: 118, baseXp: 55, idealTemp: 170, bakeTime: 9,
+      moldName: 'Khuôn Tròn Trái Cây', moldShape: 'round_cake', boxSize: 'large',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'strawberry', 'blueberry'],
+      description: 'Bánh kem tươi phủ đầy trái cây bốn mùa thanh ngọt rực rỡ.'
+    },
+    {
+      id: 'birthday_cream_cake', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh kem sinh nhật',
+      unlockLevel: 3, basePrice: 125, baseXp: 58, idealTemp: 170, bakeTime: 9.5,
+      moldName: 'Khuôn Bánh Sinh Nhật', moldShape: 'round_cake', boxSize: 'large',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'vanilla'],
+      description: 'Bánh kem tiệc sinh nhật trang trí ruy băng và nến lung linh.'
+    },
+    {
+      id: 'swiss_roll', group: 'cakes', groupName: 'Bánh kem', name: 'Bánh cuộn kem',
+      unlockLevel: 6, basePrice: 105, baseXp: 50, idealTemp: 175, bakeTime: 7.5,
+      moldName: 'Khay Cuộn Chữ Nhật', moldShape: 'swiss_roll', boxSize: 'wide',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Bông lan cuộn xoắn ốc mềm mại ôm trọn lớp kem tươi mịn màng.'
+    },
+
+    // --- NHÓM 2: CUPCAKE VÀ MUFFIN (6) ---
+    {
+      id: 'cupcake_cherry', group: 'cupcake_muffin', groupName: 'Cupcake và Muffin', name: 'Cupcake cherry',
+      unlockLevel: 1, basePrice: 58, baseXp: 26, idealTemp: 180, bakeTime: 7,
+      moldName: 'Khuôn Cupcake Cherry', moldShape: 'cupcake', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Cupcake kem bồng bềnh đính trái cherry đỏ mọng phía trên.'
+    },
+    {
+      id: 'cupcake_strawberry', group: 'cupcake_muffin', groupName: 'Cupcake và Muffin', name: 'Cupcake dâu',
+      unlockLevel: 2, basePrice: 60, baseXp: 28, idealTemp: 180, bakeTime: 7,
+      moldName: 'Khuôn Cupcake Dâu', moldShape: 'cupcake', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'strawberry'],
+      description: 'Cupcake hồng pastel thơm mùi dâu tây tươi dịu ngọt.'
+    },
+    {
+      id: 'cupcake_chocolate', group: 'cupcake_muffin', groupName: 'Cupcake và Muffin', name: 'Cupcake chocolate',
+      unlockLevel: 2, basePrice: 62, baseXp: 28, idealTemp: 180, bakeTime: 7,
+      moldName: 'Khuôn Cupcake Choco', moldShape: 'cupcake', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'chocolate'],
+      description: 'Cupcake cốt socola đậm đà cùng kem bắt xoắn quyến rũ.'
+    },
+    {
+      id: 'cupcake_vanilla', group: 'cupcake_muffin', groupName: 'Cupcake và Muffin', name: 'Cupcake vanilla',
+      unlockLevel: 1, basePrice: 52, baseXp: 24, idealTemp: 180, bakeTime: 6.8,
+      moldName: 'Khuôn Cupcake Vanilla', moldShape: 'cupcake', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Chiếc cupcake vanilla nhẹ tênh thơm ngát hương vani tinh khiết.'
+    },
+    {
+      id: 'cupcake', group: 'cupcake_muffin', groupName: 'Cupcake và Muffin', name: 'Cupcake kem xoắn',
+      unlockLevel: 1, basePrice: 55, baseXp: 25, idealTemp: 180, bakeTime: 7,
+      moldName: 'Khuôn Cupcake Giấy', moldShape: 'cupcake', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Bánh bông lan nhỏ xinh với phần kem bắt xoắn nhiều tầng bồng bềnh.'
+    },
+    {
+      id: 'blueberry_muffin', group: 'cupcake_muffin', groupName: 'Cupcake và Muffin', name: 'Muffin việt quất',
+      unlockLevel: 3, basePrice: 66, baseXp: 30, idealTemp: 185, bakeTime: 7.5,
+      moldName: 'Khuôn Muffin Việt Quất', moldShape: 'muffin', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'blueberry'],
+      description: 'Muffin nở vồng nứt mặt hấp dẫn điểm xuyết quả việt quất mọng.'
+    },
+
+    // --- NHÓM 3: DONUT (6) ---
+    {
+      id: 'donut', group: 'donut', groupName: 'Donut', name: 'Donut đường',
+      unlockLevel: 1, basePrice: 50, baseXp: 22, idealTemp: 190, bakeTime: 6,
+      moldName: 'Khuôn Vòng Donut Đường', moldShape: 'donut', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Bánh vòng mềm xốp phủ đường mịn và men ngọt truyền thống.'
+    },
+    {
+      id: 'donut_chocolate', group: 'donut', groupName: 'Donut', name: 'Donut chocolate',
+      unlockLevel: 1, basePrice: 56, baseXp: 25, idealTemp: 190, bakeTime: 6,
+      moldName: 'Khuôn Donut Choco', moldShape: 'donut', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'chocolate'],
+      description: 'Donut nhúng sốt chocolate đen óng ánh thơm lừng.'
+    },
+    {
+      id: 'donut_strawberry', group: 'donut', groupName: 'Donut', name: 'Donut dâu',
+      unlockLevel: 2, basePrice: 58, baseXp: 26, idealTemp: 190, bakeTime: 6,
+      moldName: 'Khuôn Donut Dâu', moldShape: 'donut', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'strawberry'],
+      description: 'Donut phủ glaze dâu hồng ngọt ngào kèm lát dâu tươi.'
+    },
+    {
+      id: 'donut_matcha', group: 'donut', groupName: 'Donut', name: 'Donut matcha',
+      unlockLevel: 4, basePrice: 64, baseXp: 29, idealTemp: 185, bakeTime: 6,
+      moldName: 'Khuôn Donut Matcha', moldShape: 'donut', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'matcha'],
+      description: 'Donut rưới sọc matcha xanh mát cân bằng vị béo nhẹ.'
+    },
+    {
+      id: 'donut_rainbow', group: 'donut', groupName: 'Donut', name: 'Donut cầu vồng',
+      unlockLevel: 3, basePrice: 62, baseXp: 28, idealTemp: 190, bakeTime: 6,
+      moldName: 'Khuôn Donut Cầu Vồng', moldShape: 'donut', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
+      description: 'Donut rực rỡ phủ cốm cầu vồng vui mắt cho ngày tràn năng lượng.'
+    },
+    {
+      id: 'donut_cream', group: 'donut', groupName: 'Donut', name: 'Donut nhân kem',
+      unlockLevel: 5, basePrice: 70, baseXp: 32, idealTemp: 185, bakeTime: 6.5,
+      moldName: 'Khay Donut Nhân Kem', moldShape: 'donut_filled', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'vanilla'],
+      description: 'Bánh donut tròn đầy không lỗ với nhân kem sữa tươi béo ngậy bên trong.'
+    },
+
+    // --- NHÓM 4: BÁNH QUY (6) ---
+    {
+      id: 'cookie', group: 'cookie', groupName: 'Bánh quy', name: 'Cookie chocolate chip',
+      unlockLevel: 1, basePrice: 45, baseXp: 20, idealTemp: 180, bakeTime: 5.5,
+      moldName: 'Khay Cookie Choco Chip', moldShape: 'cookie', boxSize: 'compact',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter', 'chocolate'],
+      description: 'Bánh quy viền giòn tâm mềm điểm đầy hạt chocolate chip thơm lừng.'
+    },
+    {
+      id: 'cookie_heart', group: 'cookie', groupName: 'Bánh quy', name: 'Cookie trái tim',
+      unlockLevel: 2, basePrice: 52, baseXp: 23, idealTemp: 175, bakeTime: 5.5,
+      moldName: 'Khuôn Cookie Trái Tim', moldShape: 'cookie_heart', boxSize: 'compact',
       baseIngredients: ['flour', 'sugar', 'egg', 'butter'],
-      description: 'Bánh quy bơ giòn tan thơm phức với họa tiết đáng yêu.'
+      description: 'Bánh quy hình trái tim viền ren dịu dàng cho lời chúc yêu thương.'
     },
     {
-      id: 'macaron',
-      name: 'Bánh Macaron',
-      unlockLevel: 3,
-      basePrice: 75,
-      baseXp: 35,
-      idealTemp: 160,
-      bakeTime: 6.5,
-      moldName: 'Tấm Lót Macaron',
+      id: 'cookie_star', group: 'cookie', groupName: 'Bánh quy', name: 'Cookie ngôi sao',
+      unlockLevel: 2, basePrice: 50, baseXp: 22, idealTemp: 175, bakeTime: 5.5,
+      moldName: 'Khuôn Cookie Ngôi Sao', moldShape: 'cookie_star', boxSize: 'compact',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter'],
+      description: 'Bánh quy bơ hình ngôi sao năm cánh giòn rụm lấp lánh đường hạt.'
+    },
+    {
+      id: 'cookie_butter', group: 'cookie', groupName: 'Bánh quy', name: 'Cookie bơ',
+      unlockLevel: 1, basePrice: 44, baseXp: 19, idealTemp: 175, bakeTime: 5.5,
+      moldName: 'Khay Cookie Bơ Hoa', moldShape: 'cookie', boxSize: 'compact',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter'],
+      description: 'Bánh quy bơ Đan Mạch bắt hoa xoắn thơm ngậy tan trong miệng.'
+    },
+    {
+      id: 'cookie_choco_filled', group: 'cookie', groupName: 'Bánh quy', name: 'Cookie nhân chocolate',
+      unlockLevel: 4, basePrice: 60, baseXp: 27, idealTemp: 180, bakeTime: 6,
+      moldName: 'Khay Cookie Kẹp Nhân', moldShape: 'cookie', boxSize: 'compact',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter', 'cacao', 'chocolate'],
+      description: 'Hai lớp bánh quy giòn kẹp nhân kem chocolate sánh mịn chính giữa.'
+    },
+    {
+      id: 'cookie_ginger', group: 'cookie', groupName: 'Bánh quy', name: 'Bánh quy gừng',
+      unlockLevel: 5, basePrice: 65, baseXp: 30, idealTemp: 180, bakeTime: 6,
+      moldName: 'Khuôn Người Bánh Gừng', moldShape: 'cookie_ginger', boxSize: 'compact',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter', 'ginger_spice'],
+      description: 'Bánh quy gừng quế tạo hình chú bé dễ thương ấm áp hương lễ hội.'
+    },
+
+    // --- NHÓM 5: BÁNH NGỌT (6) ---
+    {
+      id: 'croissant', group: 'pastry', groupName: 'Bánh ngọt', name: 'Croissant',
+      unlockLevel: 2, basePrice: 68, baseXp: 31, idealTemp: 195, bakeTime: 7,
+      moldName: 'Khay Nướng Croissant', moldShape: 'croissant', boxSize: 'wide',
+      baseIngredients: ['flour', 'sugar', 'milk', 'butter'],
+      description: 'Bánh sừng bò Pháp ngàn lớp vàng ruộm thơm nức mùi bơ.'
+    },
+    {
+      id: 'macaron', group: 'pastry', groupName: 'Bánh ngọt', name: 'Macaron',
+      unlockLevel: 3, basePrice: 75, baseXp: 35, idealTemp: 160, bakeTime: 6.5,
+      moldName: 'Tấm Lót Macaron', moldShape: 'macaron', boxSize: 'compact',
       baseIngredients: ['flour', 'sugar', 'egg', 'milk'],
-      description: 'Bánh Pháp vỏ giòn nhân kem dẻo mang sắc màu pastel.'
+      description: 'Bánh Pháp vỏ giòn viền ren đặc trưng kẹp nhân kem dẻo pastel.'
     },
     {
-      id: 'tart',
-      name: 'Bánh Tart Trái Cây',
-      unlockLevel: 5,
-      basePrice: 95,
-      baseXp: 45,
-      idealTemp: 180,
-      bakeTime: 8,
-      moldName: 'Khuôn Tart Viền Sóng',
-      baseIngredients: ['flour', 'sugar', 'egg', 'butter'],
-      description: 'Đế bánh giòn rụm ôm trọn lớp kem béo và trái cây tươi.'
+      id: 'eclair', group: 'pastry', groupName: 'Bánh ngọt', name: 'Éclair',
+      unlockLevel: 4, basePrice: 78, baseXp: 36, idealTemp: 185, bakeTime: 7.5,
+      moldName: 'Khay Bánh Éclair Dài', moldShape: 'eclair', boxSize: 'wide',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'chocolate'],
+      description: 'Bánh su thuôn dài nhân kem trứng béo mịn phủ sọc chocolate.'
     },
     {
-      id: 'swiss_roll',
-      name: 'Bánh Cuộn Kem',
-      unlockLevel: 7,
-      basePrice: 105,
-      baseXp: 50,
-      idealTemp: 175,
-      bakeTime: 7.5,
-      moldName: 'Khay Cuộn Chữ Nhật',
+      id: 'tiramisu', group: 'pastry', groupName: 'Bánh ngọt', name: 'Tiramisu',
+      unlockLevel: 6, basePrice: 98, baseXp: 46, idealTemp: 170, bakeTime: 7,
+      moldName: 'Khuôn Vuông Tiramisu', moldShape: 'tiramisu', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'cream_cheese', 'cacao'],
+      description: 'Món Ý kinh điển kết hợp kem phô mai mascarpone và bột cacao thơm lừng.'
+    },
+    {
+      id: 'cheesecake', group: 'pastry', groupName: 'Bánh ngọt', name: 'Cheesecake',
+      unlockLevel: 5, basePrice: 94, baseXp: 44, idealTemp: 165, bakeTime: 8.5,
+      moldName: 'Khuôn Cheesecake Tam Giác', moldShape: 'cheesecake', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter', 'cream_cheese'],
+      description: 'Bánh phô mai nướng mềm ẩm béo ngậy dùng kèm dâu tây tươi.'
+    },
+    {
+      id: 'tart', group: 'pastry', groupName: 'Bánh ngọt', name: 'Bánh tart dâu',
+      unlockLevel: 3, basePrice: 95, baseXp: 45, idealTemp: 180, bakeTime: 8,
+      moldName: 'Khuôn Tart Viền Sóng', moldShape: 'tart', boxSize: 'medium',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter', 'strawberry'],
+      description: 'Đế bánh tart viền sóng giòn rụm ôm trọn kem custard và dâu tây tươi.'
+    },
+
+    // --- NHÓM 6: MÓN TRÁNG MIỆNG (6) ---
+    {
+      id: 'pudding_caramel', group: 'dessert', groupName: 'Món tráng miệng', name: 'Pudding caramel',
+      unlockLevel: 2, basePrice: 64, baseXp: 29, idealTemp: 160, bakeTime: 7.5,
+      moldName: 'Khuôn Flan Pudding', moldShape: 'pudding', boxSize: 'medium',
+      baseIngredients: ['sugar', 'egg', 'milk', 'caramel'],
+      description: 'Bánh pudding trứng sữa núng nính dưới lớp sốt caramel hổ phách.'
+    },
+    {
+      id: 'panna_cotta', group: 'dessert', groupName: 'Món tráng miệng', name: 'Panna cotta',
+      unlockLevel: 5, basePrice: 82, baseXp: 38, idealTemp: 160, bakeTime: 6.5,
+      moldName: 'Khuôn Panna Cotta Gợn Sóng', moldShape: 'pudding', boxSize: 'medium',
+      baseIngredients: ['sugar', 'milk', 'cream_cheese', 'vanilla'],
+      description: 'Kem sữa nấu kiểu Ý mượt mịn tan chảy cùng trang trí trái tim nhỏ xinh.'
+    },
+    {
+      id: 'fruit_jelly', group: 'dessert', groupName: 'Món tráng miệng', name: 'Thạch trái cây',
+      unlockLevel: 4, basePrice: 68, baseXp: 32, idealTemp: 160, bakeTime: 5.5,
+      moldName: 'Khuôn Thạch Trái Cây', moldShape: 'pudding', boxSize: 'medium',
+      baseIngredients: ['sugar', 'milk', 'gelatin', 'strawberry'],
+      description: 'Thạch mát lạnh trong veo gói trọn những viên trái cây tươi ngon.'
+    },
+    {
+      id: 'cream_puff', group: 'dessert', groupName: 'Món tráng miệng', name: 'Bánh su kem',
+      unlockLevel: 3, basePrice: 62, baseXp: 28, idealTemp: 195, bakeTime: 7,
+      moldName: 'Khay Nướng Su Kem', moldShape: 'cream_puff', boxSize: 'medium',
       baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
-      description: 'Bông lan cuộn xoắn ốc mềm mại tan ngay đầu lưỡi.'
+      description: 'Vỏ su giòn xốp căng tròn kẹp đầy nhân kem tươi mát lạnh.'
     },
     {
-      id: 'tiered_cake',
-      name: 'Bánh Kem 2 Tầng',
-      unlockLevel: 4,
-      basePrice: 165,
-      baseXp: 80,
-      idealTemp: 170,
-      bakeTime: 10,
-      moldName: 'Khuôn Tiệc 2 Tầng',
-      baseIngredients: ['flour', 'sugar', 'egg', 'milk', 'butter'],
-      description: 'Tuyệt phẩm bánh 2 tầng lộng lẫy cho sinh nhật, kỷ niệm và lễ cưới.'
+      id: 'cake_pop', group: 'dessert', groupName: 'Món tráng miệng', name: 'Cake pop',
+      unlockLevel: 2, basePrice: 54, baseXp: 24, idealTemp: 175, bakeTime: 6,
+      moldName: 'Khay Khuôn Bi Cake Pop', moldShape: 'cake_pop', boxSize: 'tall',
+      baseIngredients: ['flour', 'sugar', 'egg', 'butter', 'caramel'],
+      description: 'Viên bánh ngọt nhỏ cắm que thắt nơ dễ thương phủ kẹo cốm.'
+    },
+    {
+      id: 'fruit_parfait', group: 'dessert', groupName: 'Món tráng miệng', name: 'Parfait trái cây',
+      unlockLevel: 7, basePrice: 112, baseXp: 52, idealTemp: 165, bakeTime: 6,
+      moldName: 'Ly Tráng Miệng Parfait', moldShape: 'parfait', boxSize: 'tall',
+      baseIngredients: ['sugar', 'milk', 'gelatin', 'strawberry', 'blueberry'],
+      description: 'Ly tráng miệng xếp tầng kem tươi, mứt quả, bánh quế và dâu mọng.'
     }
   ];
 
@@ -491,7 +685,7 @@ window.SDData = (() => {
     { id: 'ach_first_cake', title: 'Đơn Bánh Đầu Tiên', desc: 'Hoàn thành đơn hàng đầu tiên.', target: 1, progress: (s) => s.stats.totalOrders, rewardCoins: 50, check: (s) => s.stats.totalOrders >= 1 },
     { id: 'ach_customers_10', title: 'Phục Vụ 10 Khách Hàng', desc: 'Phục vụ thành công 10 lượt khách hàng.', target: 10, progress: (s) => s.stats.customersServed, rewardCoins: 120, check: (s) => s.stats.customersServed >= 10 },
     { id: 'ach_orders_50', title: 'Hoàn Thành 50 Đơn Hàng', desc: 'Chạm mốc 50 đơn hàng bánh ngọt.', target: 50, progress: (s) => s.stats.totalOrders, rewardCoins: 350, check: (s) => s.stats.totalOrders >= 50 },
-    { id: 'ach_all_recipes', title: 'Mở Khóa Tất Cả Công Thức', desc: 'Đạt cấp độ mở khóa toàn bộ 8 loại bánh (Cấp 7).', target: 8, progress: (s) => CAKE_TYPES.filter(c => c.unlockLevel <= s.level).length, rewardCoins: 320, check: (s) => CAKE_TYPES.every(c => c.unlockLevel <= s.level) },
+    { id: 'ach_all_recipes', title: 'Mở Khóa Tất Cả Công Thức', desc: 'Đạt cấp độ mở khóa toàn bộ 38 loại bánh trong Bộ Sưu Tập (Cấp 7).', target: CAKE_TYPES.length, progress: (s) => CAKE_TYPES.filter(c => c.unlockLevel <= s.level).length, rewardCoins: 450, check: (s) => CAKE_TYPES.every(c => c.unlockLevel <= s.level) },
     { id: 'ach_rep_100', title: 'Đạt 100 Danh Tiếng', desc: 'Xây dựng uy tín tiệm bánh đạt 100 điểm danh tiếng.', target: 100, progress: (s) => s.reputation, rewardCoins: 280, check: (s) => s.reputation >= 100 },
     { id: 'ach_decor_10', title: 'Sở Hữu 10 Vật Phẩm Trang Trí', desc: 'Mua ít nhất 10 vật phẩm trang trí cho tiệm.', target: 10, progress: (s) => (s.decorationsOwned || []).length, rewardCoins: 300, check: (s) => (s.decorationsOwned || []).length >= 10 },
     { id: 'ach_level_5', title: 'Đạt Cấp Độ 5', desc: 'Phát triển tiệm bánh lên cấp độ 5.', target: 5, progress: (s) => s.level, rewardCoins: 260, check: (s) => s.level >= 5 },
@@ -550,6 +744,7 @@ window.SDData = (() => {
   return {
     INGREDIENTS,
     BATTERS,
+    CAKE_GROUPS,
     CAKE_TYPES,
     FROSTING_COLORS,
     NOZZLES,

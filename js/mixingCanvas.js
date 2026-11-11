@@ -793,6 +793,10 @@ window.SDCanvasIcons = (() => {
       case 'strawberry': drawStrawberry(ctx); break;
       case 'blueberry': drawBlueberry(ctx); break;
       case 'matcha': drawMatcha(ctx); break;
+      case 'caramel': drawCaramel(ctx); break;
+      case 'cream_cheese': drawCreamCheese(ctx); break;
+      case 'gelatin': drawGelatin(ctx); break;
+      case 'ginger_spice': drawGingerSpice(ctx); break;
       default: drawFlour(ctx);
     }
     ctx.restore();
@@ -1212,6 +1216,79 @@ window.SDCanvasIcons = (() => {
     ctx.fillStyle = '#2D6A4F';
     ctx.beginPath();
     ctx.ellipse(48, 55, 7, 4, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawCaramel(ctx) {
+    ctx.strokeStyle = '#4A3531';
+    ctx.lineWidth = 2.4;
+    ctx.fillStyle = '#FFFDF9';
+    ctx.beginPath();
+    ctx.roundRect(30, 30, 36, 48, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#D97706';
+    ctx.beginPath();
+    ctx.roundRect(33, 44, 30, 31, 6);
+    ctx.fill();
+    ctx.fillStyle = '#B45309';
+    ctx.beginPath();
+    ctx.roundRect(38, 22, 20, 10, 4);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function drawCreamCheese(ctx) {
+    ctx.strokeStyle = '#4A3531';
+    ctx.lineWidth = 2.4;
+    ctx.fillStyle = '#FFF8E7';
+    ctx.beginPath();
+    ctx.roundRect(22, 34, 52, 40, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#F4C95D';
+    ctx.beginPath();
+    ctx.roundRect(22, 30, 52, 12, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#FFFDF9';
+    ctx.beginPath();
+    ctx.arc(48, 58, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function drawGelatin(ctx) {
+    ctx.strokeStyle = '#4A3531';
+    ctx.lineWidth = 2.4;
+    ctx.fillStyle = '#FFB3C6';
+    ctx.beginPath();
+    ctx.roundRect(24, 28, 48, 50, 10);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#72EFDD';
+    ctx.beginPath();
+    ctx.arc(42, 54, 7, 0, Math.PI * 2);
+    ctx.arc(56, 48, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawGingerSpice(ctx) {
+    ctx.strokeStyle = '#4A3531';
+    ctx.lineWidth = 2.4;
+    ctx.fillStyle = '#D99B66';
+    ctx.beginPath();
+    ctx.roundRect(31, 32, 34, 46, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#78350F';
+    ctx.beginPath();
+    ctx.roundRect(35, 22, 26, 12, 4);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#FFF8EB';
+    ctx.beginPath();
+    ctx.arc(48, 56, 10, 0, Math.PI * 2);
     ctx.fill();
   }
 
