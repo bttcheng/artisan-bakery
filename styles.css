@@ -2508,3 +2508,530 @@ html, body {
   .deco-tip { display: none; }
 }
 
+/* ============================================================================
+   COZY BAKERY SIMULATION OVERHAUL - STAGES 1 TO 5
+   ============================================================================ */
+
+/* --- Stage 1: Bakery Scene Equipment Stations, Eyes Blink & Visual Order Specs --- */
+@keyframes chibiBlink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%, 97% { transform: scaleY(0.12); }
+}
+.chibi-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: chibiBlink 4.6s ease-in-out infinite;
+}
+
+.bakery-window-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.kitchen-station {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 5px 4px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #FFFDF8 0%, #FFF0D9 100%);
+  border: 2px solid #F3D5DE;
+  box-shadow: 0 3px 0 #F4CDD8;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.kitchen-station:hover {
+  transform: translateY(-2px) scale(1.03);
+  border-color: #FF8FAB;
+  box-shadow: 0 5px 0 #FFB5C8;
+}
+.kitchen-station:active {
+  transform: translateY(1px) scale(0.98);
+}
+.station-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.station-lbl {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #5C3D2E;
+  letter-spacing: -0.01em;
+}
+
+.cozy-seating-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.empty-slot-ico {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+  opacity: 0.85;
+}
+
+.spec-cake-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+.spec-qty-pill {
+  background: #FFE5EC;
+  color: #C9184A;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+}
+.mini-specs-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 3px;
+}
+.spec-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #FFF9FB;
+  border: 1.5px solid #F3D5DE;
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #5C3D2E;
+}
+.frosting-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid #5C3D2E;
+  display: inline-block;
+}
+
+/* --- Stage 2: Kitchen Upgrades Atelier --- */
+.upgrades-bench-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+  gap: 12px;
+}
+.kitchen-upgrade-card {
+  position: relative;
+  background: linear-gradient(180deg, #FFFDF9 0%, #FFF4EA 100%);
+  border: 2px solid #F3D5DE;
+  border-radius: 20px;
+  padding: 12px;
+  gap: 7px;
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.kitchen-upgrade-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(255, 143, 171, 0.18);
+}
+.kitchen-upgrade-card.lv-2 {
+  border-color: #FFD166;
+  background: linear-gradient(180deg, #FFFDF9 0%, #FFF7DC 100%);
+}
+.kitchen-upgrade-card.lv-3 {
+  border-color: #74C69D;
+  background: linear-gradient(180deg, #FFFDF9 0%, #EBFBF2 100%);
+}
+.upgrade-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.upgrade-lvl-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #7A5448;
+  background: #FFF0F3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1.5px solid #F3D5DE;
+}
+.lvl-stars {
+  display: inline-flex;
+  gap: 2px;
+}
+.lvl-star {
+  opacity: 0.28;
+  filter: grayscale(1);
+  display: inline-flex;
+}
+.lvl-star.on {
+  opacity: 1;
+  filter: none;
+}
+.upgrade-bench-stage {
+  background: radial-gradient(circle at 50% 60%, #FFFFFF 20%, #FFF1E6 100%);
+  border: 1.5px dashed #F3D5DE;
+  border-radius: 16px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 98px;
+}
+.next-pill {
+  background: #E8F8F0 !important;
+  color: #1B7A4E !important;
+  border-color: #A8E6CF !important;
+}
+@keyframes upgradePopFx {
+  0% { transform: scale(0.92); box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.8); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 12px rgba(255, 209, 102, 0); }
+  100% { transform: scale(1); }
+}
+.upgrade-pop-fx {
+  animation: upgradePopFx 0.55s ease-out;
+}
+
+/* --- Stage 3: Daily Mission Ribbons & Collector Trophy Board --- */
+.quests-ribbon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 10px;
+}
+.quest-ribbon-card {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px !important;
+  cursor: pointer;
+  border-radius: 18px;
+}
+.quest-ribbon-card.quest-ready {
+  border-color: #74C69D;
+  background: linear-gradient(180deg, #FFFFFF 0%, #EAFAF1 100%);
+}
+.quest-ribbon-card.quest-claimed {
+  opacity: 0.78;
+}
+.quest-ribbon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.quest-ribbon-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.quest-ribbon-body h4 {
+  font-size: 0.86rem;
+  margin: 0;
+}
+
+.trophy-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 10px;
+}
+.trophy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 12px 10px;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.trophy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(255, 143, 171, 0.18);
+}
+.trophy-card.unlocked {
+  border-color: #FFD166;
+  background: linear-gradient(180deg, #FFFDF8 0%, #FFF7DC 100%);
+}
+.trophy-card.locked {
+  background: #FFF9FB;
+  opacity: 0.88;
+}
+.trophy-medallion-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+.sd-badge-art {
+  display: block;
+}
+.sd-badge-art.unlocked {
+  filter: drop-shadow(0 4px 8px rgba(255, 190, 92, 0.35));
+}
+.detail-badge-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 8px 4px;
+}
+.detail-badge-desc {
+  font-size: 0.92rem;
+  color: #5C3D2E;
+  margin: 0;
+  line-height: 1.45;
+}
+.detail-badge-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* --- Stage 4: Interactive Shop Decor Studio --- */
+.decor-category-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.decor-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 2px solid #F3D5DE;
+  background: #FFFDF9;
+  color: #5C3D2E;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.decor-cat-pill:hover {
+  border-color: #FF8FAB;
+  background: #FFF0F4;
+}
+.decor-cat-pill.active {
+  background: linear-gradient(180deg, #FF9EBB 0%, #FF759F 100%);
+  color: #FFFDF9;
+  border-color: #E0577C;
+}
+
+.decor-studio-wrap {
+  display: grid;
+  grid-template-columns: minmax(290px, 1.05fr) 1.35fr;
+  gap: 12px;
+  align-items: start;
+}
+.decor-room-preview {
+  position: sticky;
+  top: 0;
+}
+.decor-room-stage {
+  position: relative;
+  width: 100%;
+  height: 290px;
+  border-radius: 22px;
+  border: 3px solid #F3D5DE;
+  background: linear-gradient(180deg, #FFF7EC 0%, #FFF1E3 68%, #F6DFC9 68%, #ECCBB0 100%);
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(92, 61, 46, 0.08);
+  touch-action: none;
+}
+.decor-room-stage.wall-pastel {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 182, 203, 0.25) 0 18px, transparent 18px 36px),
+    linear-gradient(180deg, #FFF5F8 0%, #FFEBF1 68%, #F6DFC9 68%, #ECCBB0 100%);
+}
+.decor-room-stage.wall-mint {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.6) 2.5px, transparent 2.8px) 0 0 / 24px 24px,
+    linear-gradient(180deg, #EBFBF3 0%, #D9F5E8 68%, #F6DFC9 68%, #ECCBB0 100%);
+}
+.decor-room-stage.floor-caro::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32%;
+  background: repeating-conic-gradient(rgba(255, 182, 193, 0.25) 0% 25%, rgba(255, 250, 240, 0.45) 0% 50%) 0 0 / 26px 26px;
+  pointer-events: none;
+}
+
+.room-lights-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+}
+.room-lights-strip.fairy {
+  background: repeating-linear-gradient(90deg, transparent 0 18px, #FFD166 18px 26px, transparent 26px 40px);
+  border-bottom: 2px dashed rgba(217, 130, 43, 0.4);
+}
+.room-lights-strip.crystal {
+  background: repeating-linear-gradient(90deg, transparent 0 22px, #B8E0D2 22px 30px, #FFC8DD 30px 38px, transparent 38px 54px);
+}
+.room-door-mini {
+  position: absolute;
+  left: 12%;
+  bottom: 32%;
+  width: 48px;
+  height: 92px;
+  border-radius: 22px 22px 0 0;
+  background: #A8E6CF;
+  border: 2.5px solid #5C3D2E;
+  opacity: 0.72;
+}
+.room-window-mini {
+  position: absolute;
+  right: 14%;
+  top: 22%;
+  width: 78px;
+  height: 62px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #D9F2FF 0%, #FFF9E6 100%);
+  border: 2.5px solid #5C3D2E;
+  opacity: 0.78;
+}
+.room-counter-mini {
+  position: absolute;
+  right: 8%;
+  bottom: 20%;
+  width: 46%;
+  height: 44px;
+  border-radius: 12px;
+  background: #F4C095;
+  border: 2.5px solid #5C3D2E;
+  z-index: 1;
+}
+
+.decor-placed-item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  border-radius: 14px;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+}
+.decor-placed-item:hover {
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 4px 12px rgba(255, 143, 171, 0.3);
+}
+.decor-placed-item.dragging {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 8;
+}
+.decor-placed-item.is-ghost {
+  border: 2px dashed #FF8FAB;
+  background: rgba(255, 255, 255, 0.7);
+  opacity: 0.85;
+}
+.decor-drag-dot {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #5C3D2E;
+  background: rgba(255, 253, 249, 0.9);
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid #F3D5DE;
+  white-space: nowrap;
+  margin-top: -2px;
+}
+.decor-room-hint {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: rgba(255, 253, 249, 0.9);
+  border: 1.5px solid #F3D5DE;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7A5448;
+}
+
+.decor-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 10px;
+}
+.decor-catalog-card {
+  cursor: pointer;
+}
+.decor-catalog-card.preview-selected {
+  border-color: #FF8FAB;
+  box-shadow: 0 0 0 3px rgba(255, 143, 171, 0.25);
+}
+
+@keyframes decorPop {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.2; }
+  65% { transform: translate(-50%, -50%) scale(1.14); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+.decor-placed-pop {
+  animation: decorPop 0.45s ease-out;
+}
+.decor-catalog-card.decor-placed-pop {
+  animation: upgradePopFx 0.45s ease-out;
+}
+
+@media (max-width: 900px) {
+  .decor-studio-wrap {
+    grid-template-columns: 1fr;
+  }
+  .decor-room-preview {
+    position: relative;
+  }
+  .decor-room-stage {
+    height: 225px;
+  }
+  .upgrades-bench-grid {
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .decor-room-stage {
+    height: 190px;
+  }
+  .decor-catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .trophy-showcase-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .quests-ribbon-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

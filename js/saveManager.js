@@ -42,6 +42,16 @@ window.SaveManager = class SaveManager {
       },
       decorationsOwned: [],
       equippedDecors: {}, // category -> decorId
+      decorPositions: {
+        fairy_lights: { xPct: 50, yPct: 12 },
+        crystal_lights: { xPct: 50, yPct: 14 },
+        bakery_signboard: { xPct: 50, yPct: 26 },
+        ribbon_bunting: { xPct: 50, yPct: 36 },
+        wall_art: { xPct: 28, yPct: 44 },
+        flower_pots: { xPct: 30, yPct: 62 },
+        monstera_plant: { xPct: 14, yPct: 78 },
+        cozy_seating: { xPct: 80, yPct: 78 }
+      },
       orderHistory: [], // completed orders history
       collection: {}, // key -> { name, cakeState, bestScore, count }
       unlockedAchievements: [],
@@ -108,6 +118,7 @@ window.SaveManager = class SaveManager {
         collection: parsed.collection || {},
         decorationsOwned: ownedDecors,
         equippedDecors: equipped,
+        decorPositions: { ...def.decorPositions, ...(parsed.decorPositions || {}) },
         orderHistory: Array.isArray(parsed.orderHistory) ? parsed.orderHistory : [],
         unlockedAchievements: unlockedAchs,
         claimedAchievements: Array.isArray(parsed.claimedAchievements) ? parsed.claimedAchievements : [...unlockedAchs],

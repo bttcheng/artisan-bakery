@@ -158,41 +158,43 @@
                 <div class="door-window"></div>
                 <div class="door-knob"></div>
               </div>
-              <div id="scene-plant-corner" class="scene-plant-corner hidden" title="Cây xanh góc tiệm">🪴</div>
+              <div id="scene-plant-corner" class="scene-plant-corner hidden" title="Cây xanh góc tiệm"></div>
             </div>
 
             <!-- Window + Flower Pots + Wall Art -->
             <div class="zone-window">
               <div class="window-glass">
-                <span class="cloud-deco">☁️</span>
-                <span class="sun-deco">🌤️</span>
+                <svg viewBox="0 0 80 38" width="100%" height="100%" aria-hidden="true">
+                  <circle cx="60" cy="14" r="8" fill="#FFE699" stroke="#F4A261" stroke-width="1.6"/>
+                  <path d="M14,24 C10,24 10,16 17,16 C19,11 28,11 30,16 C36,16 36,24 31,24 Z" fill="#FFFFFF" stroke="#B5D8EB" stroke-width="1.5"/>
+                </svg>
               </div>
-              <div id="scene-flowers" class="window-flowers hidden">🌷 🌼 🌸</div>
-              <div id="scene-wall-art" class="scene-wall-art hidden" title="Bộ tranh bánh ngọt">🖼️ 🧁 🍰</div>
+              <div id="scene-flowers" class="window-flowers hidden"></div>
+              <div id="scene-wall-art" class="scene-wall-art hidden" title="Tranh bánh ngọt"></div>
             </div>
 
-            <!-- Kitchen Preview Corner (Visual 2D Icon Stations!) -->
+            <!-- Kitchen Equipment Stations (Real 2D Equipment Illustrations scaled by Upgrade Level!) -->
             <div class="kitchen-strip">
-              <div class="kitchen-station clickable-station" data-station="inventory" title="Mở Kho Nguyên Liệu">
-                <span data-sd-ico="nav_inventory" data-sd-size="22"></span>
-                <span>Kho</span>
+              <div class="kitchen-station clickable-station" data-station="inventory" title="Kệ Kho Nguyên Liệu">
+                <div class="station-art" id="station-art-pantry"></div>
+                <span class="station-lbl">Kho</span>
               </div>
               <div class="kitchen-station clickable-station" data-station="prep" title="Khu Trộn Bột">
-                <span data-sd-ico="whisk" data-sd-size="22"></span>
-                <span id="scene-mixer-badge">Trộn</span>
+                <div class="station-art" id="station-art-mixer"></div>
+                <span class="station-lbl" id="scene-mixer-badge">Trộn</span>
               </div>
               <div class="kitchen-station oven-mini clickable-station" data-station="bake" title="Lò Nướng Bánh">
                 <div class="oven-glow-mini"></div>
-                <span data-sd-ico="oven_flame" data-sd-size="22"></span>
-                <span id="scene-oven-badge">Lò</span>
+                <div class="station-art" id="station-art-oven"></div>
+                <span class="station-lbl" id="scene-oven-badge">Lò</span>
               </div>
-              <div class="kitchen-station clickable-station" data-station="decorate" title="Bàn Trang Trí">
-                <span data-sd-ico="piping_bag" data-sd-size="22"></span>
-                <span>Kem</span>
+              <div class="kitchen-station clickable-station" data-station="decorate" title="Bàn Trang Trí Kem">
+                <div class="station-art" id="station-art-deco"></div>
+                <span class="station-lbl">Kem</span>
               </div>
-              <div class="kitchen-station clickable-station" data-station="package" title="Bàn Đóng Gói">
-                <span data-sd-ico="gift_box" data-sd-size="22"></span>
-                <span>Gói</span>
+              <div class="kitchen-station clickable-station" data-station="package" title="Bàn Đóng Gói Quà">
+                <div class="station-art" id="station-art-package"></div>
+                <span class="station-lbl">Gói</span>
               </div>
             </div>
           </div>
@@ -276,36 +278,40 @@
         </div>
       </div>
 
-      <!-- TAB 5: SHOP DECORATIONS -->
+      <!-- TAB 5: INTERACTIVE SHOP DECORATIONS STUDIO -->
       <div id="tab-decor" class="tab-panel">
         <div class="panel-inner">
-          <div class="panel-header">
-            <h2><span data-sd-ico="nav_decor" data-sd-size="22"></span> Trang Trí Tiệm</h2>
+          <div class="panel-header row-between">
+            <h2><span data-sd-ico="nav_decor" data-sd-size="22"></span> Không Gian &amp; Trang Trí Tiệm</h2>
+            <div id="decor-category-bar" class="chip-row"></div>
           </div>
-          <div id="decor-shop-grid" class="cards-grid"></div>
+          <div class="decor-studio-wrap">
+            <div id="decor-room-preview" class="decor-room-preview" title="Kéo thả đồ vật đã đặt để đổi vị trí trong tiệm"></div>
+            <div id="decor-shop-grid" class="decor-catalog-grid"></div>
+          </div>
         </div>
       </div>
 
-      <!-- TAB 6: EQUIPMENT UPGRADES -->
+      <!-- TAB 6: KITCHEN UPGRADE ATELIER -->
       <div id="tab-upgrades" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header">
-            <h2><span data-sd-ico="nav_upgrades" data-sd-size="22"></span> Nâng Cấp Bếp</h2>
+            <h2><span data-sd-ico="nav_upgrades" data-sd-size="22"></span> Xưởng Nâng Cấp Thiết Bị</h2>
           </div>
-          <div id="upgrades-grid" class="cards-grid"></div>
+          <div id="upgrades-grid" class="upgrades-bench-grid"></div>
         </div>
       </div>
 
-      <!-- TAB 7: QUESTS & ACHIEVEMENTS -->
+      <!-- TAB 7: VISUAL QUESTS & COLLECTOR BADGE BOARD -->
       <div id="tab-achievements" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header">
-            <h2><span data-sd-ico="nav_achievements" data-sd-size="22"></span> Nhiệm Vụ &amp; Thành Tích</h2>
+            <h2><span data-sd-ico="nav_achievements" data-sd-size="22"></span> Nhiệm Vụ &amp; Bảng Huy Hiệu</h2>
           </div>
-          <h3 class="section-subhead">Nhiệm Vụ Hôm Nay</h3>
-          <div id="quests-grid" class="cards-grid"></div>
-          <h3 class="section-subhead">Thành Tích Tiệm Bánh</h3>
-          <div id="achievements-grid" class="cards-grid"></div>
+          <h3 class="section-subhead"><span data-sd-ico="star_level" data-sd-size="16"></span> Nhiệm Vụ Hôm Nay</h3>
+          <div id="quests-grid" class="quests-ribbon-grid"></div>
+          <h3 class="section-subhead"><span data-sd-ico="nav_achievements" data-sd-size="16"></span> Bộ Sưu Tập Huy Hiệu</h3>
+          <div id="achievements-grid" class="trophy-showcase-grid"></div>
         </div>
       </div>
 

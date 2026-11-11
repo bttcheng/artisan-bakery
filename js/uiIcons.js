@@ -279,7 +279,126 @@ window.SDIcons = (() => {
     `
   };
 
-  function shopArt(id, size = 62) {
+  function equipmentArt(id, level = 1, size = 78) {
+    const lv = Math.max(1, Math.min(3, Number(level) || 1));
+    const trim = lv === 3 ? '#F4B942' : lv === 2 ? '#FF8FAB' : '#D8C4B6';
+    const body = lv === 3 ? '#E5D4FF' : lv === 2 ? '#FFD6E0' : '#FFF3E6';
+    const crown = lv === 3
+      ? `<polygon points="24,10 27,4 32,8 37,4 40,10" fill="#FFD166" stroke="${S}" stroke-width="1.8" stroke-linejoin="round"/>`
+      : '';
+    const sparkles = lv >= 2
+      ? `<circle cx="10" cy="14" r="2.2" fill="#FFD166"/><circle cx="54" cy="14" r="2.2" fill="#FF8FAB"/>${lv === 3 ? '<path d="M52,22 L54,18 L56,22 L54,26 Z" fill="#FFD166"/>' : ''}`
+      : '';
+
+    let svg = '';
+    if (id === 'oven') {
+      const doorFill = lv === 3 ? '#FF758F' : lv === 2 ? '#FF9F1C' : '#F4A261';
+      svg = `
+        ${crown}${sparkles}
+        <rect x="8" y="12" width="48" height="44" rx="8" fill="${body}" stroke="${S}" stroke-width="2.4"/>
+        <rect x="12" y="15" width="40" height="9" rx="4" fill="#FFFDF9" stroke="${trim}" stroke-width="2"/>
+        <circle cx="19" cy="19.5" r="2.2" fill="#FF4D6D"/><circle cx="32" cy="19.5" r="2.2" fill="#FFD166"/><circle cx="45" cy="19.5" r="2.2" fill="#74C69D"/>
+        <rect x="13" y="27" width="38" height="23" rx="5" fill="${doorFill}" stroke="${S}" stroke-width="2"/>
+        ${lv >= 2 ? '<rect x="17" y="30" width="30" height="3" rx="1.5" fill="#FFFDF9"/>' : ''}
+        <ellipse cx="32" cy="43" rx="11" ry="4.5" fill="#FFE699" stroke="${S}" stroke-width="1.6"/>
+        ${lv === 3 ? '<ellipse cx="32" cy="35" rx="8" ry="3.2" fill="#FFB3C6" stroke="${S}" stroke-width="1.4"/>' : ''}
+      `;
+    } else if (id === 'mixer') {
+      const headFill = lv === 3 ? '#C8B6FF' : lv === 2 ? '#FF8FAB' : '#FFFDF9';
+      svg = lv === 1
+        ? `
+          <path d="M18,34 L46,34 L42,52 Q32,56 22,52 Z" fill="#FFE5EC" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M32,14 L32,38 M27,27 C27,36 37,36 37,27 Z" fill="none" stroke="${S}" stroke-width="2.2"/>
+          <rect x="29" y="10" width="6" height="8" rx="2" fill="#FFB3C6" stroke="${S}" stroke-width="1.8"/>
+        `
+        : `
+          ${crown}${sparkles}
+          <path d="M16,42 L48,42 L44,54 Q32,57 20,54 Z" fill="#A8E6CF" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M15,21 C15,12 47,12 49,22 L49,28 L22,28 L22,42" fill="${headFill}" stroke="${S}" stroke-width="2.4" stroke-linejoin="round"/>
+          <ellipse cx="32" cy="36" rx="5.5" ry="9" fill="none" stroke="${S}" stroke-width="2"/>
+          <circle cx="42" cy="20" r="3" fill="${trim}" stroke="${S}" stroke-width="1.5"/>
+        `;
+    } else if (id === 'deco_table') {
+      svg = `
+        ${crown}${sparkles}
+        <rect x="10" y="34" width="44" height="8" rx="4" fill="${body}" stroke="${S}" stroke-width="2.4"/>
+        <rect x="27" y="42" width="10" height="12" fill="${trim}" stroke="${S}" stroke-width="2"/>
+        <rect x="18" y="52" width="28" height="4" rx="2" fill="${trim}" stroke="${S}" stroke-width="1.8"/>
+        <path d="M24,34 L40,34 L38,24 L26,24 Z" fill="#FFB3C6" stroke="${S}" stroke-width="2"/>
+        <path d="M23,24 C23,15 41,15 41,24 Z" fill="#FFFDF9" stroke="${S}" stroke-width="2"/>
+        ${lv >= 2 ? '<circle cx="32" cy="14" r="3.2" fill="#FF4D6D" stroke="#3E2723" stroke-width="1.4"/>' : ''}
+        ${lv === 3 ? '<polygon points="48,24 56,28 50,33" fill="#D8BBFF" stroke="#3E2723" stroke-width="1.6"/>' : ''}
+      `;
+    } else if (id === 'display_shelf') {
+      const glass = lv === 3 ? '#F5EBFF' : lv === 2 ? '#EAF9FF' : '#FFF8EB';
+      svg = `
+        ${crown}${sparkles}
+        <rect x="10" y="13" width="44" height="43" rx="7" fill="${glass}" stroke="${S}" stroke-width="2.4"/>
+        <line x1="12" y1="32" x2="52" y2="32" stroke="${trim}" stroke-width="2.4"/>
+        ${lv >= 2 ? `<line x1="12" y1="22" x2="52" y2="22" stroke="${trim}" stroke-width="1.8"/>` : ''}
+        <rect x="10" y="47" width="44" height="9" rx="3" fill="${body}" stroke="${S}" stroke-width="2"/>
+        <circle cx="23" cy="27" r="4.5" fill="#FF8FAB" stroke="${S}" stroke-width="1.6"/>
+        <circle cx="40" cy="27" r="4.5" fill="#FFE699" stroke="${S}" stroke-width="1.6"/>
+        <rect x="20" y="37" width="24" height="10" rx="3" fill="${trim}" stroke="${S}" stroke-width="1.8"/>
+      `;
+    } else if (id === 'counter_service') {
+      svg = `
+        ${crown}${sparkles}
+        ${lv >= 2 ? `<path d="M8,22 L12,12 L52,12 L56,22 C50,26 44,26 40,22 C36,26 28,26 24,22 C20,26 14,26 8,22 Z" fill="${trim}" stroke="${S}" stroke-width="2.2" stroke-linejoin="round"/>` : ''}
+        <rect x="12" y="34" width="40" height="22" rx="4" fill="${body}" stroke="${S}" stroke-width="2.4"/>
+        <path d="M25,34 C25,27 39,27 39,34 Z" fill="#FFD166" stroke="${S}" stroke-width="2"/>
+        ${lv === 3 ? '<circle cx="19" cy="31" r="3" fill="#FF8FAB" stroke="#3E2723" stroke-width="1.4"/><circle cx="45" cy="31" r="3" fill="#FF8FAB" stroke="#3E2723" stroke-width="1.4"/>' : ''}
+      `;
+    } else {
+      // ingredient_pantry
+      const fridgeFill = lv === 3 ? '#BDE0FE' : lv === 2 ? '#D8F3DC' : '#F3DFC1';
+      svg = `
+        ${crown}${sparkles}
+        <rect x="14" y="10" width="36" height="46" rx="7" fill="${fridgeFill}" stroke="${S}" stroke-width="2.4"/>
+        <line x1="14" y1="32" x2="50" y2="32" stroke="${S}" stroke-width="2.2"/>
+        ${lv === 3 ? '<line x1="32" y1="12" x2="32" y2="54" stroke="#3E2723" stroke-width="1.8"/>' : ''}
+        <line x1="42" y1="18" x2="42" y2="27" stroke="${S}" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="42" y1="38" x2="42" y2="48" stroke="${S}" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="24" cy="21" r="4" fill="#FF8FAB"/><circle cx="25" cy="43" r="4.5" fill="#FFD166"/>
+      `;
+    }
+    return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" class="sd-shop-art equip-lv-${lv}" aria-hidden="true">${svg}</svg>`;
+  }
+
+  function badgeArt(id, unlocked = true, size = 54) {
+    const rim = unlocked ? '#FFD166' : '#D8C4B6';
+    const bg = unlocked ? '#FFF8EB' : '#F1ECEE';
+    let emblem = '';
+    if (id.includes('cupcake') || id === 'ach_first_cake') {
+      emblem = PATHS.cupcake_logo;
+    } else if (id.includes('coins') || id.includes('rich')) {
+      emblem = PATHS.coin;
+    } else if (id.includes('customers')) {
+      emblem = PATHS.smile_served;
+    } else if (id.includes('recipes')) {
+      emblem = PATHS.nav_collection;
+    } else if (id.includes('rep')) {
+      emblem = PATHS.heart_rep;
+    } else if (id.includes('decor')) {
+      emblem = PATHS.nav_decor;
+    } else if (id.includes('perfect') || id.includes('special')) {
+      emblem = PATHS.star_level;
+    } else {
+      emblem = PATHS.nav_achievements;
+    }
+    return `
+      <svg viewBox="0 0 44 44" width="${size}" height="${size}" class="sd-badge-art ${unlocked ? 'unlocked' : 'locked'}" aria-hidden="true">
+        <circle cx="22" cy="22" r="19" fill="${bg}" stroke="${S}" stroke-width="2.4"/>
+        <circle cx="22" cy="22" r="15.5" fill="none" stroke="${rim}" stroke-width="2.5"/>
+        <g transform="translate(8, 8) scale(0.88)">${emblem}</g>
+      </svg>
+    `;
+  }
+
+  function shopArt(id, size = 62, level = 1) {
+    if (['oven', 'mixer', 'deco_table', 'display_shelf', 'counter_service', 'ingredient_pantry'].includes(id)) {
+      return equipmentArt(id, level, size);
+    }
     const body = SHOP_ART[id] || PATHS.nav_decor;
     const vb = SHOP_ART[id] ? '0 0 64 64' : '0 0 32 32';
     return `<svg viewBox="${vb}" width="${size}" height="${size}" class="sd-shop-art" aria-hidden="true">${body}</svg>`;
@@ -299,6 +418,6 @@ window.SDIcons = (() => {
     });
   }
 
-  return { icon, shopArt, hydrate, PATHS, SHOP_ART };
+  return { icon, shopArt, equipmentArt, badgeArt, hydrate, PATHS, SHOP_ART };
 })();
 

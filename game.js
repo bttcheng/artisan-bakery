@@ -29,6 +29,10 @@ window.GameManager = class GameManager {
     this.recipeCategory = 'all';
     this.displayGroupFilter = 'all';
     this.prepGroupFilter = 'all';
+    this.decorCategory = 'all';
+    this.previewDecorId = null;
+    this._justUpgradedId = null;
+    this._justDecoratedId = null;
     this.isDayActive = false;
     this.isPrepPhase = false;
     this.paused = false;
@@ -514,34 +518,69 @@ window.GameManager = class GameManager {
     lights.classList.toggle('upgraded', eq.lights === 'fairy_lights');
     lights.classList.toggle('crystal', eq.lights === 'crystal_lights');
 
-    flowers.classList.toggle('hidden', eq.plants !== 'flower_pots');
-    plantCorner.classList.toggle('hidden', eq.plants !== 'monstera_plant');
-    wallArt.classList.toggle('hidden', eq.wall_art !== 'wall_art');
-    signboard.classList.toggle('hidden', eq.signboard !== 'bakery_signboard');
-    bunting.classList.toggle('hidden', eq.counter !== 'ribbon_bunting');
+    const shopArt = (id, sz = 30) => (window.SDIcons && window.SDIcons.shopArt ? window.SDIcons.shopArt(id, sz) : '');
+    if (flowers) {
+      flowers.classList.toggle('hidden', eq.plants !== 'flower_pots');
+      if (!flowers.innerHTML) flowers.innerHTML = shopArt('flower_pots', 34);
+    }
+    if (plantCorner) {
+      plantCorner.classList.toggle('hidden', eq.plants !== 'monstera_plant');
+      if (!plantCorner.innerHTML) plantCorner.innerHTML = shopArt('monstera_plant', 38);
+    }
+    if (wallArt) {
+      wallArt.classList.toggle('hidden', eq.wall_art !== 'wall_art');
+      if (!wallArt.innerHTML) wallArt.innerHTML = shopArt('wall_art', 38);
+    }
+    if (signboard) signboard.classList.toggle('hidden', eq.signboard !== 'bakery_signboard');
+    if (bunting) bunting.classList.toggle('hidden', eq.counter !== 'ribbon_bunting');
 
-    if (eq.seating === 'cozy_seating') {
-      seating.classList.add('upgraded');
-      seating.innerHTML = '🛋️ Bộ bàn ghế nơ hồng êm ái (+10s kiên nhẫn & +6 xu tip)';
-    } else {
-      seating.classList.remove('upgraded');
-      seating.innerHTML = '🪑 Ghế chờ tiêu chuẩn';
+    if (seating) {
+      const seatArt = shopArt('cozy_seating', 22);
+      if (eq.seating === 'cozy_seating') {
+        seating.classList.add('upgraded');
+        seating.innerHTML = `${seatArt}<span>Ghế nơ hồng · +10s · +6 xu</span>`;
+      } else {
+        seating.classList.remove('upgraded');
+        seating.innerHTML = `${seatArt}<span>Khu chờ tiệm bánh</span>`;
+      }
     }
 
-    display.classList.remove('upgraded-2', 'upgraded-3');
-    const shelfLvl = this.state.upgrades.display_shelf || 1;
-    if (shelfLvl >= 2) display.classList.add(`upgraded-${shelfLvl}`);
+    if (display) {
+      display.classList.remove('upgraded-2', 'upgraded-3');
+      const shelfLvl = this.state.upgrades.display_shelf || 1;
+      if (shelfLvl >= 2) display.classList.add(`upgraded-${shelfLvl}`);
+    }
 
+    const eqArt = (id, lvl, sz = 44) => (window.SDIcons && window.SDIcons.equipmentArt ? window.SDIcons.equipmentArt(id, lvl, sz) : '');
     const ovenLvl = this.upgrades.getUpgradeLevelData('oven');
     const mixerLvl = this.upgrades.getUpgradeLevelData('mixer');
+    const decoLvl = this.upgrades.getUpgradeLevelData('deco_table');
+    const pantryLvl = this.upgrades.getUpgradeLevelData('ingredient_pantry');
+    const counterLvl = this.upgrades.getUpgradeLevelData('counter_service');
+
+    const stationBindings = [
+      ['station-art-pantry', 'ingredient_pantry', pantryLvl.level, 42, pantryLvl.name],
+      ['station-art-mixer', 'mixer', mixerLvl.level, 44, mixerLvl.name],
+      ['station-art-oven', 'oven', ovenLvl.level, 46, ovenLvl.name],
+      ['station-art-deco', 'deco_table', decoLvl.level, 44, decoLvl.name],
+      ['station-art-package', 'counter_service', counterLvl.level, 42, counterLvl.name]
+    ];
+    stationBindings.forEach(([elId, upId, lvl, sz, titleText]) => {
+      const el = document.getElementById(elId);
+      if (el) {
+        el.innerHTML = eqArt(upId, lvl, sz);
+        el.title = `${titleText} (Cấp ${lvl})`;
+      }
+    });
+
     const ovenBadge = document.getElementById('scene-oven-badge');
     const mixerBadge = document.getElementById('scene-mixer-badge');
     if (ovenBadge) {
-      ovenBadge.textContent = ovenLvl.level > 1 ? `Lò Lv.${ovenLvl.level}` : 'Lò';
+      ovenBadge.textContent = ovenLvl.level > 1 ? `Lò Lv.${ovenLvl.level}` : 'Lò Nướng';
       ovenBadge.title = ovenLvl.name;
     }
     if (mixerBadge) {
-      mixerBadge.textContent = mixerLvl.level > 1 ? `Trộn Lv.${mixerLvl.level}` : 'Trộn';
+      mixerBadge.textContent = mixerLvl.level > 1 ? `Trộn Lv.${mixerLvl.level}` : 'Máy Trộn';
       mixerBadge.title = mixerLvl.name;
     }
   }
@@ -679,20 +718,21 @@ window.GameManager = class GameManager {
         look_counter: 'nhìn về quầy',
         expectant_smile: 'mỉm cười mong đợi'
       };
+      const seatIcon = window.SDIcons ? window.SDIcons.shopArt('cozy_seating', 20) : '';
       if (seatedList.length > 0 || readyList.length > 0) {
         const parts = [];
         if (seatedList.length > 0) {
-          const names = seatedList.map(s => `${s.customer.name} (${actionMap[s.waitAction] || 'đang chờ'})`).join(', ');
-          parts.push(`🪑 Bàn chờ: ${names}`);
+          const names = seatedList.map(s => `${s.customer.name} (${actionMap[s.waitAction] || 'chờ'})`).join(', ');
+          parts.push(`Bàn chờ: ${names}`);
         }
         if (readyList.length > 0) {
-          parts.push(`✨ Đang nhận ở quầy: ${readyList.map(s => s.customer.name).join(', ')}`);
+          parts.push(`Quầy: ${readyList.map(s => s.customer.name).join(', ')}`);
         }
-        seatingEl.innerHTML = `<span>${parts.join(' • ')}</span>`;
+        seatingEl.innerHTML = `${seatIcon}<span>${parts.join(' · ')}</span>`;
       } else {
         seatingEl.innerHTML = eqSeating
-          ? '<span>🛋️ Bộ bàn ghế nơ hồng êm ái (+10s kiên nhẫn &amp; +6 xu tip)</span>'
-          : '<span>🪑 Ghế chờ tiêu chuẩn (Sẵn sàng đón khách ngồi chờ)</span>';
+          ? `${seatIcon}<span>Ghế nơ hồng · +10s · +6 xu</span>`
+          : `${seatIcon}<span>Khu chờ tiệm bánh</span>`;
       }
     }
 
@@ -700,7 +740,7 @@ window.GameManager = class GameManager {
       if (this.isPrepPhase) {
         grid.innerHTML = `
           <div class="empty-slot-placeholder">
-            <div style="font-size:2rem;">🌅</div>
+            <div class="empty-slot-ico">${window.SDIcons ? window.SDIcons.icon('oven', 32) : ''}</div>
             <p><b>Tiệm đang trong giờ chuẩn bị buổi sáng!</b><br/>Hãy soạn nguyên liệu trong Kho hàng, xem Công thức mới hoặc trang trí tiệm trước khi mở cửa.</p>
             <button id="btn-empty-open-shop" class="btn btn-primary btn-md" style="margin-top:8px;">☀️ Mở Cửa Tiệm &amp; Bắt Đầu Bán Hàng!</button>
           </div>
@@ -709,7 +749,7 @@ window.GameManager = class GameManager {
       } else {
         grid.innerHTML = `
           <div class="empty-slot-placeholder">
-            <div style="font-size:2rem;">🔔</div>
+            <div class="empty-slot-ico">${window.SDIcons ? window.SDIcons.icon('customer', 34) : ''}</div>
             <p>Đang chờ khách bước vào tiệm... Nhấn <b>Đón Khách Ngay</b> hoặc đợi trong giây lát!</p>
           </div>
         `;
@@ -725,6 +765,7 @@ window.GameManager = class GameManager {
       const cakeInfo = this.recipes.getCakeType(order.cakeType);
       const frostInfo = window.SDData.FROSTING_COLORS.find(f => f.id === order.frostingColor);
       const topInfo = window.SDData.TOPPINGS.find(t => t.id === order.topping);
+      const accInfo = window.SDData.ACCESSORIES.find(a => a.id === order.accessory);
 
       const waitActionLabels = {
         check_watch: 'Xem giờ',
@@ -803,10 +844,14 @@ window.GameManager = class GameManager {
                 <img src="${window.SDRenderer.getCakeAssetPath(order.cakeType)}" class="order-cake-badge" alt="" />
                 ${order.isSpecial ? order.specialBadge : order.orderNumber}
               </div>
-              ${window.SDRenderer.renderCake(order.targetPreview, 102)}
+              ${window.SDRenderer.renderCake(order.targetPreview, 108)}
               <div class="order-mini-specs">
-                <b>${cakeInfo.name}</b> ×${order.quantity}<br/>
-                ${frostInfo ? frostInfo.name : ''} • ${order.toppingCount} ${topInfo ? topInfo.name : ''}
+                <div class="spec-cake-title"><b>${cakeInfo.name}</b> <span class="spec-qty-pill">×${order.quantity}</span></div>
+                <div class="mini-specs-icons" title="Kem: ${frostInfo ? frostInfo.name : ''} • Topping: ${order.toppingCount} ${topInfo ? topInfo.name : ''}${accInfo && accInfo.id !== 'none' ? ' • ' + accInfo.name : ''}">
+                  <span class="spec-chip"><span class="frosting-dot" style="background:${frostInfo ? frostInfo.hex : '#FFE5EC'}"></span></span>
+                  <span class="spec-chip"><canvas class="deco-canvas-icon" data-deco-kind="topping" data-deco-id="${order.topping}" width="64" height="64" style="width:18px;height:18px;"></canvas><span>×${order.toppingCount}</span></span>
+                  ${accInfo && accInfo.id !== 'none' ? `<span class="spec-chip"><canvas class="deco-canvas-icon" data-deco-kind="accessory" data-deco-id="${accInfo.id}" width="64" height="64" style="width:18px;height:18px;"></canvas></span>` : ''}
+                </div>
               </div>
             </div>
           </div>
@@ -847,6 +892,7 @@ window.GameManager = class GameManager {
     grid.querySelectorAll('.btn-try-deliver').forEach(btn => {
       btn.addEventListener('click', () => this.deliverToCustomer(btn.dataset.orderId));
     });
+    if (window.SDCanvasIcons) window.SDCanvasIcons.paintAll(grid);
   }
 
   openOrderDetailModal(orderId) {
@@ -2238,22 +2284,160 @@ window.GameManager = class GameManager {
   }
 
   renderDecorTab() {
+    const catBar = document.getElementById('decor-category-bar');
+    const previewEl = document.getElementById('decor-room-preview');
     const grid = document.getElementById('decor-shop-grid');
     const ico = (n, sz = 13) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
-    const art = (id) => (window.SDIcons ? window.SDIcons.shopArt(id, 64) : '');
-    grid.innerHTML = window.SDData.SHOP_DECORS.map(d => {
+    const art = (id, sz = 64) => (window.SDIcons ? window.SDIcons.shopArt(id, sz) : '');
+
+    if (!this.state.decorPositions) this.state.decorPositions = {};
+
+    const categories = [
+      { id: 'all', label: 'Tất cả', icon: ico('nav_decor', 14) },
+      { id: 'lights', label: 'Đèn', icon: ico('star_level', 14) },
+      { id: 'wallpaper', label: 'Tường', icon: ico('nav_bakery', 14) },
+      { id: 'floor', label: 'Sàn', icon: ico('station_pantry', 14) },
+      { id: 'plants', label: 'Cây hoa', icon: ico('leaf', 14) },
+      { id: 'seating', label: 'Bàn ghế', icon: art('cozy_seating', 16) },
+      { id: 'wall_art', label: 'Tranh', icon: art('wall_art', 16) },
+      { id: 'signboard', label: 'Biển', icon: art('bakery_signboard', 16) },
+      { id: 'counter', label: 'Quầy', icon: art('ribbon_bunting', 16) }
+    ];
+
+    if (catBar) {
+      catBar.innerHTML = categories.map(c => `
+        <button class="decor-cat-pill ${this.decorCategory === c.id ? 'active' : ''}" data-cat="${c.id}">
+          ${c.icon}<span>${c.label}</span>
+        </button>
+      `).join('');
+      catBar.querySelectorAll('.decor-cat-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.audio.playClick();
+          this.decorCategory = btn.dataset.cat;
+          this.renderDecorTab();
+        });
+      });
+    }
+
+    if (previewEl) {
+      const eq = { ...(this.state.equippedDecors || {}) };
+      const previewItem = this.previewDecorId ? window.SDData.SHOP_DECORS.find(d => d.id === this.previewDecorId) : null;
+      const eqWallpaper = previewItem && previewItem.category === 'wallpaper' ? previewItem.id : eq.wallpaper;
+      const eqFloor = previewItem && previewItem.category === 'floor' ? previewItem.id : eq.floor;
+      const eqLights = previewItem && previewItem.category === 'lights' ? previewItem.id : eq.lights;
+
+      const defaultPos = {
+        bakery_signboard: { xPct: 24, yPct: 14 },
+        wall_art: { xPct: 50, yPct: 30 },
+        flower_pots: { xPct: 74, yPct: 48 },
+        monstera_plant: { xPct: 16, yPct: 68 },
+        cozy_seating: { xPct: 28, yPct: 75 },
+        ribbon_bunting: { xPct: 68, yPct: 73 }
+      };
+
+      const placeableIds = ['bakery_signboard', 'wall_art', 'flower_pots', 'monstera_plant', 'cozy_seating', 'ribbon_bunting'];
+      const placedSet = new Set();
+      placeableIds.forEach(pid => {
+        const item = window.SDData.SHOP_DECORS.find(d => d.id === pid);
+        if (!item) return;
+        const isEquipped = eq[item.category] === pid;
+        const isPreviewGhost = previewItem && previewItem.id === pid && !isEquipped;
+        if (isEquipped || isPreviewGhost) placedSet.add(pid);
+      });
+
+      const placedHTML = Array.from(placedSet).map(pid => {
+        const item = window.SDData.SHOP_DECORS.find(d => d.id === pid);
+        const pos = this.state.decorPositions[pid] || defaultPos[pid] || { xPct: 50, yPct: 55 };
+        const isGhost = previewItem && previewItem.id === pid && eq[item.category] !== pid;
+        const isPop = this._justDecoratedId === pid;
+        return `
+          <div class="decor-placed-item ${isGhost ? 'is-ghost' : ''} ${isPop ? 'decor-placed-pop' : ''}"
+               data-decor-place="${pid}"
+               style="left:${pos.xPct}%; top:${pos.yPct}%;"
+               title="${item.name} — Kéo thả để di chuyển vị trí">
+            ${art(pid, pid === 'cozy_seating' ? 54 : 48)}
+            <span class="decor-drag-dot">${isGhost ? 'Xem thử' : item.name}</span>
+          </div>
+        `;
+      }).join('');
+
+      previewEl.innerHTML = `
+        <div class="decor-room-stage ${eqWallpaper === 'pastel_wallpaper' ? 'wall-pastel' : eqWallpaper === 'mint_wallpaper' ? 'wall-mint' : ''} ${eqFloor === 'pastel_floor' ? 'floor-caro' : ''}">
+          <div class="room-lights-strip ${eqLights === 'fairy_lights' ? 'fairy' : eqLights === 'crystal_lights' ? 'crystal' : ''}"></div>
+          <div class="room-door-mini"></div>
+          <div class="room-window-mini"></div>
+          <div class="room-counter-mini"></div>
+          ${placedHTML}
+          <div class="decor-room-hint">
+            <span>${ico('hand_guide', 15)} Kéo thả đồ trang trí trong phòng</span>
+            <button class="btn btn-soft btn-xs" id="btn-reset-decor-pos" title="Đặt lại vị trí mặc định">Đặt lại</button>
+          </div>
+        </div>
+      `;
+
+      const stage = previewEl.querySelector('.decor-room-stage');
+      previewEl.querySelectorAll('[data-decor-place]').forEach(node => {
+        node.addEventListener('pointerdown', (ev) => {
+          ev.preventDefault();
+          const pid = node.dataset.decorPlace;
+          const rect = stage.getBoundingClientRect();
+          node.classList.add('dragging');
+          if (node.setPointerCapture) node.setPointerCapture(ev.pointerId);
+
+          const updatePos = (clientX, clientY) => {
+            const xPct = Math.max(10, Math.min(90, Math.round(((clientX - rect.left) / rect.width) * 100)));
+            const yPct = Math.max(14, Math.min(84, Math.round(((clientY - rect.top) / rect.height) * 100)));
+            node.style.left = `${xPct}%`;
+            node.style.top = `${yPct}%`;
+            this.state.decorPositions[pid] = { xPct, yPct };
+          };
+
+          const onMove = (mEv) => updatePos(mEv.clientX, mEv.clientY);
+          const onUp = () => {
+            node.classList.remove('dragging');
+            node.removeEventListener('pointermove', onMove);
+            node.removeEventListener('pointerup', onUp);
+            node.removeEventListener('pointercancel', onUp);
+            this.saveManager.save(this.state);
+            this.applyShopVisualUpgrades();
+          };
+          node.addEventListener('pointermove', onMove);
+          node.addEventListener('pointerup', onUp);
+          node.addEventListener('pointercancel', onUp);
+        });
+      });
+
+      const resetBtn = document.getElementById('btn-reset-decor-pos');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          this.audio.playClick();
+          this.state.decorPositions = this.saveManager.createDefaultState().decorPositions;
+          this.saveManager.save(this.state);
+          this.applyShopVisualUpgrades();
+          this.renderDecorTab();
+        });
+      }
+    }
+
+    const filtered = this.decorCategory === 'all'
+      ? window.SDData.SHOP_DECORS
+      : window.SDData.SHOP_DECORS.filter(d => d.category === this.decorCategory);
+
+    grid.innerHTML = filtered.map(d => {
       const owned = this.upgrades.hasDecor(d.id);
       const equipped = this.upgrades.isDecorEquipped(d.id);
+      const isPreview = this.previewDecorId === d.id;
+      const isPop = this._justDecoratedId === d.id;
       return `
-        <div class="info-card visual-shop-card ${equipped ? 'equipped-card' : ''}" title="${d.desc}">
+        <div class="info-card visual-shop-card decor-catalog-card ${equipped ? 'equipped-card' : ''} ${isPreview ? 'preview-selected' : ''} ${isPop ? 'decor-placed-pop' : ''}" data-preview-id="${d.id}" title="${d.desc}">
           <div class="shop-card-visual">
-            ${art(d.id)}
+            ${art(d.id, 62)}
             <span class="decor-cat-badge">${d.catName}</span>
           </div>
           <h4>${d.name}</h4>
           <div class="visual-stat-row">
-            <span class="mini-stat-pill">${ico('coin')} +${d.tipBonus} tip</span>
-            <span class="mini-stat-pill">${ico('clock')} +${d.patienceBonus}s</span>
+            <span class="mini-stat-pill">${ico('coin', 12)} +${d.tipBonus}</span>
+            <span class="mini-stat-pill">${ico('clock', 12)} +${d.patienceBonus}s</span>
           </div>
           ${owned
             ? `<button class="btn ${equipped ? 'btn-mint' : 'btn-lavender'} btn-sm btn-equip-decor" data-decor="${d.id}" title="${equipped ? 'Nhấn để cất vật phẩm' : 'Nhấn để trưng bày'}">
@@ -2266,12 +2450,26 @@ window.GameManager = class GameManager {
         </div>
       `;
     }).join('');
+    this._justDecoratedId = null;
+
+    grid.querySelectorAll('.decor-catalog-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        this.audio.playClick();
+        const pid = card.dataset.previewId;
+        this.previewDecorId = this.previewDecorId === pid ? null : pid;
+        this.renderDecorTab();
+      });
+    });
 
     grid.querySelectorAll('.btn-buy-decor').forEach(btn => {
       btn.addEventListener('click', () => {
         const res = this.upgrades.buyDecor(btn.dataset.decor);
         if (!res.ok) return this.showToast(res.reason, 'error');
-        this.showToast(`✨ Đã mua và trang trí ${res.item.name} vào tiệm!`, 'success');
+        this._justDecoratedId = res.item.id;
+        this.previewDecorId = res.item.id;
+        this.spawnConfettiFX();
+        this.showToast(`✨ Đã mua và trang trí ${res.item.name}!`, 'success');
         const newAchs = this.upgrades.checkAchievements();
         newAchs.forEach(a => this.showToast(`🏆 Mở khóa thành tích: ${a.title} (+${a.rewardCoins} xu)!`, 'success'));
         this.applyShopVisualUpgrades();
@@ -2284,6 +2482,10 @@ window.GameManager = class GameManager {
       btn.addEventListener('click', () => {
         const res = this.upgrades.toggleEquipDecor(btn.dataset.decor);
         if (!res.ok) return;
+        if (res.equipped) {
+          this._justDecoratedId = res.item.id;
+          this.previewDecorId = res.item.id;
+        }
         this.showToast(res.equipped ? `✨ Đang trưng bày ${res.item.name}!` : `Đã cất ${res.item.name}.`, 'info');
         this.applyShopVisualUpgrades();
         this.updateHUD();
@@ -2295,13 +2497,13 @@ window.GameManager = class GameManager {
   renderUpgradesTab() {
     const grid = document.getElementById('upgrades-grid');
     const ico = (n, sz = 14) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
-    const art = (id) => (window.SDIcons ? window.SDIcons.shopArt(id, 66) : '');
+    const eqArt = (id, lvl) => (window.SDIcons && window.SDIcons.equipmentArt ? window.SDIcons.equipmentArt(id, lvl, 86) : '');
     const statLabel = (uId, lvl) => {
-      if (uId === 'oven') return `${Math.round(lvl.speedMult * 100)}% tốc độ • ${lvl.perfectWindow}s chín`;
-      if (uId === 'mixer') return `${Math.round(lvl.speedMult * 100)}% nhanh • +${lvl.bonusQuality || 0} điểm`;
+      if (uId === 'oven') return `${Math.round(lvl.speedMult * 100)}% tốc độ · ${lvl.perfectWindow}s`;
+      if (uId === 'mixer') return `${Math.round(lvl.speedMult * 100)}% nhanh · +${lvl.bonusQuality || 0}đ`;
       if (uId === 'deco_table') return `+${lvl.tipBonus || 0} xu tip`;
       if (uId === 'display_shelf') return `+${lvl.patienceBonus || 0}s chờ`;
-      if (uId === 'counter_service') return `+${lvl.extraSlots || 0} chỗ • +${lvl.patienceBonus || 0}s`;
+      if (uId === 'counter_service') return `+${lvl.extraSlots || 0} chỗ · +${lvl.patienceBonus || 0}s`;
       if (uId === 'ingredient_pantry') return `-${lvl.discountPct || 0}% giá kho`;
       return '';
     };
@@ -2309,31 +2511,40 @@ window.GameManager = class GameManager {
     grid.innerHTML = window.SDData.EQUIPMENT_UPGRADES.map(u => {
       const cur = this.upgrades.getUpgradeLevelData(u.id);
       const next = this.upgrades.getNextUpgradeLevelData(u.id);
-      const pips = u.levels.map(l => `<span class="lvl-pip ${l.level <= cur.level ? 'on' : ''}"></span>`).join('');
+      const stars = u.levels.map(l => `<span class="lvl-star ${l.level <= cur.level ? 'on' : ''}">${ico('star_level', 14)}</span>`).join('');
+      const isPop = this._justUpgradedId === u.id;
       return `
-        <div class="info-card visual-shop-card" title="${cur.name} — ${u.desc}">
-          <div class="shop-card-visual">
-            ${art(u.id)}
-            <div class="lvl-pips" title="Cấp ${cur.level}/${u.levels.length}">${pips}</div>
+        <div class="info-card visual-shop-card kitchen-upgrade-card lv-${cur.level} ${isPop ? 'upgrade-pop-fx' : ''}" title="${cur.name} — ${u.desc}">
+          <div class="upgrade-card-top">
+            <span class="upgrade-lvl-badge">Cấp ${cur.level}/${u.levels.length}</span>
+            <div class="lvl-stars">${stars}</div>
           </div>
-          <h4>${u.name}</h4>
+          <div class="upgrade-bench-stage">
+            ${eqArt(u.id, cur.level)}
+          </div>
+          <h4>${cur.name}</h4>
           <div class="visual-stat-row">
-            <span class="mini-stat-pill">${ico('star_level', 12)} ${statLabel(u.id, cur)}</span>
+            <span class="mini-stat-pill">${statLabel(u.id, cur)}</span>
+            ${next ? `<span class="mini-stat-pill next-pill">→ ${statLabel(u.id, next)}</span>` : ''}
           </div>
           ${next
-            ? `<button class="btn btn-butter btn-sm btn-buy-upg" data-upg="${u.id}" title="Nâng lên: ${next.name}">
+            ? `<button class="btn btn-butter btn-sm btn-buy-upg" data-upg="${u.id}" title="Nâng cấp lên ${next.name}">
                 ${ico('nav_upgrades', 15)} Lv.${next.level} • ${next.price} xu
                </button>`
-            : `<button class="btn btn-mint btn-sm" disabled>${ico('check_accept', 14)} Tối Đa</button>`
+            : `<button class="btn btn-mint btn-sm" disabled>${ico('check_accept', 14)} Đạt Tối Đa</button>`
           }
         </div>
       `;
     }).join('');
+    this._justUpgradedId = null;
 
     grid.querySelectorAll('.btn-buy-upg').forEach(btn => {
       btn.addEventListener('click', () => {
-        const res = this.upgrades.buyEquipmentUpgrade(btn.dataset.upg);
+        const upgId = btn.dataset.upg;
+        const res = this.upgrades.buyEquipmentUpgrade(upgId);
         if (!res.ok) return this.showToast(res.reason, 'error');
+        this._justUpgradedId = upgId;
+        this.spawnConfettiFX();
         this.showToast(`🛠️ Đã nâng cấp lên ${res.next.name}!`, 'success');
         const newAchs = this.upgrades.checkAchievements();
         newAchs.forEach(a => this.showToast(`🏆 Mở khóa thành tích: ${a.title} (+${a.rewardCoins} xu)!`, 'success'));
@@ -2344,37 +2555,74 @@ window.GameManager = class GameManager {
     });
   }
 
+  openInfoDetailModal(title, badgeHtml, desc, rewardHtml) {
+    this.audio.playClick();
+    const titleEl = document.getElementById('md-order-title');
+    const bodyEl = document.getElementById('md-order-body');
+    const acceptOnlyBtn = document.getElementById('btn-accept-only-order');
+    const bakeBtn = document.getElementById('btn-accept-bake-order');
+    if (titleEl) titleEl.textContent = title;
+    if (acceptOnlyBtn) acceptOnlyBtn.classList.add('hidden');
+    if (bakeBtn) bakeBtn.classList.add('hidden');
+    if (bodyEl) {
+      bodyEl.innerHTML = `
+        <div class="detail-badge-modal">
+          <div class="detail-badge-art">${badgeHtml}</div>
+          <p class="detail-badge-desc">${desc}</p>
+          <div class="detail-badge-rewards">${rewardHtml}</div>
+        </div>
+      `;
+    }
+    this.openModal('modal-order-detail');
+  }
+
   renderAchievementsTab() {
     const ico = (n, sz = 14) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
+    const badgeArt = (id, unlocked, sz = 54) => (window.SDIcons && window.SDIcons.badgeArt ? window.SDIcons.badgeArt(id, unlocked, sz) : ico('nav_achievements', sz));
+
     const qGrid = document.getElementById('quests-grid');
     qGrid.innerHTML = this.state.dailyQuests.map(q => {
       const pct = Math.min(100, Math.round((q.progress / q.target) * 100));
       const ready = q.progress >= q.target && !q.claimed;
       return `
-        <div class="info-card visual-card">
-          <div class="info-card-top">
-            ${ico('star_level', 30)}
-            <div style="flex:1;">
-              <h4>${q.title}</h4>
-              <div class="visual-stat-row">
-                <span class="mini-stat-pill">${ico('coin', 12)} +${q.rewardCoins}</span>
-                <span class="mini-stat-pill">+${q.rewardXp} EXP</span>
-                <span class="mini-stat-pill">${q.progress}/${q.target}</span>
-              </div>
+        <div class="info-card visual-card quest-ribbon-card ${ready ? 'quest-ready' : ''} ${q.claimed ? 'quest-claimed' : ''}" data-qid-card="${q.id}" title="Nhấn để xem chi tiết nhiệm vụ">
+          <div class="quest-ribbon-badge">${badgeArt(q.id, q.claimed || ready, 50)}</div>
+          <div class="quest-ribbon-body">
+            <h4>${q.title}</h4>
+            <div class="visual-stat-row">
+              <span class="mini-stat-pill">${ico('coin', 12)} +${q.rewardCoins}</span>
+              <span class="mini-stat-pill">+${q.rewardXp} EXP</span>
+              <span class="mini-stat-pill">${q.progress}/${q.target}</span>
             </div>
+            <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
           </div>
-          <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
           <button class="btn ${ready ? 'btn-mint' : 'btn-soft'} btn-xs btn-claim-quest" data-qid="${q.id}" ${ready ? '' : 'disabled'}>
-            ${q.claimed ? `${ico('check_accept', 13)} Đã Nhận` : ready ? `${ico('gift_box', 13)} Nhận Thưởng` : `${ico('clock', 13)} ${q.progress}/${q.target}`}
+            ${q.claimed ? `${ico('check_accept', 13)} Xong` : ready ? `${ico('gift_box', 13)} Nhận` : `${pct}%`}
           </button>
         </div>
       `;
     }).join('');
 
+    qGrid.querySelectorAll('.quest-ribbon-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        const q = this.state.dailyQuests.find(item => item.id === card.dataset.qidCard);
+        if (!q) return;
+        const done = q.claimed || q.progress >= q.target;
+        this.openInfoDetailModal(
+          q.title,
+          badgeArt(q.id, done, 78),
+          `Tiến độ hiện tại: ${q.progress}/${q.target}. Hoàn thành để nhận thưởng mỗi ngày!`,
+          `<span class="mini-stat-pill">${ico('coin', 14)} +${q.rewardCoins} xu</span> <span class="mini-stat-pill">+${q.rewardXp} EXP</span>`
+        );
+      });
+    });
+
     qGrid.querySelectorAll('.btn-claim-quest').forEach(btn => {
       btn.addEventListener('click', () => {
         const res = this.upgrades.claimQuest(btn.dataset.qid);
         if (res) {
+          this.spawnConfettiFX();
           this.showToast(`🎁 Nhận +${res.quest.rewardCoins} xu & +${res.quest.rewardXp} EXP!`, 'success');
           const newAchs = this.upgrades.checkAchievements();
           newAchs.forEach(a => this.showToast(`🏆 Mở khóa thành tích: ${a.title} (+${a.rewardCoins} xu)!`, 'success'));
@@ -2391,21 +2639,34 @@ window.GameManager = class GameManager {
       const target = a.target || 1;
       const pct = Math.min(100, Math.round((curProg / target) * 100));
       return `
-        <div class="info-card visual-card ${unlocked ? '' : 'locked'}" title="${a.desc}">
-          <div class="info-card-top">
-            ${ico('nav_achievements', 32)}
-            <div style="flex:1;">
-              <h4>${a.title}</h4>
-              <div class="visual-stat-row">
-                <span class="mini-stat-pill">${ico('coin', 12)} +${a.rewardCoins}</span>
-                <span class="mini-stat-pill ${unlocked ? 'ok' : ''}">${curProg}/${target}${unlocked ? ' ✓' : ''}</span>
-              </div>
-            </div>
+        <div class="info-card trophy-card ${unlocked ? 'unlocked' : 'locked'}" data-ach-id="${a.id}" title="Nhấn để xem chi tiết huy hiệu">
+          <div class="trophy-medallion-wrap">
+            ${badgeArt(a.id, unlocked, 64)}
+          </div>
+          <h4>${a.title}</h4>
+          <div class="visual-stat-row">
+            <span class="mini-stat-pill">${ico('coin', 12)} +${a.rewardCoins}</span>
+            <span class="mini-stat-pill ${unlocked ? 'ok' : ''}">${curProg}/${target}</span>
           </div>
           <div class="quest-bar"><div class="quest-bar-fill" style="width:${pct}%"></div></div>
         </div>
       `;
     }).join('');
+
+    aGrid.querySelectorAll('.trophy-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const a = window.SDData.ACHIEVEMENTS.find(item => item.id === card.dataset.achId);
+        if (!a) return;
+        const unlocked = this.state.unlockedAchievements.includes(a.id);
+        const curProg = typeof a.progress === 'function' ? Math.min(a.target, a.progress(this.state)) : (unlocked ? 1 : 0);
+        this.openInfoDetailModal(
+          a.title,
+          badgeArt(a.id, unlocked, 84),
+          `${a.desc} (${curProg}/${a.target || 1})`,
+          `<span class="mini-stat-pill">${ico('coin', 14)} Thưởng: +${a.rewardCoins} xu</span> <span class="mini-stat-pill ${unlocked ? 'ok' : ''}">${unlocked ? 'Đã mở khóa' : 'Chưa mở khóa'}</span>`
+        );
+      });
+    });
   }
 
   // --------------------------------------------------------------------------

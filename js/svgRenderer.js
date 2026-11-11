@@ -230,7 +230,7 @@ window.SDRenderer = (() => {
         <!-- Head -->
         <circle cx="55" cy="50" r="28" fill="${c.skinColor}" stroke="#4A3531" stroke-width="2.3"/>
         ${blush}
-        ${eyes}
+        <g class="chibi-eyes">${eyes}</g>
         ${brows}
         ${mouth}
         ${hairFront}
