@@ -2226,6 +2226,59 @@ html, body {
 }
 
 /* ============================================================================
+   UNIFIED 2D CARTOON ICON SYSTEM & COACH-MARK ANIMATIONS
+   ============================================================================ */
+.sd-ico {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.btn, .hud-pill, .hud-logo, .step-item, .panel-header h2, .display-title, .counter-header > span, .ref-checklist li, .cust-state-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn { justify-content: center; }
+.nav-btn { justify-content: center; }
+.counter-header > span { flex-wrap: wrap; }
+.panel-header h2 { margin: 0; }
+.ref-checklist li { width: 100%; }
+
+.kitchen-station {
+  gap: 3px;
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+
+.coach-glow {
+  position: relative;
+  animation: coachPulse 1.4s infinite ease-in-out !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.32), 0 6px 14px rgba(255, 117, 151, 0.35) !important;
+}
+
+.coach-hand {
+  position: absolute;
+  top: -16px;
+  right: -6px;
+  pointer-events: none;
+  z-index: 15;
+  animation: handPoint 0.9s infinite ease-in-out;
+  filter: drop-shadow(0 2px 3px rgba(74, 53, 49, 0.25));
+}
+
+@keyframes coachPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes handPoint {
+  0%, 100% { transform: translate(0, 0) rotate(-10deg); }
+  50% { transform: translate(-3px, 5px) rotate(-18deg); }
+}
+
+/* ============================================================================
    RESPONSIVE BREAKPOINTS (Compact Desktop, Tablet & Mobile Single-Screen)
    ============================================================================ */
 @media (max-height: 800px) {

@@ -99,6 +99,15 @@ window.GameManager = class GameManager {
     this.bindBakeryActions();
     this.bindWorkshopActions();
     this.bindPointerDragAndDrop();
+    if (window.SDIcons) window.SDIcons.hydrate(document);
+  }
+
+  markGuideSeen(key) {
+    if (!this.state.guidesSeen) this.state.guidesSeen = {};
+    if (!this.state.guidesSeen[key]) {
+      this.state.guidesSeen[key] = true;
+      this.saveManager.save(this.state);
+    }
   }
 
   renderIntroHero() {
@@ -434,21 +443,30 @@ window.GameManager = class GameManager {
     document.getElementById('hud-served').textContent = this.state.stats.customersServed;
     document.getElementById('hud-rep').textContent = this.state.reputation;
     document.getElementById('max-cust-label').textContent = this.customers.getMaxConcurrent();
-    document.getElementById('btn-sound-quick').textContent = this.state.settings.soundEnabled ? '🔊' : '🔇';
+    const soundBtn = document.getElementById('btn-sound-quick');
+    if (soundBtn) {
+      soundBtn.innerHTML = window.SDIcons
+        ? window.SDIcons.icon(this.state.settings.soundEnabled ? 'sound_on' : 'sound_off', 18)
+        : (this.state.settings.soundEnabled ? 'ON' : 'OFF');
+    }
 
     // Update clock (08:00 -> 20:00) or Prep Phase
     const clockEl = document.getElementById('hud-clock');
     const endDayBtn = document.getElementById('btn-end-day');
     if (this.isPrepPhase) {
       clockEl.textContent = 'Chuẩn bị';
-      if (endDayBtn) endDayBtn.textContent = '☀️ Mở Cửa';
+      if (endDayBtn) {
+        endDayBtn.innerHTML = `${window.SDIcons ? window.SDIcons.icon('sun_day', 16) : ''} Mở Cửa`;
+      }
     } else {
       const ratio = Math.min(1, this.dayElapsed / this.dayDuration);
       const totalMinutes = Math.round(8 * 60 + ratio * 12 * 60);
       const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
       const mm = String(Math.floor((totalMinutes % 60) / 10) * 10).padStart(2, '0');
       clockEl.textContent = `${hh}:${mm}`;
-      if (endDayBtn) endDayBtn.textContent = '🌙 Kết Ngày';
+      if (endDayBtn) {
+        endDayBtn.innerHTML = `${window.SDIcons ? window.SDIcons.icon('moon_endday', 16) : ''} Kết Ngày`;
+      }
     }
 
     const prepBanner = document.getElementById('prep-phase-banner');
@@ -516,8 +534,16 @@ window.GameManager = class GameManager {
 
     const ovenLvl = this.upgrades.getUpgradeLevelData('oven');
     const mixerLvl = this.upgrades.getUpgradeLevelData('mixer');
-    document.getElementById('scene-oven-badge').textContent = `🔥 ${ovenLvl.name}`;
-    document.getElementById('scene-mixer-badge').textContent = `🥄 ${mixerLvl.name}`;
+    const ovenBadge = document.getElementById('scene-oven-badge');
+    const mixerBadge = document.getElementById('scene-mixer-badge');
+    if (ovenBadge) {
+      ovenBadge.textContent = ovenLvl.level > 1 ? `Lò Lv.${ovenLvl.level}` : 'Lò';
+      ovenBadge.title = ovenLvl.name;
+    }
+    if (mixerBadge) {
+      mixerBadge.textContent = mixerLvl.level > 1 ? `Trộn Lv.${mixerLvl.level}` : 'Trộn';
+      mixerBadge.title = mixerLvl.name;
+    }
   }
 
   renderDisplayCakes() {
@@ -546,8 +572,8 @@ window.GameManager = class GameManager {
     row.innerHTML = list.map(c => {
       const unlocked = c.unlockLevel <= this.state.level;
       return `
-        <div class="display-cake-slot clickable-display-cake ${unlocked ? '' : 'locked'}" data-cake-id="${c.id}" title="${c.name} – Nhấn để xem chi tiết">
-          <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" class="cake-asset-img" style="width:54px;height:54px;" alt="${c.name}" />
+        <div class="display-cake-slot clickable-display-cake ${unlocked ? '' : 'locked'}" data-cake-id="${c.id}" title="${c.name} — Chạm xem công thức">
+          <img src="${window.SDRenderer.getCakeAssetPath(c.id)}" class="cake-asset-img" style="width:62px;height:62px;" alt="${c.name}" />
           <span class="display-cake-name">${c.name}</span>
         </div>
       `;
@@ -691,26 +717,29 @@ window.GameManager = class GameManager {
       return;
     }
 
-    grid.innerHTML = this.customers.slots.map(slot => {
+    const needAcceptCoach = !(this.state.guidesSeen && this.state.guidesSeen.accept_order);
+    const ico = (name, sz = 14) => (window.SDIcons ? window.SDIcons.icon(name, sz) : '');
+
+    grid.innerHTML = this.customers.slots.map((slot, sIdx) => {
       const { customer, order, patience, maxPatience, accepted, mood, status, waitAction, speech, waving } = slot;
       const cakeInfo = this.recipes.getCakeType(order.cakeType);
       const frostInfo = window.SDData.FROSTING_COLORS.find(f => f.id === order.frostingColor);
       const topInfo = window.SDData.TOPPINGS.find(t => t.id === order.topping);
 
       const waitActionLabels = {
-        check_watch: '⌚ Đang xem đồng hồ...',
-        look_counter: '👀 Đang nhìn về quầy...',
-        expectant_smile: '😊 Đang mỉm cười mong đợi...'
+        check_watch: 'Xem giờ',
+        look_counter: 'Đợi bánh',
+        expectant_smile: 'Háo hức'
       };
 
       const isSeated = accepted && status === 'seated';
       const isReadyPickup = status === 'ready_pickup';
 
-      let statusChip = '<span class="cust-state-chip unaccepted">🛎️ Chờ tiếp nhận đơn</span>';
+      let statusChip = `<span class="cust-state-chip unaccepted">${ico('bell_call', 12)} Chờ nhận</span>`;
       if (isSeated) {
-        statusChip = `<span class="cust-state-chip seated">🪑 Ngồi bàn chờ • ${waitActionLabels[waitAction] || 'Đang đợi bánh'}</span>`;
+        statusChip = `<span class="cust-state-chip seated">${ico('clock', 12)} Ngồi bàn • ${waitActionLabels[waitAction] || 'Đang đợi'}</span>`;
       } else if (isReadyPickup) {
-        statusChip = '<span class="cust-state-chip ready">✨ Đã đứng dậy tới quầy nhận bánh!</span>';
+        statusChip = `<span class="cust-state-chip ready">${ico('gift_box', 12)} Chờ lấy bánh!</span>`;
       }
 
       let timerRowHTML = '';
@@ -719,50 +748,51 @@ window.GameManager = class GameManager {
         const targetDur = Math.max(30, order.targetDuration || 65);
         const overtime = Math.max(0, execElapsed - targetDur);
         const execPct = Math.min(100, Math.round((execElapsed / targetDur) * 100));
-        let speedBadge = 'Đúng tiến độ (Đủ tip)';
+        let speedBadge = 'Đúng giờ';
         let barColor = 'patience-green';
         if (overtime > 120) {
-          speedBadge = `Trễ >120s • Vẫn giao được`;
+          speedBadge = 'Vẫn giao được';
           barColor = 'patience-red';
         } else if (overtime >= 60) {
-          speedBadge = `Trễ ${overtime}s • Giảm tip`;
+          speedBadge = `+${overtime}s`;
           barColor = 'patience-yellow';
         } else if (overtime > 0) {
-          speedBadge = `Trễ ${overtime}s (<60s)`;
+          speedBadge = `+${overtime}s`;
           barColor = 'patience-yellow';
         }
         timerRowHTML = `
-          <div class="patience-wrap exec-timer-wrap" title="Thời gian thực hiện không đuổi khách — hoàn thành đúng mục tiêu để nhận đủ tip & thưởng danh tiếng">
-            <span>🍰 ${execElapsed}s / ${targetDur}s</span>
+          <div class="patience-wrap exec-timer-wrap" title="Thời gian làm bánh mục tiêu ${targetDur}s để nhận đủ tip">
+            <span>${ico('clock', 13)} ${execElapsed}/${targetDur}s</span>
             <div class="patience-bar"><div class="patience-fill ${barColor}" style="width:${execPct}%"></div></div>
-            <small class="speed-hint-text">${isReadyPickup ? 'Hoàn tất!' : speedBadge}</small>
+            <small class="speed-hint-text">${isReadyPickup ? 'Xong!' : speedBadge}</small>
           </div>
         `;
       } else {
         const pct = Math.max(0, Math.min(100, Math.round((patience / maxPatience) * 100)));
         const barClass = pct > 50 ? 'patience-green' : pct > 20 ? 'patience-yellow' : 'patience-red';
         timerRowHTML = `
-          <div class="patience-wrap" title="Thời gian chờ tiếp nhận đơn (180–240s). Dừng ngay khi bạn nhận đơn!">
-            <span>⏳ Chờ nhận: ${Math.ceil(patience)}s</span>
+          <div class="patience-wrap" title="Thời gian chờ tiếp nhận đơn">
+            <span>${ico('clock', 13)} ${Math.ceil(patience)}s</span>
             <div class="patience-bar"><div class="patience-fill ${barClass}" style="width:${pct}%"></div></div>
           </div>
         `;
       }
 
       const charHtml = window.SDRenderer.renderCharacter(customer, mood, {
-        width: 88,
-        height: 108,
+        width: 96,
+        height: 118,
         wave: waving || isReadyPickup,
         seated: isSeated,
         waitAction: isSeated ? waitAction : ''
       });
 
       const hasReadyForThis = this.readyPackage && this.readyPackage.orderId === order.orderId;
+      const showCoachHere = needAcceptCoach && sIdx === 0 && !accepted;
 
       return `
         <div class="customer-card ${status} ${accepted ? 'accepted-order' : ''} ${order.isSpecial ? 'special-order' : ''}" data-order-id="${order.orderId}">
           ${statusChip}
-          <div class="speech-bubble">${speech}</div>
+          <div class="speech-bubble" title="${speech}">${speech}</div>
           <div class="customer-main-row">
             <div class="customer-avatar-col">
               ${charHtml}
@@ -770,10 +800,10 @@ window.GameManager = class GameManager {
             </div>
             <div class="order-mini-preview">
               <div class="order-code-tag">
-                <img src="${window.SDRenderer.getCakeAssetPath(order.cakeType, order.batter, order.frostingColor)}" class="order-cake-badge" alt="" />
-                ${order.isSpecial ? order.specialBadge : `ĐƠN ${order.orderNumber}`}
+                <img src="${window.SDRenderer.getCakeAssetPath(order.cakeType)}" class="order-cake-badge" alt="" />
+                ${order.isSpecial ? order.specialBadge : order.orderNumber}
               </div>
-              ${window.SDRenderer.renderCake(order.targetPreview, 96)}
+              ${window.SDRenderer.renderCake(order.targetPreview, 102)}
               <div class="order-mini-specs">
                 <b>${cakeInfo.name}</b> ×${order.quantity}<br/>
                 ${frostInfo ? frostInfo.name : ''} • ${order.toppingCount} ${topInfo ? topInfo.name : ''}
@@ -782,11 +812,11 @@ window.GameManager = class GameManager {
           </div>
           ${timerRowHTML}
           <div class="customer-actions">
-            <button class="btn btn-soft btn-xs btn-inspect-order" data-order-id="${order.orderId}">🔍 Xem Đơn</button>
-            ${!accepted ? `<button class="btn btn-mint btn-xs btn-accept-card-order" data-order-id="${order.orderId}">✅ Nhận</button>` : ''}
+            <button class="btn btn-soft btn-xs btn-inspect-order" data-order-id="${order.orderId}" title="Xem chi tiết yêu cầu">${ico('inspect', 14)} Xem</button>
+            ${!accepted ? `<button class="btn btn-mint btn-xs btn-accept-card-order ${showCoachHere ? 'coach-glow' : ''}" data-order-id="${order.orderId}" title="Nhận đơn để khách ngồi chờ">${ico('check_accept', 14)} Nhận</button>` : ''}
             ${this.readyPackage
-              ? `<button class="btn ${hasReadyForThis ? 'btn-mint' : 'btn-danger'} btn-xs btn-try-deliver" data-order-id="${order.orderId}">🎁 Giao Bánh</button>`
-              : `<button class="btn btn-primary btn-xs btn-bake-order" data-order-id="${order.orderId}">${accepted ? '👩‍🍳 Tiếp Tục' : '👩‍🍳 Làm Bánh'}</button>`
+              ? `<button class="btn ${hasReadyForThis ? 'btn-mint' : 'btn-danger'} btn-xs btn-try-deliver" data-order-id="${order.orderId}" title="Giao bánh cho khách">${ico('gift_box', 14)} Giao</button>`
+              : `<button class="btn btn-primary btn-xs btn-bake-order ${showCoachHere ? 'coach-glow' : ''}" data-order-id="${order.orderId}" title="Vào bếp làm đơn này">${ico('chef_hat', 14)} ${accepted ? 'Tiếp Tục' : 'Làm'}${showCoachHere ? `<span class="coach-hand">${ico('hand_guide', 22)}</span>` : ''}</button>`
             }
           </div>
         </div>
@@ -798,17 +828,21 @@ window.GameManager = class GameManager {
     });
     grid.querySelectorAll('.btn-accept-card-order').forEach(btn => {
       btn.addEventListener('click', () => {
+        this.markGuideSeen('accept_order');
         const s = this.customers.acceptOrder(btn.dataset.orderId);
         if (s) {
           this.audio.playSuccess();
-          this.showToast(`✅ Đã tiếp nhận Đơn ${s.order.orderNumber}! ${s.customer.name} đã vào bàn chờ.`, 'success');
+          this.showToast(`Đã nhận ${s.order.orderNumber} (${s.customer.name} ngồi bàn chờ)`, 'success');
           this.renderBakeryCustomers();
           this.renderOrdersTab();
         }
       });
     });
     grid.querySelectorAll('.btn-bake-order').forEach(btn => {
-      btn.addEventListener('click', () => this.openWorkshopForOrder(btn.dataset.orderId));
+      btn.addEventListener('click', () => {
+        this.markGuideSeen('accept_order');
+        this.openWorkshopForOrder(btn.dataset.orderId);
+      });
     });
     grid.querySelectorAll('.btn-try-deliver').forEach(btn => {
       btn.addEventListener('click', () => this.deliverToCustomer(btn.dataset.orderId));
@@ -847,17 +881,17 @@ window.GameManager = class GameManager {
     const card = order.card && order.card !== 'none' ? window.SDData.BOX_CARDS.find(c => c.id === order.card) : null;
     const sticker = order.sticker && order.sticker !== 'none' ? window.SDData.BOX_STICKERS.find(st => st.id === order.sticker) : null;
     const targetDur = order.targetDuration || 65;
+    const ico = (n) => (window.SDIcons ? window.SDIcons.icon(n, 14) : '');
 
     return `
-      <div class="ref-preview-box">${window.SDRenderer.renderCake(order.targetPreview, 155)}</div>
+      <div class="ref-preview-box">${window.SDRenderer.renderCake(order.targetPreview, 150)}</div>
       <ul class="ref-checklist">
-        <li><b>Loại bánh:</b> ${cake.name} (SL: ${order.quantity})</li>
-        <li><b>Cốt bánh:</b> ${batter.name}</li>
-        <li><b>Kem phủ:</b> ${frost ? frost.name : ''} (${nozzle ? nozzle.name : ''})</li>
-        <li><b>Topping:</b> ${order.toppingCount} × ${top ? top.name : 'Không'}</li>
-        <li><b>Phụ kiện:</b> ${acc ? `${order.accCount} × ${acc.name}` : 'Không'}${extraAcc ? ` + ${extraAcc.name}` : ''}</li>
-        <li><b>Đóng gói:</b> ${box ? box.name : ''} + ${ribbon ? ribbon.name : ''}${card ? ` + ${card.name}` : ''}${sticker ? ` + ${sticker.name}` : ''}</li>
-        <li><b>⏱️ Mục tiêu hoàn thành:</b> ${targetDur}s (Chỉ tính thưởng tốc độ)</li>
+        <li>${ico('cupcake_logo')} <b>${cake.name}</b> ×${order.quantity} • ${batter.name}</li>
+        <li>${ico('piping_bag')} ${frost ? frost.name : ''} (${nozzle ? nozzle.name : ''})</li>
+        <li>${ico('berry_topping')} ${order.toppingCount}× ${top ? top.name : 'Không'}</li>
+        ${acc ? `<li>${ico('candle_acc')} ${order.accCount}× ${acc.name}${extraAcc ? ` + ${extraAcc.name}` : ''}</li>` : ''}
+        <li>${ico('gift_box')} ${box ? box.name : ''} + ${ribbon ? ribbon.name : ''}${card ? ` + ${card.name}` : ''}${sticker ? ` + ${sticker.name}` : ''}</li>
+        <li>${ico('clock')} Mục tiêu: <b>${targetDur}s</b></li>
       </ul>
     `;
   }
@@ -899,12 +933,13 @@ window.GameManager = class GameManager {
 
     this.audio.playClick();
     document.getElementById('view-workshop').classList.remove('hidden');
-    document.getElementById('ws-order-badge').textContent = `Đơn ${order.orderNumber}`;
+    document.getElementById('ws-order-badge').textContent = order.orderNumber;
     const orderRef = document.getElementById('workshop-order-ref');
     orderRef.classList.toggle('mobile-collapsed', window.innerWidth <= 900);
+    const ordIco = window.SDIcons ? window.SDIcons.icon('nav_orders', 16) : '';
     orderRef.innerHTML = `
       <div class="order-ref-header" id="btn-toggle-order-ref" role="button" tabindex="0">
-        <h4>📋 Yêu Cầu Của Khách</h4>
+        <h4>${ordIco} Mẫu Đơn</h4>
         <span class="order-ref-toggle-hint"></span>
       </div>
       <div class="order-ref-body">
@@ -1118,8 +1153,10 @@ window.GameManager = class GameManager {
     });
 
     document.getElementById('btn-apply-frosting').addEventListener('click', () => {
+      this.markGuideSeen('decorate_frosting');
       this.decoration.applyFrosting();
       this.renderDecorateCakeCanvas();
+      document.getElementById('btn-apply-frosting')?.classList.remove('coach-glow');
     });
 
     document.getElementById('btn-deco-undo').addEventListener('click', () => {
@@ -1227,18 +1264,23 @@ window.GameManager = class GameManager {
       });
     });
 
-    // Ingredients Tray (respects Ingredient Pantry early unlock)
+    // Ingredients Tray (respects Ingredient Pantry early unlock + first-time coach mark)
     const required = this.baking.getRequiredList();
     const tray = document.getElementById('prep-ingredients-tray');
+    const needIngCoach = !(this.state.guidesSeen && this.state.guidesSeen.prep_ingredient) && s.selectedCakeType && s.selectedBatter;
+    let firstCoachPlaced = false;
     tray.innerHTML = window.SDData.INGREDIENTS.filter(i => this.economy.isIngredientUnlocked(i)).map(ing => {
       const stock = this.economy.getStock(ing.id);
       const isAdded = s.addedIngredients.includes(ing.id);
       const isNeeded = required.includes(ing.id) && !isAdded;
+      const showHand = needIngCoach && isNeeded && !firstCoachPlaced;
+      if (showHand) firstCoachPlaced = true;
       return `
-        <div class="ing-tile ${isAdded ? 'added' : ''} ${isNeeded ? 'needed' : ''}" data-ing="${ing.id}">
+        <div class="ing-tile ${isAdded ? 'added' : ''} ${isNeeded ? 'needed' : ''} ${showHand ? 'coach-glow' : ''}" data-ing="${ing.id}" title="Chạm hoặc kéo ${ing.name} vào tô">
           <span class="ing-stock">×${stock}</span>
           ${window.SDRenderer.renderIngredient(ing.id, 44)}
           <span>${ing.name}</span>
+          ${showHand && window.SDIcons ? `<span class="coach-hand">${window.SDIcons.icon('hand_guide', 20)}</span>` : ''}
         </div>
       `;
     }).join('');
@@ -1265,26 +1307,30 @@ window.GameManager = class GameManager {
 
     const hint = document.getElementById('bowl-hint');
     if (!s.selectedCakeType || !s.selectedBatter) {
-      hint.textContent = 'Bước 1: Chọn Loại bánh & Cốt bánh ở trên!';
+      hint.textContent = 'Chọn Bánh & Cốt ở trên';
     } else if (!this.baking.areAllIngredientsAdded()) {
       const missing = req.filter(id => !s.addedIngredients.includes(id))
         .map(id => window.SDData.INGREDIENTS.find(i => i.id === id)?.name).join(', ');
-      hint.textContent = `Cần thêm: ${missing}`;
+      hint.textContent = `Thiếu: ${missing}`;
     } else if (s.mixProgress >= 60 && s.mixProgress <= 98) {
-      hint.textContent = '✨ Hỗn hợp bột đã mịn hoàn hảo! Có thể Đem Đi Nướng!';
+      hint.textContent = 'Mịn hoàn hảo!';
     } else {
-      hint.textContent = 'Đủ nguyên liệu rồi! Nhấn giữ nút TRỘN BỘT nhé!';
+      hint.textContent = 'Nhấn giữ Trộn Bột';
     }
 
     const p = s.mixProgress;
+    if (p >= 50) this.markGuideSeen('prep_whisk');
+    const needWhiskCoach = this.baking.areAllIngredientsAdded() && p < 50 && !(this.state.guidesSeen && this.state.guidesSeen.prep_whisk);
+    document.getElementById('btn-whisk')?.classList.toggle('coach-glow', needWhiskCoach);
+
     document.getElementById('mix-meter-fill').style.width = `${Math.min(100, (p / 120) * 100)}%`;
     const statusTxt = !this.baking.areAllIngredientsAdded()
-      ? 'Chưa đủ nguyên liệu'
+      ? `${s.addedIngredients.length}/${req.length} nguyên liệu`
       : p < 60
-        ? `Đang trộn (${Math.round(p)}%)`
+        ? `${Math.round(p)}%`
         : p <= 98
-          ? '✨ Mịn hoàn hảo!'
-          : '⚠️ Hơi quá tay!';
+          ? 'Hoàn hảo!'
+          : 'Quá tay!';
     document.getElementById('mix-status-text').textContent = statusTxt;
     document.getElementById('btn-to-oven').disabled = !this.baking.canProceedToOven();
   }
@@ -1342,8 +1388,10 @@ window.GameManager = class GameManager {
     }
     const dragCard = document.getElementById('oven-batter-drag-card');
     if (dragCard) {
+      const showPourCoach = !s.batterPoured && !(this.state.guidesSeen && this.state.guidesSeen.oven_pour);
       dragCard.classList.toggle('poured', !!s.batterPoured);
-      document.getElementById('oven-batter-label').textContent = s.batterPoured ? 'Đã đổ bột vào khay' : 'Kéo bột thả vào khay';
+      dragCard.classList.toggle('coach-glow', showPourCoach);
+      document.getElementById('oven-batter-label').textContent = s.batterPoured ? 'Đã đổ bột' : 'Đổ vào khay';
     }
 
     const targetCake = this.recipes.getCakeType(s.selectedCakeType);
@@ -1399,6 +1447,9 @@ window.GameManager = class GameManager {
   // --------------------------------------------------------------------------
   renderDecorateStage() {
     const tool = this.decoration.activeTool;
+    const cs = this.decoration.cakeState;
+    const needFrostCoach = cs && !cs.frostingApplied && !(this.state.guidesSeen && this.state.guidesSeen.decorate_frosting);
+    document.getElementById('btn-apply-frosting')?.classList.toggle('coach-glow', Boolean(needFrostCoach));
 
     // Frosting Swatches
     const frostWrap = document.getElementById('deco-frosting-colors');
@@ -1714,8 +1765,9 @@ window.GameManager = class GameManager {
             this.showToast(res.reason, 'error');
           } else {
             this.audio.playPourBatter();
+            this.markGuideSeen('oven_pour');
             if (this.ovenCanvas) this.ovenCanvas.triggerPourAnimation();
-            this.showToast('Đã đổ bột vào khay bánh!', 'success');
+            this.showToast('Đã đổ bột vào khay!', 'success');
             this.renderOvenStage();
           }
         }
@@ -1731,6 +1783,7 @@ window.GameManager = class GameManager {
             bowl.classList.add('shake');
             setTimeout(() => bowl.classList.remove('shake'), 380);
           } else {
+            this.markGuideSeen('prep_ingredient');
             this._playIngredientAnimAndSound(ds.id);
             this.renderPrepStage();
             if (this.activeTab === 'inventory') this.renderInventoryTab();
@@ -1968,39 +2021,36 @@ window.GameManager = class GameManager {
       return;
     }
 
+    const ico = (n, sz = 14) => (window.SDIcons ? window.SDIcons.icon(n, sz) : '');
     grid.innerHTML = this.orders.activeOrders.map(order => {
       const slot = this.customers.getSlotByOrderId(order.orderId);
       const cust = window.SDData.CUSTOMERS.find(c => c.id === order.customerId);
       const cake = this.recipes.getCakeType(order.cakeType);
-      const batter = this.recipes.getBatter(order.batter);
-      const frost = window.SDData.FROSTING_COLORS.find(f => f.id === order.frostingColor);
-      const top = window.SDData.TOPPINGS.find(t => t.id === order.topping);
-      const acc = window.SDData.ACCESSORIES.find(a => a.id === order.accessory);
-      const box = window.SDData.BOX_COLORS.find(b => b.id === order.boxColor);
       const st = this._getOrderStatus(order);
 
       const timerInfoText = order.accepted
-        ? `🍰 Thực hiện: <b>${Math.max(0, Math.floor(order.execElapsed || 0))}s / ${order.targetDuration || 65}s</b>`
-        : `⏳ Chờ nhận: <b>${slot ? Math.ceil(slot.patience) : 0}s</b>`;
+        ? `${ico('clock', 13)} <b>${Math.max(0, Math.floor(order.execElapsed || 0))}s / ${order.targetDuration || 65}s</b>`
+        : `${ico('clock', 13)} <b>${slot ? Math.ceil(slot.patience) : 0}s</b>`;
 
       return `
         <div class="info-card ${order.isSpecial ? 'special-order' : ''}">
           <div class="info-card-top">
-            ${window.SDRenderer.renderCake(order.targetPreview, 84)}
-            <div>
+            ${window.SDRenderer.renderCake(order.targetPreview, 86)}
+            <div style="flex:1;min-width:0;">
               <span class="status-pill ${st.key}">${st.label}</span>
-              <h4><img src="${window.SDRenderer.getCakeAssetPath(order.cakeType, order.batter, order.frostingColor)}" class="order-cake-badge" alt="" /> ${order.isSpecial ? order.specialBadge : `Đơn ${order.orderNumber}`}</h4>
-              <p>Khách: <b>${cust ? cust.name : ''}</b> • ${timerInfoText}</p>
+              <h4><img src="${window.SDRenderer.getCakeAssetPath(order.cakeType)}" class="order-cake-badge" alt="" /> ${cake.name} ×${order.quantity}</h4>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                ${cust ? window.SDRenderer.renderCharacter(cust, slot ? slot.mood : 'happy', { width: 32, height: 38 }) : ''}
+                <span style="font-size:0.8rem;font-weight:700;">${cust ? cust.name : ''}</span>
+                <span style="font-size:0.78rem;margin-left:auto;">${timerInfoText}</span>
+              </div>
             </div>
           </div>
-          <p><b>Bánh:</b> ${cake.name} ×${order.quantity} • <b>Cốt:</b> ${batter.name}</p>
-          <p><b>Trang trí:</b> ${frost ? frost.name : ''}, ${order.toppingCount} ${top ? top.name : ''}${acc ? `, ${order.accCount} ${acc.name}` : ''}</p>
-          <p><b>Đóng gói:</b> ${box ? box.name : ''}</p>
           <div style="display:flex;gap:6px;margin-top:4px;">
-            <button class="btn btn-soft btn-xs btn-inspect-tab" data-order="${order.orderId}">🔍 Xem Yêu Cầu</button>
+            <button class="btn btn-soft btn-xs btn-inspect-tab" data-order="${order.orderId}" title="Xem chi tiết đơn">${ico('inspect', 14)} Chi Tiết</button>
             ${st.key === 'ready'
-              ? `<button class="btn btn-mint btn-xs btn-deliver-tab" data-order="${order.orderId}">🎁 Giao Ngay</button>`
-              : `<button class="btn btn-primary btn-xs btn-go-bake-tab" data-order="${order.orderId}">${st.key === 'baking' ? '▶ Tiếp Tục Làm' : '👩‍🍳 Làm Đơn Này'}</button>`
+              ? `<button class="btn btn-mint btn-xs btn-deliver-tab" data-order="${order.orderId}">${ico('gift_box', 14)} Giao Bánh</button>`
+              : `<button class="btn btn-primary btn-xs btn-go-bake-tab" data-order="${order.orderId}">${ico('chef_hat', 14)} ${st.key === 'baking' ? 'Tiếp Tục' : 'Làm Bánh'}</button>`
             }
           </div>
         </div>

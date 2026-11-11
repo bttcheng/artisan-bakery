@@ -62,6 +62,13 @@ window.SaveManager = class SaveManager {
         musicEnabled: true,
         volume: 0.55
       },
+      guidesSeen: {
+        accept_order: false,
+        prep_ingredient: false,
+        prep_whisk: false,
+        oven_pour: false,
+        decorate_frosting: false
+      },
       tutorialSeen: false
     };
   }
@@ -97,6 +104,7 @@ window.SaveManager = class SaveManager {
         upgrades: { ...def.upgrades, ...(parsed.upgrades || {}) },
         stats: { ...def.stats, ...(parsed.stats || {}) },
         settings: { ...def.settings, ...(parsed.settings || {}) },
+        guidesSeen: { ...def.guidesSeen, ...(parsed.guidesSeen || {}) },
         collection: parsed.collection || {},
         decorationsOwned: ownedDecors,
         equippedDecors: equipped,

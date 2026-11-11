@@ -16,16 +16,11 @@
   <!-- ======================================================================= -->
   <section id="screen-intro" class="screen active">
     <div class="intro-card pastel-card">
-      <div class="bunting-deco">🎀 🌸 ⭐ 🧁 💖 🍰 ⭐ 🌸 🎀</div>
       <div class="intro-illustration" id="intro-hero-art"></div>
       <h1 class="game-title">SWEET DREAMS</h1>
-      <p class="game-subtitle">Tiệm Bánh Ngọt Pastel</p>
-      <p class="intro-desc">
-        Hóa thân thành chủ tiệm bánh đáng yêu! Tiếp nhận đơn hàng, tự tay cân đong nguyên liệu,
-        trộn bột, canh lò nướng, bắt kem trang trí, đóng gói hộp nơ xinh và chinh phục trái tim thực khách.
-      </p>
+      <p class="game-subtitle">2D Bakery Simulation</p>
       <button id="btn-go-start" class="btn btn-primary btn-lg pulse-btn">
-        ✨ Bước Vào Tiệm Bánh ✨
+        <span data-sd-ico="nav_bakery" data-sd-size="22"></span> Bước Vào Tiệm Bánh
       </button>
     </div>
   </section>
@@ -35,18 +30,17 @@
   <!-- ======================================================================= -->
   <section id="screen-start" class="screen">
     <div class="start-card pastel-card">
-      <div class="logo-badge">🧁 SWEET DREAMS</div>
-      <h2>Chào mừng đến với Tiệm Bánh Ngọt!</h2>
+      <div class="logo-badge"><span data-sd-ico="cupcake_logo" data-sd-size="22"></span> SWEET DREAMS</div>
       <div id="save-summary-box" class="save-summary hidden"></div>
       <div class="start-actions">
         <button id="btn-continue-game" class="btn btn-primary btn-lg hidden">
-          ▶ Tiếp Tục Kinh Doanh
+          ▶ Tiếp Tục Chơi
         </button>
         <button id="btn-new-game" class="btn btn-mint btn-lg">
-          🌟 Mở Tiệm Mới
+          <span data-sd-ico="nav_bakery" data-sd-size="20"></span> Mở Tiệm Mới
         </button>
         <button id="btn-open-tutorial" class="btn btn-lavender btn-md">
-          📖 Hướng Dẫn Chơi
+          <span data-sd-ico="nav_collection" data-sd-size="18"></span> Cách Chơi
         </button>
       </div>
     </div>
@@ -96,34 +90,34 @@
     <!-- TOP HUD BAR -->
     <header class="top-hud">
       <div class="hud-left">
-        <div class="hud-logo">🧁 SWEET DREAMS</div>
-        <div class="hud-pill day-pill" title="Ngày hiện tại">
-          <span>☀️</span> <b id="hud-day">Ngày 1</b>
+        <div class="hud-logo"><span data-sd-ico="cupcake_logo" data-sd-size="20"></span> SWEET DREAMS</div>
+        <div class="hud-pill day-pill" title="Ngày hiện tại & Giờ mở cửa">
+          <span data-sd-ico="sun_day" data-sd-size="18"></span> <b id="hud-day">Ngày 1</b>
           <span class="day-clock" id="hud-clock">08:00</span>
         </div>
-        <div class="hud-pill level-pill" title="Cấp độ tiệm">
-          <span>⭐</span> <b id="hud-level">Cấp 1</b>
+        <div class="hud-pill level-pill" title="Cấp độ tiệm bánh">
+          <span data-sd-ico="star_level" data-sd-size="18"></span> <b id="hud-level">Cấp 1</b>
           <div class="xp-mini-bar"><div id="hud-xp-fill" class="xp-mini-fill"></div></div>
         </div>
       </div>
 
       <div class="hud-center">
-        <div class="hud-pill coin-pill" id="hud-coin-box">
-          <span>🪙</span> <b id="hud-coins">150</b> <small>xu</small>
+        <div class="hud-pill coin-pill" id="hud-coin-box" title="Số xu hiện có">
+          <span data-sd-ico="coin" data-sd-size="18"></span> <b id="hud-coins">150</b>
         </div>
         <div class="hud-pill served-pill" title="Tổng khách đã phục vụ">
-          <span>😊</span> <b id="hud-served">0</b> <small>khách</small>
+          <span data-sd-ico="smile_served" data-sd-size="18"></span> <b id="hud-served">0</b>
         </div>
-        <div class="hud-pill rep-pill" title="Điểm danh tiếng">
-          <span>💖</span> <b id="hud-rep">10</b> <small>danh tiếng</small>
+        <div class="hud-pill rep-pill" title="Điểm danh tiếng tiệm bánh">
+          <span data-sd-ico="heart_rep" data-sd-size="18"></span> <b id="hud-rep">10</b>
         </div>
       </div>
 
       <div class="hud-right">
-        <button id="btn-end-day" class="btn btn-butter btn-sm" title="Kết thúc ngày sớm">🌙 Kết Ngày</button>
-        <button id="btn-sound-quick" class="btn btn-icon" title="Bật/Tắt âm thanh">🔊</button>
-        <button id="btn-pause" class="btn btn-icon" title="Tạm dừng">⏸️</button>
-        <button id="btn-settings" class="btn btn-icon" title="Cài đặt">⚙️</button>
+        <button id="btn-end-day" class="btn btn-butter btn-sm" title="Kết thúc ngày sớm"><span data-sd-ico="moon_endday" data-sd-size="16"></span> Kết Ngày</button>
+        <button id="btn-sound-quick" class="btn btn-icon" title="Bật/Tắt âm thanh"><span data-sd-ico="sound_on" data-sd-size="18"></span></button>
+        <button id="btn-pause" class="btn btn-icon" title="Tạm dừng"><span data-sd-ico="pause" data-sd-size="18"></span></button>
+        <button id="btn-settings" class="btn btn-icon" title="Cài đặt"><span data-sd-ico="settings" data-sd-size="18"></span></button>
       </div>
     </header>
 
@@ -177,19 +171,29 @@
               <div id="scene-wall-art" class="scene-wall-art hidden" title="Bộ tranh bánh ngọt">🖼️ 🧁 🍰</div>
             </div>
 
-            <!-- Kitchen Preview Corner (Clickable live zones!) -->
+            <!-- Kitchen Preview Corner (Visual 2D Icon Stations!) -->
             <div class="kitchen-strip">
-              <div class="kitchen-station clickable-station" data-station="inventory" data-hint="Bàn nguyên liệu">🥣 Nguyên liệu</div>
-              <div class="kitchen-station clickable-station" data-station="prep" data-hint="Khu trộn bột">
-                <span id="scene-mixer-badge">🥄 Phới trộn</span>
+              <div class="kitchen-station clickable-station" data-station="inventory" title="Mở Kho Nguyên Liệu">
+                <span data-sd-ico="nav_inventory" data-sd-size="22"></span>
+                <span>Kho</span>
               </div>
-              <div class="kitchen-station oven-mini clickable-station" data-station="bake" data-hint="Lò nướng bánh">
+              <div class="kitchen-station clickable-station" data-station="prep" title="Khu Trộn Bột">
+                <span data-sd-ico="whisk" data-sd-size="22"></span>
+                <span id="scene-mixer-badge">Trộn</span>
+              </div>
+              <div class="kitchen-station oven-mini clickable-station" data-station="bake" title="Lò Nướng Bánh">
                 <div class="oven-glow-mini"></div>
-                <div class="steam-puff">💨</div>
-                <span id="scene-oven-badge">🔥 Lò nướng</span>
+                <span data-sd-ico="oven_flame" data-sd-size="22"></span>
+                <span id="scene-oven-badge">Lò</span>
               </div>
-              <div class="kitchen-station clickable-station" data-station="decorate" data-hint="Bàn trang trí">🎨 Trang trí</div>
-              <div class="kitchen-station clickable-station" data-station="package" data-hint="Đóng gói">🎁 Đóng gói</div>
+              <div class="kitchen-station clickable-station" data-station="decorate" title="Bàn Trang Trí">
+                <span data-sd-ico="piping_bag" data-sd-size="22"></span>
+                <span>Kem</span>
+              </div>
+              <div class="kitchen-station clickable-station" data-station="package" title="Bàn Đóng Gói">
+                <span data-sd-ico="gift_box" data-sd-size="22"></span>
+                <span>Gói</span>
+              </div>
             </div>
           </div>
 
@@ -198,21 +202,21 @@
             <!-- Display Case -->
             <div class="zone-display" id="scene-display">
               <div class="display-header-row">
-                <div class="display-title">🧁 Tủ Trưng Bày</div>
+                <div class="display-title"><span data-sd-ico="cupcake_logo" data-sd-size="16"></span> Tủ Bánh</div>
                 <button id="btn-display-group" class="btn-display-group" title="Đổi nhóm bánh trưng bày">Tất cả ▾</button>
               </div>
               <div class="display-cakes" id="display-cakes-row"></div>
             </div>
 
-            <!-- Customer Counter & 4 Slots -->
+            <!-- Customer Counter & Seated Area -->
             <div class="zone-customers">
               <div class="counter-header">
-                <span>🛎️ Quầy Tiếp Nhận &amp; Bàn Chờ (Tối đa <b id="max-cust-label">2</b> khách) <span id="outside-queue-pill" class="outside-queue-pill hidden">🚪 Đang có khách chờ ngoài cửa</span></span>
-                <button id="btn-call-customer" class="btn btn-soft btn-xs">🔔 Đón Khách Ngay</button>
+                <span><span data-sd-ico="bell_call" data-sd-size="16"></span> Quầy (<b id="max-cust-label">2</b> chỗ) <span id="outside-queue-pill" class="outside-queue-pill hidden">Khách đang đợi ngoài cửa</span></span>
+                <button id="btn-call-customer" class="btn btn-soft btn-xs" title="Mời thêm khách vào tiệm"><span data-sd-ico="bell_call" data-sd-size="14"></span> Đón Khách</button>
               </div>
               <div id="customer-slots-grid" class="customer-slots-grid"></div>
               <div id="cozy-seating-bar" class="cozy-seating-bar">
-                <span>🪑 Ghế chờ tiêu chuẩn</span>
+                <span>Bàn chờ sẵn sàng</span>
               </div>
             </div>
           </div>
@@ -226,13 +230,10 @@
       <div id="tab-orders" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header row-between">
-            <div>
-              <h2>📋 Quản Lý Đơn Hàng</h2>
-              <p>Theo dõi trạng thái đơn đang chờ, đang chế biến và lịch sử đơn hàng đã giao.</p>
-            </div>
+            <h2><span data-sd-ico="nav_orders" data-sd-size="22"></span> Đơn Hàng</h2>
             <div class="subtab-pills" id="orders-filter-pills">
-              <button class="subtab-btn active" data-order-view="active">🧁 Đơn Hiện Tại</button>
-              <button class="subtab-btn" data-order-view="history">📜 Lịch Sử Đã Giao</button>
+              <button class="subtab-btn active" data-order-view="active">Hiện Tại</button>
+              <button class="subtab-btn" data-order-view="history">Lịch Sử</button>
             </div>
           </div>
           <div id="orders-list-grid" class="cards-grid"></div>
@@ -243,24 +244,21 @@
       <div id="tab-collection" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header row-between">
-            <div>
-              <h2>📖 Bộ Sưu Tập Bánh Sweet Dreams</h2>
-              <p>Khám phá 38 loại bánh theo 6 nhóm, công thức tương ứng, cấp độ mở khóa và lịch sử bánh bạn đã làm.</p>
-            </div>
+            <h2><span data-sd-ico="nav_collection" data-sd-size="22"></span> Bộ Sưu Tập Bánh</h2>
             <div class="subtab-pills">
-              <button class="subtab-btn active" data-subtab="recipes">🍰 38 Loại Bánh</button>
-              <button class="subtab-btn" data-subtab="styles">🎨 Kiểu Trang Trí</button>
-              <button class="subtab-btn" data-subtab="album">📸 Bánh Đã Làm</button>
+              <button class="subtab-btn active" data-subtab="recipes">38 Loại Bánh</button>
+              <button class="subtab-btn" data-subtab="styles">Kiểu Mẫu</button>
+              <button class="subtab-btn" data-subtab="album">Đã Làm</button>
             </div>
           </div>
-          <div id="recipe-category-bar" class="chip-row" style="margin-bottom:12px;">
+          <div id="recipe-category-bar" class="chip-row" style="margin-bottom:10px;">
             <button class="chip-btn active" data-rcat="all">Tất cả (38)</button>
-            <button class="chip-btn" data-rcat="cakes">Bánh kem (8)</button>
-            <button class="chip-btn" data-rcat="cupcake_muffin">Cupcake &amp; Muffin (6)</button>
-            <button class="chip-btn" data-rcat="donut">Donut (6)</button>
-            <button class="chip-btn" data-rcat="cookie">Bánh quy (6)</button>
-            <button class="chip-btn" data-rcat="pastry">Bánh ngọt (6)</button>
-            <button class="chip-btn" data-rcat="dessert">Món tráng miệng (6)</button>
+            <button class="chip-btn" data-rcat="cakes">Bánh kem</button>
+            <button class="chip-btn" data-rcat="cupcake_muffin">Cupcake &amp; Muffin</button>
+            <button class="chip-btn" data-rcat="donut">Donut</button>
+            <button class="chip-btn" data-rcat="cookie">Bánh quy</button>
+            <button class="chip-btn" data-rcat="pastry">Bánh ngọt</button>
+            <button class="chip-btn" data-rcat="dessert">Tráng miệng</button>
           </div>
           <div id="collection-content" class="cards-grid"></div>
         </div>
@@ -270,11 +268,8 @@
       <div id="tab-inventory" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header row-between">
-            <div>
-              <h2>🧺 Kho Nguyên Liệu</h2>
-              <p>Mua thêm nguyên liệu để luôn sẵn sàng phục vụ mọi đơn hàng!</p>
-            </div>
-            <button id="btn-emergency-gift" class="btn btn-butter btn-sm hidden">🎁 Nhận Quà Hỗ Trợ (+60 xu &amp; Bột)</button>
+            <h2><span data-sd-ico="nav_inventory" data-sd-size="22"></span> Kho Nguyên Liệu</h2>
+            <button id="btn-emergency-gift" class="btn btn-butter btn-sm hidden"><span data-sd-ico="gift_box" data-sd-size="16"></span> Quà Hỗ Trợ (+60 xu)</button>
           </div>
           <div id="inventory-order-alerts" class="inventory-alerts hidden"></div>
           <div id="inventory-grid" class="cards-grid"></div>
@@ -285,8 +280,7 @@
       <div id="tab-decor" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header">
-            <h2>🎀 Trang Trí Tiệm Bánh</h2>
-            <p>Vật phẩm bạn mua sẽ xuất hiện trực tiếp trong tiệm, tăng tiền tip và sự kiên nhẫn của khách!</p>
+            <h2><span data-sd-ico="nav_decor" data-sd-size="22"></span> Trang Trí Tiệm</h2>
           </div>
           <div id="decor-shop-grid" class="cards-grid"></div>
         </div>
@@ -296,8 +290,7 @@
       <div id="tab-upgrades" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header">
-            <h2>🛠️ Nâng Cấp Thiết Bị Bếp</h2>
-            <p>Nâng cấp lò nướng, máy đánh trứng, bàn trang trí và kệ bánh để làm việc nhanh &amp; chuẩn hơn.</p>
+            <h2><span data-sd-ico="nav_upgrades" data-sd-size="22"></span> Nâng Cấp Bếp</h2>
           </div>
           <div id="upgrades-grid" class="cards-grid"></div>
         </div>
@@ -307,12 +300,11 @@
       <div id="tab-achievements" class="tab-panel">
         <div class="panel-inner">
           <div class="panel-header">
-            <h2>🏆 Nhiệm Vụ &amp; Thành Tích</h2>
-            <p>Hoàn thành nhiệm vụ mỗi ngày và mở khóa danh hiệu chủ tiệm tài ba.</p>
+            <h2><span data-sd-ico="nav_achievements" data-sd-size="22"></span> Nhiệm Vụ &amp; Thành Tích</h2>
           </div>
-          <h3 class="section-subhead">📌 Nhiệm Vụ Hôm Nay</h3>
+          <h3 class="section-subhead">Nhiệm Vụ Hôm Nay</h3>
           <div id="quests-grid" class="cards-grid"></div>
-          <h3 class="section-subhead">🌟 Thành Tích Của Tiệm</h3>
+          <h3 class="section-subhead">Thành Tích Tiệm Bánh</h3>
           <div id="achievements-grid" class="cards-grid"></div>
         </div>
       </div>
@@ -323,16 +315,16 @@
       <div id="view-workshop" class="workshop-view hidden">
         <!-- Workshop Top Step Bar -->
         <div class="workshop-topbar">
-          <button id="btn-workshop-back" class="btn btn-soft btn-sm">← Quay Lại Tiệm</button>
+          <button id="btn-workshop-back" class="btn btn-soft btn-sm" title="Quay lại tiệm">← Tiệm</button>
           <div class="step-progress">
-            <div class="step-item active" data-step="prep">1. Chuẩn bị &amp; Trộn</div>
-            <div class="step-item" data-step="bake">2. Nướng bánh</div>
-            <div class="step-item" data-step="decorate">3. Trang trí</div>
-            <div class="step-item" data-step="package">4. Đóng gói</div>
+            <div class="step-item active" data-step="prep"><span data-sd-ico="whisk" data-sd-size="14"></span> 1. Trộn</div>
+            <div class="step-item" data-step="bake"><span data-sd-ico="oven_flame" data-sd-size="14"></span> 2. Nướng</div>
+            <div class="step-item" data-step="decorate"><span data-sd-ico="piping_bag" data-sd-size="14"></span> 3. Kem</div>
+            <div class="step-item" data-step="package"><span data-sd-ico="gift_box" data-sd-size="14"></span> 4. Gói</div>
           </div>
           <div class="workshop-topbar-right">
-            <div class="workshop-timer-badge" id="ws-timer-badge">⏱️ 0s / Mục tiêu 60s</div>
-            <div class="workshop-order-badge" id="ws-order-badge">Đơn #001</div>
+            <div class="workshop-timer-badge" id="ws-timer-badge">0s / 60s</div>
+            <div class="workshop-order-badge" id="ws-order-badge">#001</div>
           </div>
         </div>
 
@@ -343,26 +335,26 @@
             <div id="stage-prep" class="ws-stage active">
               <div class="prep-selectors">
                 <div class="selector-group">
-                  <label>1. Chọn Loại Bánh:</label>
+                  <label>Loại Bánh</label>
                   <div id="prep-cake-types" class="chip-row"></div>
                 </div>
                 <div class="selector-group">
-                  <label>2. Chọn Cốt Bánh (Hương vị):</label>
+                  <label>Cốt Bánh</label>
                   <div id="prep-batters" class="chip-row"></div>
                 </div>
               </div>
 
               <div class="mixing-center">
-                <div id="mixing-bowl-zone" class="mixing-bowl-zone" title="Kéo thả hoặc nhấn nguyên liệu để cho vào tô">
+                <div id="mixing-bowl-zone" class="mixing-bowl-zone" title="Kéo thả hoặc chạm nguyên liệu vào tô">
                   <canvas id="mixing-canvas" class="mixing-canvas" width="340" height="240"></canvas>
-                  <div class="bowl-hint" id="bowl-hint">Kéo thả hoặc chạm nguyên liệu vào tô!</div>
+                  <div class="bowl-hint" id="bowl-hint"></div>
                 </div>
 
                 <div class="mixing-controls">
                   <div class="mix-meter-wrap">
                     <div class="mix-meter-label">
-                      <span>Tiến độ trộn bột</span>
-                      <b id="mix-status-text">Chưa đủ nguyên liệu</b>
+                      <span>Độ mịn</span>
+                      <b id="mix-status-text">Chờ bột</b>
                     </div>
                     <div class="mix-meter-bar">
                       <div class="mix-sweet-zone" title="Vùng mịn hoàn hảo"></div>
@@ -370,14 +362,13 @@
                     </div>
                   </div>
                   <div class="mix-btn-row">
-                    <button id="btn-whisk" class="btn btn-butter btn-lg">🥣 TRỘN BỘT (Nhấn / Giữ)</button>
-                    <button id="btn-to-oven" class="btn btn-primary btn-lg" disabled>🔥 Đem Đi Nướng →</button>
+                    <button id="btn-whisk" class="btn btn-butter btn-lg" title="Nhấn giữ để khuấy trộn bột"><span data-sd-ico="whisk" data-sd-size="18"></span> Trộn Bột</button>
+                    <button id="btn-to-oven" class="btn btn-primary btn-lg" disabled title="Chuyển sang lò nướng"><span data-sd-ico="oven_flame" data-sd-size="18"></span> Nướng →</button>
                   </div>
                 </div>
               </div>
 
               <div class="tray-box">
-                <div class="tray-title">🧺 Nguyên liệu (Kéo thả vào tô hoặc chạm để thêm nhanh):</div>
                 <div id="prep-ingredients-tray" class="ingredients-tray"></div>
               </div>
             </div>
@@ -385,23 +376,22 @@
             <!-- STAGE 2: OVEN BAKING (2D Cooking Simulation) -->
             <div id="stage-bake" class="ws-stage">
               <div class="oven-layout">
-                <!-- Left Area: Illustrated Mold Cards + Draggable Batter Bowl + Rotary Temp Knob -->
                 <div class="oven-setup">
                   <div class="setup-box">
-                    <h4>1. Chọn Khuôn Bánh</h4>
+                    <h4>Khuôn Bánh</h4>
                     <div id="oven-mold-list" class="mold-cards-grid"></div>
                   </div>
 
                   <div class="setup-box batter-source-box">
-                    <h4>2. Kéo Bột Vào Khay</h4>
-                    <div id="oven-batter-drag-card" class="batter-drag-card" title="Kéo tô bột thả vào khay nướng hoặc chạm để đổ bột">
+                    <h4>Bột Bánh</h4>
+                    <div id="oven-batter-drag-card" class="batter-drag-card" title="Kéo thả hoặc chạm để đổ bột vào khay">
                       <canvas id="oven-batter-canvas" width="110" height="84"></canvas>
-                      <span id="oven-batter-label">Kéo thả vào khay</span>
+                      <span id="oven-batter-label">Đổ vào khay</span>
                     </div>
                   </div>
 
                   <div class="setup-box temp-dial-box">
-                    <h4>3. Núm Nhiệt Độ: <b id="oven-cur-temp" class="temp-num-badge">180°C</b></h4>
+                    <h4>Nhiệt Độ <b id="oven-cur-temp" class="temp-num-badge">180°C</b></h4>
                     <div class="temp-dial-row">
                       <canvas id="oven-temp-knob" class="temp-knob-canvas" width="136" height="136" title="Xoay hoặc chạm để chỉnh nhiệt độ"></canvas>
                       <div id="oven-temp-list" class="temp-quick-dots">
@@ -416,11 +406,10 @@
                   </div>
                 </div>
 
-                <!-- Main Area: Large 2D Animated Oven Scene -->
                 <div class="oven-machine">
                   <div class="oven-top-panel">
-                    <span class="oven-dial">Thời gian: <b id="oven-timer-text">0.0s</b></span>
-                    <span class="oven-state-pill" id="oven-state-pill">Chờ đổ bột vào khay</span>
+                    <span class="oven-dial"><span data-sd-ico="clock" data-sd-size="14"></span> <b id="oven-timer-text">0.0s</b></span>
+                    <span class="oven-state-pill" id="oven-state-pill">Chờ đổ bột</span>
                   </div>
                   <div id="oven-canvas-wrap" class="oven-canvas-wrap">
                     <canvas id="oven-canvas" class="oven-canvas" width="560" height="380"></canvas>
@@ -428,17 +417,17 @@
                   <div class="oven-progress-wrap">
                     <div class="oven-zones-track">
                       <div class="zone-raw">Sống</div>
-                      <div class="zone-baking">Đang nở</div>
-                      <div class="zone-perfect">Chín Hoàn Hảo!</div>
+                      <div class="zone-baking">Nở</div>
+                      <div class="zone-perfect">Chín!</div>
                       <div class="zone-burnt">Cháy!</div>
                     </div>
                     <div class="oven-pointer" id="oven-pointer"></div>
                   </div>
                   <div class="oven-action-row">
-                    <button id="btn-start-oven" class="btn btn-primary btn-lg">Đưa Khay Vào Lò &amp; Nướng</button>
-                    <button id="btn-take-out" class="btn btn-butter btn-lg hidden">Lấy Khay Bánh Ra!</button>
-                    <button id="btn-retry-bake" class="btn btn-soft btn-md hidden">Nướng Lại Mẻ Khác</button>
-                    <button id="btn-to-decorate" class="btn btn-mint btn-lg hidden">Sang Bàn Trang Trí →</button>
+                    <button id="btn-start-oven" class="btn btn-primary btn-lg"><span data-sd-ico="oven_flame" data-sd-size="18"></span> Nướng Bánh</button>
+                    <button id="btn-take-out" class="btn btn-butter btn-lg hidden">Lấy Ra!</button>
+                    <button id="btn-retry-bake" class="btn btn-soft btn-md hidden">Nướng Lại</button>
+                    <button id="btn-to-decorate" class="btn btn-mint btn-lg hidden"><span data-sd-ico="piping_bag" data-sd-size="18"></span> Trang Trí →</button>
                   </div>
                 </div>
               </div>
@@ -449,47 +438,41 @@
               <div class="decorate-layout">
                 <div class="decorate-canvas-wrap">
                   <div class="decorate-toolbar">
-                    <button id="btn-deco-undo" class="btn btn-soft btn-sm">↩️ Hoàn Tác</button>
-                    <button id="btn-deco-clear" class="btn btn-soft btn-sm">🗑️ Xóa Trang Trí</button>
-                    <span class="deco-tip">💡 Mẹo: Chạm vào bánh để phủ kem / đặt topping, kéo topping trên bánh để dời vị trí!</span>
+                    <button id="btn-deco-undo" class="btn btn-soft btn-sm" title="Hoàn tác thao tác vừa rồi"><span data-sd-ico="undo" data-sd-size="15"></span> Hoàn Tác</button>
+                    <button id="btn-deco-clear" class="btn btn-soft btn-sm" title="Xóa hết trang trí"><span data-sd-ico="clear" data-sd-size="15"></span> Xóa</button>
                   </div>
-                  <div id="decorate-cake-canvas" class="decorate-cake-canvas"></div>
+                  <div id="decorate-cake-canvas" class="decorate-cake-canvas" title="Chạm hoặc kéo thả lên bánh"></div>
                   <div class="decorate-bottom-next">
-                    <button id="btn-to-package" class="btn btn-primary btn-lg">🎁 Chuyển Sang Đóng Gói →</button>
+                    <button id="btn-to-package" class="btn btn-primary btn-lg"><span data-sd-ico="gift_box" data-sd-size="18"></span> Đóng Gói →</button>
                   </div>
                 </div>
 
                 <div class="decorate-tools-panel">
                   <div class="deco-mode-tabs">
-                    <button class="deco-tab active" data-mode="frosting">🍦 Kem &amp; Vòi</button>
-                    <button class="deco-tab" data-mode="topping">🍓 Topping</button>
-                    <button class="deco-tab" data-mode="accessory">🕯️ Phụ Kiện</button>
+                    <button class="deco-tab active" data-mode="frosting" title="Chọn kem & vòi bắt kem"><span data-sd-ico="piping_bag" data-sd-size="15"></span> Kem</button>
+                    <button class="deco-tab" data-mode="topping" title="Kéo thả topping lên bánh"><span data-sd-ico="berry_topping" data-sd-size="15"></span> Topping</button>
+                    <button class="deco-tab" data-mode="accessory" title="Gắn phụ kiện trang trí"><span data-sd-ico="candle_acc" data-sd-size="15"></span> Phụ Kiện</button>
                   </div>
 
-                  <!-- Frosting Options -->
                   <div id="deco-pane-frosting" class="deco-pane active">
-                    <h4>Màu Kem Phủ:</h4>
+                    <h4>Màu Kem</h4>
                     <div id="deco-frosting-colors" class="swatch-grid"></div>
-                    <h4>Kiểu Vòi Bắt Kem:</h4>
+                    <h4>Kiểu Vòi</h4>
                     <div id="deco-nozzles" class="chip-row"></div>
-                    <button id="btn-apply-frosting" class="btn btn-primary btn-md" style="width:100%; margin-top:10px;">
-                      ✨ Phủ Kem Lên Bánh
+                    <button id="btn-apply-frosting" class="btn btn-primary btn-md" style="width:100%; margin-top:8px;">
+                      <span data-sd-ico="piping_bag" data-sd-size="16"></span> Phủ Kem
                     </button>
                   </div>
 
-                  <!-- Topping Options -->
                   <div id="deco-pane-topping" class="deco-pane">
-                    <h4>Kéo thả hoặc chạm để rắc lên bánh:</h4>
                     <div id="deco-toppings-grid" class="deco-items-grid"></div>
-                    <div id="deco-topping-counter" class="muted-hint" style="margin-top:8px;"></div>
+                    <div id="deco-topping-counter" class="muted-hint" style="margin-top:6px;"></div>
                   </div>
 
-                  <!-- Accessory Options -->
                   <div id="deco-pane-accessory" class="deco-pane">
-                    <h4>Chọn phụ kiện (chạm để gắn lên bánh):</h4>
                     <div id="deco-accessories-grid" class="deco-items-grid"></div>
                     <div id="sign-text-wrap" class="sign-input-wrap">
-                      <label>Chữ trên biển chúc mừng:</label>
+                      <label>Chữ biển</label>
                       <input type="text" id="deco-sign-input" value="Happy Birthday" maxlength="20" />
                     </div>
                   </div>
@@ -502,34 +485,34 @@
               <div class="package-layout">
                 <div class="package-preview-wrap">
                   <div class="pkg-step-pills" id="pkg-step-pills">
-                    <span class="pkg-pill active" data-pstep="1">1. Trải giấy &amp; Đặt bánh</span>
-                    <span class="pkg-pill" data-pstep="2">2. Gấp giấy &amp; Dán keo</span>
-                    <span class="pkg-pill" data-pstep="3">3. Quấn &amp; Thắt ruy băng</span>
-                    <span class="pkg-pill" data-pstep="5">4. Đóng nắp hộp</span>
+                    <span class="pkg-pill active" data-pstep="1">1. Đặt bánh</span>
+                    <span class="pkg-pill" data-pstep="2">2. Gấp giấy</span>
+                    <span class="pkg-pill" data-pstep="3">3. Buộc nơ</span>
+                    <span class="pkg-pill" data-pstep="5">4. Đóng nắp</span>
                   </div>
-                  <div id="pkg-step-hint" class="pkg-step-hint">Bước 1: Chọn màu giấy gói và kéo chiếc bánh vào giữa tờ giấy!</div>
+                  <div id="pkg-step-hint" class="pkg-step-hint">Kéo bánh vào giữa giấy gói!</div>
                   <div id="package-box-canvas" class="package-box-canvas"></div>
                   <div class="package-actions">
-                    <button id="btn-close-box" class="btn btn-butter btn-md hidden">Đóng Nắp Hộp Nhanh</button>
-                    <button id="btn-deliver-cake" class="btn btn-primary btn-lg" disabled>✅ HOÀN THÀNH &amp; GIAO BÁNH!</button>
+                    <button id="btn-close-box" class="btn btn-butter btn-md hidden">Đóng Nhanh</button>
+                    <button id="btn-deliver-cake" class="btn btn-primary btn-lg" disabled><span data-sd-ico="check_accept" data-sd-size="18"></span> Giao Bánh!</button>
                   </div>
                 </div>
 
                 <div class="package-options-panel">
                   <div class="pkg-group">
-                    <h4>1. Màu Giấy Gói / Hộp:</h4>
+                    <h4>Màu Hộp</h4>
                     <div id="pkg-box-colors" class="swatch-grid"></div>
                   </div>
                   <div class="pkg-group">
-                    <h4>2. Màu Dây Ruy Băng:</h4>
+                    <h4>Ruy Băng</h4>
                     <div id="pkg-ribbon-colors" class="swatch-grid"></div>
                   </div>
                   <div class="pkg-group">
-                    <h4>3. Thiệp Chúc Mừng:</h4>
+                    <h4>Thiệp</h4>
                     <div id="pkg-cards" class="chip-row"></div>
                   </div>
                   <div class="pkg-group">
-                    <h4>4. Sticker (Kéo thả trên hộp):</h4>
+                    <h4>Sticker</h4>
                     <div id="pkg-stickers" class="chip-row"></div>
                   </div>
                 </div>
@@ -543,15 +526,15 @@
       </div>
     </main>
 
-    <!-- BOTTOM NAVIGATION BAR -->
+    <!-- BOTTOM NAVIGATION BAR (Unified 2D Cartoon Vector Icons) -->
     <nav class="bottom-nav" id="bottom-nav">
-      <button class="nav-btn active" data-tab="bakery"><span>🏠</span><small>Tiệm bánh</small></button>
-      <button class="nav-btn" data-tab="orders"><span>📋</span><small>Đơn hàng</small><i class="nav-badge" id="badge-orders">0</i></button>
-      <button class="nav-btn" data-tab="collection"><span>📖</span><small>Bộ sưu tập</small></button>
-      <button class="nav-btn" data-tab="inventory"><span>🧺</span><small>Kho hàng</small></button>
-      <button class="nav-btn" data-tab="decor"><span>🎀</span><small>Trang trí tiệm</small></button>
-      <button class="nav-btn" data-tab="upgrades"><span>🛠️</span><small>Nâng cấp</small></button>
-      <button class="nav-btn" data-tab="achievements"><span>🏆</span><small>Thành tích</small></button>
+      <button class="nav-btn active" data-tab="bakery" title="Không gian tiệm bánh"><span class="nav-icon" data-sd-ico="nav_bakery" data-sd-size="22"></span><small>Tiệm</small></button>
+      <button class="nav-btn" data-tab="orders" title="Danh sách đơn hàng"><span class="nav-icon" data-sd-ico="nav_orders" data-sd-size="22"></span><small>Đơn</small><i class="nav-badge" id="badge-orders">0</i></button>
+      <button class="nav-btn" data-tab="collection" title="Bộ sưu tập 38 loại bánh"><span class="nav-icon" data-sd-ico="nav_collection" data-sd-size="22"></span><small>Bánh</small></button>
+      <button class="nav-btn" data-tab="inventory" title="Kho nguyên liệu"><span class="nav-icon" data-sd-ico="nav_inventory" data-sd-size="22"></span><small>Kho</small></button>
+      <button class="nav-btn" data-tab="decor" title="Trang trí không gian tiệm"><span class="nav-icon" data-sd-ico="nav_decor" data-sd-size="22"></span><small>Tiệm Xinh</small></button>
+      <button class="nav-btn" data-tab="upgrades" title="Nâng cấp thiết bị"><span class="nav-icon" data-sd-ico="nav_upgrades" data-sd-size="22"></span><small>Nâng Cấp</small></button>
+      <button class="nav-btn" data-tab="achievements" title="Nhiệm vụ & Thành tích"><span class="nav-icon" data-sd-ico="nav_achievements" data-sd-size="22"></span><small>Thành Tích</small></button>
     </nav>
   </section>
 
@@ -649,6 +632,7 @@
   <script defer src="js/decorationManager.js"></script>
   <script defer src="js/packageStage.js"></script>
   <script defer src="js/scoringManager.js"></script>
+  <script defer src="js/uiIcons.js"></script>
   <script defer src="game.js"></script>
 </body>
 </html>
